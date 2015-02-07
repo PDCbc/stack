@@ -1,0 +1,10 @@
+**/.DS_Store
+/.vagrant/
+/import/
+/endpoint/
+/hub/
+/query-composer/
+/endpoint/
+/query-gateway/
+/hubapi/
+/hapi/
