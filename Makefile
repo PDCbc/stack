@@ -44,25 +44,25 @@ run-endpoint:
 
 remove-endpoint:
 	docker stop endpoint-db || true
-	docker rm endpoint-db || true
 	docker stop endpoint || true
-	docker rm endpoint || true
+	docker rm -v endpoint-db || true
+	docker rm -v endpoint || true
 
 remove-hub:
 	docker stop hub-db || true
-	docker rm hub-db || true
 	docker stop hub || true
-	docker rm hub || true
+	docker rm -v hub-db || true
+	docker rm -v hub || true
 
 remove-visualizer:
 	docker stop visualizer-db || true
-	docker rm visualizer-db || true
 	docker stop visualizer || true
-	docker rm visualizer || true
+	docker rm -v visualizer-db || true
+	docker rm -v visualizer || true
 
 remove-hubapi:
 	docker stop hubapi || true
-	docker rm hubapi || true
+	docker rm -v hubapi || true
 
 
 ##############
