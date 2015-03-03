@@ -20,7 +20,7 @@ clean: docker rmi phydac/endpoint
 # Config=> # Change hubInf for your hub! <DOMAIN_NAME>:<IP_ADDRESS> # <= Config #
 ############
 run-hub:
-	docker run -d -t -i --name hub-db -h hub-db --restart='always' mongo
+	docker run -d -t -i --name hub-db -h hub-db --restart='always' -p 27019:27017 mongo
 	docker run -d -t -i --name hub -h hub-db --restart='always' -p 3002:3002 --link hub-db:database phydac/hub
 
 run-endpoint:
