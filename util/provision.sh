@@ -1,44 +1,61 @@
 #!/bin/bash
+#
+#
 
-# Partitioning
-parted /dev/sdb mklabel msdos
-parted /dev/sdb mkpart primary xfs 512 100%
-parted /dev/sdb set 1 lvm on
-vgextend vg_vagrant /dev/sdb1
-lvextend /dev/mapper/vg_vagrant-lv_root -L 100G
-resize2fs /dev/mapper/vg_vagrant-lv_root
+
+# Configure yum and add GPG key
+#
+yum update
+rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY*
+
 
 # Install Packages
-yum remove -y vim-minimal # Removed sudo :(
+#
+yum remove -y vim-minimal
 yum install -y sudo zsh vim-enhanced docker-io tmux cmake java-1.8.0-openjdk mongodb git unzip npm nano screen
 
-# Daemons
+
+# Configure and start docker daemon
+#
+groupadd docker
+gpasswd -a vagrant docker
 systemctl enable docker
 systemctl start docker
 
-# Add user to docker group.
-gpasswd -a vagrant docker
 
+# Make containers
+#
+cd /vagrant/
+make
+
+
+# Pass commands as vagrant user, not root
 su vagrant << EOF
-  # get the environtment repo
-  git clone https://github.com/PhyDac/scoop-env scoop-env
-  git clone https://github.com/PhyDaC/visualizer visualizer
-  git clone https://github.com/PhyDaC/hubapi hubapi
-  git clone https://github.com/scoophealth/query-gateway endpoint
-  git clone https://github.com/scoophealth/query-composer hub
+  # Add dockin() function to .bashrc
+  if(! grep --quiet 'function dockin()' /home/vagrant/.bashrc)
+  then
+    echo '' | tee -a /home/vagrant/.bashrc
+    echo '# Function to make nsenter easier' | tee -a /home/vagrant/.bashrc
+    echo 'function dockin()' | tee -a /home/vagrant/.bashrc
+    echo '{' | tee -a /home/vagrant/.bashrc
+    echo '  if [ \$# -eq 0 ]' | tee -a /home/vagrant/.bashrc
+    echo '  then' | tee -a /home/vagrant/.bashrc
+    echo '		echo "Please pass a docker container to enter"' | tee -a /home/vagrant/.bashrc
+    echo '		echo "Usage: dockin [containerToEnter]"' | tee -a /home/vagrant/.bashrc
+    echo '	else' | tee -a /home/vagrant/.bashrc
+    echo '		sudo nsenter --target \$(docker inspect --format {{.State.Pid}} \$1) --mount --uts --ipc --net --pid /bin/bash' | tee -a /home/vagrant/.bashrc
+    echo '	fi' | tee -a /home/vagrant/.bashrc
+    echo '}' | tee -a /home/vagrant/.bashrc
+    echo '' | tee -a /home/vagrant/.bashrc
+    echo "alias d='docker'" | tee -a /home/vagrant/.bashrc
+    echo "alias c='dockin'" | tee -a /home/vagrant/.bashrc
+  fi
 
-  # Copy scripts
-  cp /vagrant/util/startups/start-hubapi.sh /home/vagrant/hubapi/
-  cp /vagrant/util/startups/start-visualizer.sh /home/vagrant/visualizer/
-  cp /vagrant/util/startups/background-startups.sh /home/vagrant/
-
-  # Add to hosts file
-  echo '127.0.0.1         hubapi.scoop.local' | sudo tee -a /etc/hosts
-  echo '127.0.0.1         visualizer.scoop.local' | sudo tee -a /etc/hosts
-  echo '127.0.0.1         hub.scoop.local' | sudo tee -a /etc/hosts
-  echo '127.0.0.1         endpoint.scoop.local' | sudo tee -a /etc/hosts
+  # Start in /vagrant/, instead of /home/vagrant/
+  if(! grep --quiet 'cd /vagrant/' /home/vagrant/.bashrc)
+  then
+    echo '' | tee -a /home/vagrant/.bashrc
+    echo '# Start in /vagrant/, instead of /home/vagrant/' | tee -a /home/vagrant/.bashrc
+    echo 'cd /vagrant/' | tee -a /home/vagrant/.bashrc
+  fi
 EOF
-
-echo ''
-echo '`cd dotfiles && make` if you would like nicer configs.'
-echo ''
