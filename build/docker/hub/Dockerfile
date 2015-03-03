@@ -47,7 +47,7 @@ ADD scripts/hub.sh /etc/service/hub/run
 RUN chmod +x /etc/service/hub/run
 
 
-### Expose Port
+### Expose ports to incoming traffic
 #
 EXPOSE 3002
 

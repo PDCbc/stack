@@ -66,7 +66,7 @@ ADD scripts/endpoint.sh /etc/service/endpoint/run
 RUN chmod +x /etc/service/endpoint/run
 
 
-### Expose ports to incoming or outgoing traffic
+### Expose ports to incoming traffic
 #
 EXPOSE 3001
 
