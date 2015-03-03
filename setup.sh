@@ -2,7 +2,7 @@
 #
 # Exit on errors or unitialized variables
 #
-set -e -o nounset
+set -e
 
 
 # Build the Vagrant box
@@ -22,16 +22,19 @@ echo "Please accept/bypass SSL errors for localhost"
 echo ""
 echo "Press [Enter] when ready"
 read -s enterToContinue
+echo ""
 
 
 # Open the sign up page
 #
+sleep 2
 open https://localhost:3002/users/sign_up
 
 
 # Grant admin access
 #
 vagrant ssh -c '
+	clear
 	echo "Welcome back!"
 	echo ""
   echo "User name:"
@@ -57,13 +60,32 @@ open http://localhost:40002
 sleep 2
 
 
-# Clear the contents of ./endpoint/import! (Might change to delete)
+# Clone HubAPI and Visualier (or pull them)
 #
-mkdir -p ~/Desktop/pdc-env-import
-mv ./build/docker/endpoint/import/*.xml ~/Desktop/pdc-env-import || true
-mv ./build/docker/endpoint/import/*.zip ~/Desktop/pdc-env-import || true
+# NOT WRITTEN YET!
+
+
+# VAGRANT: Start HubAPI and Visualizer in the background
 #
+#vagrant ssh -c '
+#	cd /vagrant/local/
+#	./background-startups.sh
+#'
+
+
+# OS X: Start HubAPI and Visualizer in the background
+#
+cd local
+./background-startups.sh
+
+
+# Done!
+#
+clear
+echo ""
 echo "Done!"
 echo ""
-echo "Please be aware that any endpoint import files (*.zip, *.xml)"
-echo "have been moved to your desktop"
+
+
+# Post install
+# Endpoints load *.xml files with ./relay-thing.sh & lynx -accept_all_cookies http://localhost:3000/records/relay

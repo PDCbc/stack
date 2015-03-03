@@ -16,8 +16,8 @@ RUN sed -i -e "s/exit 101/exit 0/" /usr/sbin/policy-rc.d
 
 ### Install applications from repos
 #
-RUN apt-get update && \
-    apt-get --yes install ntp libxslt-dev libxml2-dev autossh lynx nmap
+RUN apt-get update; \
+    apt-get --yes install ntp libxslt-dev libxml2-dev lynx
 
 
 ### ENV and User
@@ -31,8 +31,8 @@ ENV HOME /home/app/
 WORKDIR /home/app
 RUN git clone https://github.com/scoophealth/query-composer hub
 WORKDIR /home/app/hub
-RUN bundle install --path vendor/bundle && \
-    mkdir -p /home/app/hub/tmp/pids && \
+RUN bundle install --path vendor/bundle; \
+    mkdir -p /home/app/hub/tmp/pids; \
     sed -i -e "s/localhost:27017/database:27017/" config/mongoid.yml
 
 
