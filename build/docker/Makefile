@@ -7,7 +7,7 @@ all: pull build run
 
 pull: pull-mongo pull-phusion
 
-build: build-endpoint build-hub
+build: build-hub build-endpoint
 
 run: run-hub run-endpoint-set
 
@@ -20,8 +20,8 @@ clean: docker rmi phydac/endpoint
 # Config=> # Change hubInf for your hub! <DOMAIN_NAME>:<IP_ADDRESS> # <= Config #
 ############
 run-hub:
-	docker run -d -t -i --name hub-db --restart='always' -p 27019:27017 mongo
-	docker run -d -t -i --name hub --restart='always' -p 3002:3002 -p 22222:22 --link hub-db:database phydac/hub
+	docker run -d -t -i --name hub-db -h hub-db --restart='always' mongo
+	docker run -d -t -i --name hub -h hub-db --restart='always' -p 3002:3002 --link hub-db:database phydac/hub
 
 run-endpoint:
 	echo ""; \
@@ -34,12 +34,12 @@ run-endpoint:
 	docker run -dti --name $$epName -h $$epName --restart='always' -p $$epPort:3001 --link hub:hub --link $$dbName:database phydac/endpoint
 
 run-endpoint-set:
-	docker run -dti --name pdc-0000-db -h pdc-0000-db --restart='always' mongo --smallfiles; \
-	docker run -dti --name pdc-0000 -h pdc-0000-db --restart='always' -p 40000:3001 --link hub:hub --link pdc-0000-db:database phydac/endpoint; \
-	docker run -dti --name pdc-0001-db -h pdc-0001-db --restart='always' mongo --smallfiles; \
-	docker run -dti --name pdc-0001 -h pdc-0001-db --restart='always' -p 40001:3001 --link hub:hub --link pdc-0001-db:database phydac/endpoint; \
-	docker run -dti --name pdc-0002-db -h pdc-0002-db --restart='always' mongo --smallfiles; \
-	docker run -dti --name pdc-0002 -h pdc-0001-db --restart='always' -p 40002:3001 --link hub:hub --link pdc-0002-db:database phydac/endpoint
+	docker run -dti --name pdc-0000-db -h pdc-0000-db --restart='always' mongo --smallfiles
+	docker run -dti --name pdc-0001-db -h pdc-0001-db --restart='always' mongo --smallfiles
+	docker run -dti --name pdc-0002-db -h pdc-0002-db --restart='always' mongo --smallfiles
+	docker run -dti --name pdc-0000 -h pdc-0000 --restart='always' -p 40000:3001 --link hub:hub --link pdc-0000-db:database phydac/endpoint
+	docker run -dti --name pdc-0001 -h pdc-0001 --restart='always' -p 40001:3001 --link hub:hub --link pdc-0001-db:database phydac/endpoint
+	docker run -dti --name pdc-0002 -h pdc-0002 --restart='always' -p 40002:3001 --link hub:hub --link pdc-0002-db:database phydac/endpoint
 
 ###############
 # Remove Jobs #

@@ -23,7 +23,7 @@ Vagrant.configure(2) do |config|
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
   # config.vm.network "forwarded_port", guest: 80, host: 8080
-  [22222, 3002, 40000, 40001, 40002].each do |x|
+  [3002, 40000, 40001, 40002].each do |x|
     config.vm.network "forwarded_port", guest: x, host: x
   end
 
@@ -76,7 +76,7 @@ Vagrant.configure(2) do |config|
   # config.vm.provision "shell", inline <<-SHELL
   #   sudo apt-get install apache2
   # SHELL
-  config.vm.provision "shell", path: "util/provision.sh"
+  config.vm.provision "shell", path: "build/provision.sh"
 
  # THE END!
 end

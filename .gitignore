@@ -1,7 +1,10 @@
 **/.DS_Store
 **/Thumbs.db
+**/*.zip
+**/*.xml
+**/*.sql
+**/*.rar
 ./.vagrant/
-./import/
 ./endpoint/
 ./hub/
 ./query-composer/
