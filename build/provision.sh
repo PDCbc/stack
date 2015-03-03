@@ -5,15 +5,13 @@
 
 # Configure yum and add GPG key
 #
-yum clean all
 yum update
 rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY*
 
 
 # Install Packages
 #
-yum remove -y vim-minimal
-yum install -y sudo zsh vim-enhanced docker-io tmux cmake java-1.8.0-openjdk mongodb unzip npm nano
+yum install -y sudo zsh docker-io tmux cmake java-1.8.0-openjdk mongodb npm screen
 
 
 # Configure and start docker daemon

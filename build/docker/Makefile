@@ -25,7 +25,7 @@ run-hub:
 
 run-endpoint:
 	echo ""; \
-	echo "Please enter a gatewayID (####) to run: "; \
+	echo "Please enter a gatewayID (#) to run: "; \
 	read gID; \
 	epName=pdc-$$gID; \
 	dbName=$$epName-db; \
@@ -34,18 +34,18 @@ run-endpoint:
 	docker run -dti --name $$epName -h $$epName --restart='always' -p $$epPort:3001 --link hub:hub --link $$dbName:database phydac/endpoint
 
 run-endpoint-set:
-	docker run -dti --name pdc-0000-db -h pdc-0000-db --restart='always' mongo --smallfiles
-	docker run -dti --name pdc-0001-db -h pdc-0001-db --restart='always' mongo --smallfiles
-	docker run -dti --name pdc-0002-db -h pdc-0002-db --restart='always' mongo --smallfiles
-	docker run -dti --name pdc-0000 -h pdc-0000 --restart='always' -p 40000:3001 --link hub:hub --link pdc-0000-db:database phydac/endpoint
-	docker run -dti --name pdc-0001 -h pdc-0001 --restart='always' -p 40001:3001 --link hub:hub --link pdc-0001-db:database phydac/endpoint
-	docker run -dti --name pdc-0002 -h pdc-0002 --restart='always' -p 40002:3001 --link hub:hub --link pdc-0002-db:database phydac/endpoint
+	docker run -dti --name pdc-0-db -h pdc-0-db --restart='always' mongo --smallfiles
+	docker run -dti --name pdc-1-db -h pdc-1-db --restart='always' mongo --smallfiles
+	docker run -dti --name pdc-2-db -h pdc-2-db --restart='always' mongo --smallfiles
+	docker run -dti --name pdc-0 -h pdc-0 --restart='always' -p 40000:3001 --link pdc-0-db:database phydac/endpoint
+	docker run -dti --name pdc-1 -h pdc-1 --restart='always' -p 40001:3001 --link pdc-1-db:database phydac/endpoint
+	docker run -dti --name pdc-2 -h pdc-2 --restart='always' -p 40002:3001 --link pdc-2-db:database phydac/endpoint
 
 ###############
 # Remove Jobs #
 ###############
 remove-endpoint:
-	echo "Please enter a gatewayID (####) to remove: "; \
+	echo "Please enter a gatewayID (#) to remove: "; \
 	read gID; \
 	epName=pdc-$$gID; \
 	dbName=$$epName-db; \

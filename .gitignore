@@ -1,14 +1,8 @@
 **/.DS_Store
 **/Thumbs.db
 **/*.zip
-**/*.xml
 **/*.sql
 **/*.rar
-./.vagrant/
-./endpoint/
-./hub/
-./query-composer/
-./endpoint/
-./query-gateway/
-./hubapi/
-./hapi/
+.vagrant/
+.local/hubapi/
+.local/visualizer/
