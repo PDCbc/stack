@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 #
 # Exit on errors or unitialized variables
 #
@@ -10,10 +10,32 @@ set -e
 vagrant up
 
 
+# Clone or pull (update) HubAPI and Visualier
+#
+cd local/
+
+if [ -d hubapi/ ]
+then
+	git -C hubapi pull
+else
+	git clone https://github.com/phydac/hubapi
+fi
+
+if [ -d visualizer/ ]
+then
+	git -C visualizer pull
+else
+	git clone https://github.com/phydac/hubapi
+fi
+
+cd ..
+
+
 # Prompt for creation of Hub admin account
 #
 # Signup message and SSL note here
 #
+sleep 2
 echo ""
 echo "Sign up with hQuery, taking note of the user name,"
 echo "then return to this script/window"
@@ -31,21 +53,11 @@ sleep 2
 open https://localhost:3002/users/sign_up
 
 
-# Grant admin access
+# Grand hub admin access and import *.xml files into pdc-0, pdc-1 and pdc-2
 #
-vagrant ssh -c '
-	clear
-	echo "Welcome back!"
-	echo ""
-  echo "User name:"
-  read userName
-  echo "Vagrant received $userName"
-	sudo nsenter --target $(docker inspect --format {{.State.Pid}} hub) --mount --uts --ipc --net --pid /bin/bash <<EOF
-	echo "Container received $userName"
-	cd /home/app/hub
-	/usr/local/bin/bundle exec rake hquery:users:grant_admin USER_ID=$userName
-EOF
-'
+cd build
+./initialize.sh
+cd ..
 
 
 # Open the hub and endpoints
@@ -57,26 +69,13 @@ sleep 2
 open http://localhost:40001
 sleep 2
 open http://localhost:40002
-sleep 2
-
-
-# Clone HubAPI and Visualier (or pull them)
-#
-# NOT WRITTEN YET!
-
-
-# VAGRANT: Start HubAPI and Visualizer in the background
-#
-#vagrant ssh -c '
-#	cd /vagrant/local/
-#	./background-startups.sh
-#'
 
 
 # OS X: Start HubAPI and Visualizer in the background
 #
 cd local
-./background-startups.sh
+start.sh
+cd ..
 
 
 # Done!
@@ -85,7 +84,3 @@ clear
 echo ""
 echo "Done!"
 echo ""
-
-
-# Post install
-# Endpoints load *.xml files with ./relay-thing.sh & lynx -accept_all_cookies http://localhost:3000/records/relay

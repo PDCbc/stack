@@ -11,7 +11,7 @@ rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY*
 
 # Install Packages
 #
-yum install -y sudo zsh docker-io tmux cmake java-1.8.0-openjdk mongodb npm screen
+yum install -y sudo docker-io cmake mongodb # tmux zsh java-1.8.0-openjdk npm lynx
 
 
 # Configure and start docker daemon
@@ -26,6 +26,31 @@ systemctl start docker
 #
 cd /vagrant/build/docker
 make
+
+
+# Import *.xml files
+#
+clear
+sudo nsenter --target $(docker inspect --format {{.State.Pid}} pdc-0) --mount --uts --ipc --net --pid /bin/bash <<EOF
+  /home/app/endpoint/util/relay-service.rb &
+	sleep 1
+  lynx -accept_all_cookies http://localhost:3000/records/relay
+EOF
+
+clear
+sudo nsenter --target $(docker inspect --format {{.State.Pid}} pdc-1) --mount --uts --ipc --net --pid /bin/bash <<EOF
+  /home/app/endpoint/util/relay-service.rb &
+	sleep 1
+  lynx -accept_all_cookies http://localhost:3000/records/relay
+EOF
+
+clear
+sudo nsenter --target $(docker inspect --format {{.State.Pid}} pdc-2) --mount --uts --ipc --net --pid /bin/bash <<EOF
+  /home/app/endpoint/util/relay-service.rb &
+	sleep 1
+  lynx -accept_all_cookies http://localhost:3000/records/relay
+EOF
+
 
 
 # Pass commands as vagrant user, not root
