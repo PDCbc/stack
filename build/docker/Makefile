@@ -17,14 +17,12 @@ clean: docker rmi phydac/endpoint
 ############
 # Run Jobs #
 ############
-# Config=> # Change hubInf for your hub! <DOMAIN_NAME>:<IP_ADDRESS> # <= Config #
-############
 run-hub:
 	docker run -d -t -i --name hub-db -h hub-db --restart='always' -p 27019:27017 mongo
-	docker run -d -t -i --name hub -h hub-db --restart='always' -p 3002:3002 --link hub-db:database phydac/hub
+	docker run -d -t -i --name hub -h hub --restart='always' -p 3002:3002 --link hub-db:database phydac/hub
 
 run-endpoint:
-	echo ""; \
+	echo ""
 	echo "Please enter a gatewayID (#) to run: "; \
 	read gID; \
 	epName=pdc-$$gID; \
@@ -34,9 +32,9 @@ run-endpoint:
 	docker run -dti --name $$epName -h $$epName --restart='always' -p $$epPort:3001 --link hub:hub --link $$dbName:database phydac/endpoint
 
 run-endpoint-set:
-	docker run -dti --name pdc-0-db -h pdc-0-db --restart='always' mongo --smallfiles
-	docker run -dti --name pdc-1-db -h pdc-1-db --restart='always' mongo --smallfiles
-	docker run -dti --name pdc-2-db -h pdc-2-db --restart='always' mongo --smallfiles
+	docker run -dti --name pdc-0-db -h pdc-0-db --restart='always' -p 27020:27017 mongo --smallfiles
+	docker run -dti --name pdc-1-db -h pdc-1-db --restart='always' -p 27021:27017 mongo --smallfiles
+	docker run -dti --name pdc-2-db -h pdc-2-db --restart='always' -p 27022:27017 mongo --smallfiles
 	docker run -dti --name pdc-0 -h pdc-0 --restart='always' -p 40000:3001 --link pdc-0-db:database phydac/endpoint
 	docker run -dti --name pdc-1 -h pdc-1 --restart='always' -p 40001:3001 --link pdc-1-db:database phydac/endpoint
 	docker run -dti --name pdc-2 -h pdc-2 --restart='always' -p 40002:3001 --link pdc-2-db:database phydac/endpoint
