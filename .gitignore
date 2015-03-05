@@ -4,5 +4,5 @@
 **/*.sql
 **/*.rar
 .vagrant/
-.local/hubapi/
-.local/visualizer/
+local/hubapi/
+local/visualizer/
