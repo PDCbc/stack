@@ -53,8 +53,23 @@ cd visualizer/
 cd ..
 
 
-# Open Apps
-sleep 6
-open https://localhost:3003
-sleep 4
-open https://localhost:3004
+# Open HubAPI and Visualizer or provide instructions on error
+#
+
+sleep 2
+OS=$(uname)
+if [ $OS == 'Linux' ]
+then
+	xdg-open https://localhost:3003
+	xdg-open https://localhost:3004
+else if [ $OS == 'Darwin' ]
+	open https://localhost:3003
+	open https://localhost:3004
+else
+	echo ""	
+	echo "Open error.  Visit https://localhost:3003 and :3004"
+	echo ""
+	echo "Press [Enter] when ready"
+	read -s enterToContinue
+	echo ""
+fi

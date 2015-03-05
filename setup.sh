@@ -29,8 +29,25 @@ echo ""
 echo "Press [Enter] when ready"
 read -s enterToContinue
 echo ""
-open https://localhost:3002/users/sign_up
+
+
+# Open the sign up page or provide instruction on error
+#
 sleep 2
+OS=$(uname)
+if [ $OS == 'Linux' ]
+then
+	xdg-open https://localhost:3002/users/sign_up
+else if [ $OS == 'Darwin' ]
+	open https://localhost:3002/users/sign_up
+else
+	echo ""	
+	echo "Open error.  Visit https://localhost:3002/users/sign_up"
+	echo ""
+	echo "Press [Enter] when ready"
+	read -s enterToContinue
+	echo ""
+fi
 
 
 # Grand hub admin access and import *.xml files into pdc-0, pdc-1 and pdc-2
@@ -41,19 +58,28 @@ cd build/scripts
 cd ../..
 
 
-# Open the hub and endpoints
+# Open the hub or provide instruction on error
 #
 sleep 2
-open http://localhost:40000
-open http://localhost:40001
-open http://localhost:40002
-sleep 1
-open https://localhost:3002
+if [ $OS == 'Linux' ]
+then
+	xdg-open https://localhost:3002
+else if [ $OS == 'Darwin' ]
+	open https://localhost:3002
+else
+	echo ""	
+	echo "Open error.  Visit https://localhost:3002"
+	echo ""
+	echo "Press [Enter] when ready"
+	read -s enterToContinue
+	echo ""
+fi
 
 
-# OS X: Start HubAPI and Visualizer in the background
+# Start HubAPI and Visualizer in the background
 #
 cd local
+./initialize.sh
 ./start.sh
 cd ..
 
