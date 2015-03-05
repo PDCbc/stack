@@ -65,6 +65,14 @@ RUN sed -i -e "s/localhost:27017/database:27017/" config/mongoid.yml
 USER root
 
 
+# Start in /home/app
+#
+RUN echo "" >> /root/.bashrc
+RUN echo "# Start in /vagrant" >> /root/.bashrc
+RUN echo "#" >> /root/.bashrc
+RUN echo "cd /home/app/" >> /root/.bashrc
+
+
 ### Copy endpoint startup script and make it executable
 #
 ADD scripts/endpoint.sh /etc/service/endpoint/run

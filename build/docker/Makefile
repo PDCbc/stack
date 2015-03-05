@@ -13,7 +13,6 @@ run: run-hub run-endpoint-set
 
 clean: docker rmi phydac/endpoint
 
-
 ############
 # Run Jobs #
 ############
@@ -52,6 +51,9 @@ remove-endpoint:
 	docker rm $$dbName || true; \
 	docker rm $$epName || true
 
+remove-set:
+	docker stop pdc-2-db pdc-1-db pdc-0-db hub-db pdc-2 pdc-1 pdc-0 hub || true; \
+	docker rm -v pdc-2-db pdc-1-db pdc-0-db hub-db pdc-2 pdc-1 pdc-0 hub || true
 
 ##############
 # Build Jobs #
