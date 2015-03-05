@@ -41,6 +41,14 @@ RUN bundle install --path vendor/bundle; \
 USER root
 
 
+# Start in /home/app
+#
+RUN echo "" >> /root/.bashrc
+RUN echo "# Start in /vagrant" >> /root/.bashrc
+RUN echo "#" >> /root/.bashrc
+RUN echo "cd /home/app/" >> /root/.bashrc
+
+
 ### Copy hub startup script and make it executable
 #
 ADD scripts/hub.sh /etc/service/hub/run
