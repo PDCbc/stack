@@ -3,30 +3,30 @@
 #
 
 
-### Select the base image to use
+# Select the base image to use
 #
 FROM phusion/passenger-ruby19
 
 
-### ENV - Set non-interactive shell and disable policy-rc.d
+# ENV - Set non-interactive shell and disable policy-rc.d
 #
 ENV DEBIAN_FRONTEND noninteractive
 RUN sed -i -e "s/exit 101/exit 0/" /usr/sbin/policy-rc.d
 
 
-### Install applications from repos
+# Install applications from repos
 #
 RUN apt-get update; \
     apt-get --yes install ntp libxslt-dev libxml2-dev lynx
 
 
-### ENV and User
+# ENV and User
 #
 USER app
 ENV HOME /home/app/
 
 
-### Install Hub Software
+# Install Hub Software
 #
 WORKDIR /home/app
 RUN git clone https://github.com/scoophealth/query-composer hub
@@ -36,30 +36,32 @@ RUN bundle install --path vendor/bundle; \
     sed -i -e "s/localhost:27017/database:27017/" config/mongoid.yml
 
 
-### Change back to root
+# Change back to root
 #
 USER root
 
 
-# Start in /home/app
+# Start in /home/app/hub
 #
 RUN echo "" >> /root/.bashrc
-RUN echo "# Start in /vagrant" >> /root/.bashrc
+RUN echo "# Start in /home/app/hub" >> /root/.bashrc
 RUN echo "#" >> /root/.bashrc
-RUN echo "cd /home/app/" >> /root/.bashrc
+RUN echo "cd /home/app/hub" >> /root/.bashrc
+RUN echo ""
+RUN echo "Add to PATH"
+RUN echo "export PATH=$PATH:/usr/local/bin"
 
-
-### Copy hub startup script and make it executable
+# Copy hub startup script and make it executable
 #
 ADD scripts/hub.sh /etc/service/hub/run
 RUN chmod +x /etc/service/hub/run
 
 
-### Expose ports to incoming traffic
+# Expose ports to incoming traffic
 #
 EXPOSE 3002
 
 
-### Run Command
+# Run Command
 #
 CMD ["/sbin/my_init"]

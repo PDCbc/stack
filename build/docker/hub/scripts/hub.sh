@@ -1,3 +1,3 @@
 #!/bin/sh
-cd /home/app/hub/
-chpst -u app bash -c /home/app/hub/runme.sh
+#
+chpst -u app bash -c 'export PATH=$PATH:/usr/local/bin; cd /home/app/hub/; ./runme.sh'

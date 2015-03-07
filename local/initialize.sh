@@ -18,5 +18,5 @@ if [ -d visualizer/ ]
 then
 	git -C visualizer pull
 else
-	git clone https://github.com/phydac/hubapi
+	git clone https://github.com/phydac/visualizer
 fi

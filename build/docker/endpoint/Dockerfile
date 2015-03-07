@@ -1,55 +1,55 @@
-### A Dockerfile!
+# A Dockerfile!
 #
 #
 
 
-### Select the base image to use
+# Select the base image to use
 #
 FROM phusion/passenger-ruby19
 
 
-### ENV - Set non-interactive shell and disable policy-rc.d
+# ENV - Set non-interactive shell and disable policy-rc.d
 #
 ENV DEBIAN_FRONTEND noninteractive
 RUN sed -i -e "s/exit 101/exit 0/" /usr/sbin/policy-rc.d
 
 
-### Install applications from repos
+# Install applications from repos
 #
 RUN apt-get update; \
     apt-get -y install libxslt-dev libxml2-dev lynx unzip
 
 
-### Install multipart-post Gem
+# Install multipart-post Gem
 #
 RUN /usr/bin/gem install multipart-post
 
 
-### Switch to app (non-root) user and set home directory
+# Switch to app (non-root) user and set home directory
 #
 USER app
 ENV HOME /home/app/
 
 
-### Clone endpoint software
+# Clone endpoint software
 #
 WORKDIR /home/app
 RUN git clone https://github.com/scoophealth/query-gateway.git endpoint
 
 
-### Create directories needed by endpoint software
+# Create directories needed by endpoint software
 #
 WORKDIR /home/app/endpoint
 RUN mkdir -p /home/app/endpoint/tmp/pids; \
     mkdir -p /home/app/endpoint/util/files
 
 
-### Copy import files
+# Copy import files
 #
 ADD import/* /home/app/endpoint/util/files/
 
 
-### Run endpoint software
+# Run endpoint software
 #
 WORKDIR /home/app/endpoint
 RUN bundle install --path vendor/bundle
@@ -60,30 +60,30 @@ RUN bundle install --path vendor/bundle
 RUN sed -i -e "s/localhost:27017/database:27017/" config/mongoid.yml
 
 
-### Change back to root
+# Change back to root
 #
 USER root
 
 
-# Start in /home/app
+# Start in /home/app/endpoint
 #
 RUN echo "" >> /root/.bashrc
-RUN echo "# Start in /vagrant" >> /root/.bashrc
+RUN echo "# Start in /home/app/endpoint" >> /root/.bashrc
 RUN echo "#" >> /root/.bashrc
-RUN echo "cd /home/app/" >> /root/.bashrc
+RUN echo "cd /home/app/endpoint" >> /root/.bashrc
 
 
-### Copy endpoint startup script and make it executable
+# Copy endpoint startup script and make it executable
 #
 ADD scripts/endpoint.sh /etc/service/endpoint/run
 RUN chmod +x /etc/service/endpoint/run
 
 
-### Expose ports to incoming traffic
+# Expose ports to incoming traffic
 #
 EXPOSE 3001 3000
 
 
-### Run initialization command
+# Run initialization command
 #
 CMD ["/sbin/my_init"]
