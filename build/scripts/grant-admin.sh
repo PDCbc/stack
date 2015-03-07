@@ -15,4 +15,5 @@ vagrant ssh -c '
 	cd /home/app/hub
 	/usr/local/bin/bundle exec rake hquery:users:grant_admin USER_ID=$userName
 EOF
+	docker restart hub
 '

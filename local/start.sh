@@ -12,8 +12,8 @@ echo ""
 echo "Please remember to edit the following visualizer file:"
 echo ""
 echo " - visualizer/lib/middleware.js"
-echo " -- 135: req.session.user.clinic    = <ENDPOINT_ID>"
-echo " -- 136: req.session.user.clinician = <PHYSICIAN_ID>"
+echo " -- 142: req.session.user.clinic    = <ENDPOINT_ID>"
+echo " -- 143: req.session.user.clinician = <PHYSICIAN_ID>"
 echo ""
 echo ""
 echo "Endpoint ID:"
@@ -62,11 +62,12 @@ if [ $OS == 'Linux' ]
 then
 	xdg-open https://localhost:3003
 	xdg-open https://localhost:3004
-else if [ $OS == 'Darwin' ]
+elif [ $OS == 'Darwin' ]
+then
 	open https://localhost:3003
 	open https://localhost:3004
 else
-	echo ""	
+	echo ""
 	echo "Open error.  Visit https://localhost:3003 and :3004"
 	echo ""
 	echo "Press [Enter] when ready"
