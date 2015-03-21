@@ -38,6 +38,10 @@ run-endpoint-set:
 	docker run -dti --name pdc-1 -h pdc-1 --restart='always' -p 40001:3001 --link pdc-1-db:database --link hub:hub phydac/endpoint
 	docker run -dti --name pdc-2 -h pdc-2 --restart='always' -p 40002:3001 --link pdc-2-db:database --link hub:hub phydac/endpoint
 
+run-auth:
+	docker run -dt --name auth -h auth --restart='always' -p 8080:8080 -p 8001:8081 phydac/auth
+
+
 ###############
 # Remove Jobs #
 ###############
@@ -63,6 +67,12 @@ build-hub:
 
 build-endpoint:
 	docker build -t phydac/endpoint endpoint/
+
+build-hubapi:
+	docker build -t phydac/hubapi hubapi/
+
+build-auth:
+	docker build -t phydac/auth auth/
 
 
 #############

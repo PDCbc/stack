@@ -12,27 +12,21 @@ echo ""
 echo "Please remember to edit the following visualizer file:"
 echo ""
 echo " - visualizer/lib/middleware.js"
-echo " -- 142: req.session.user.clinic    = <ENDPOINT_ID>"
-echo " -- 143: req.session.user.clinician = <PHYSICIAN_ID>"
+echo " -- 144: req.session.user.clinic    = <ENDPOINT_ID>"
 echo ""
 echo ""
-echo "Endpoint ID:"
+echo "ENDPOINT_ID:"
 echo ""
-echo " - Add endpoint to the Hub's Dashboard:"
-echo " -- URL: http://10.0.2.2:40000 + endpoint # {0, 1, 2}"
+echo " 1. Add endpoint to the Hub's Dashboard:"
+echo "    - URL: http://10.0.2.2:40000 + endpoint # {0, 1, 2}"
 echo ""
-echo " - From Vagrant connect with Mongo and...:"
-echo " -- $ mongo --port 27019"
-echo " -- > use query_composer_development"
-echo " -- > db.endpoints.find().pretty()"
-echo " -- "
-echo "   -- Copy it from {( \"_id\": ObjectID( \"54f79d63526153bf01000005\" )}"
+echo " 2. From the command line:"
+echo "    - $ mongo --port 27019"
+echo "    - > use query_composer_development"
+echo "    - > db.endpoints.find().pretty()"
 echo ""
-echo "Physician ID:"
-echo ""
-echo " - Available from any impratble *.xml"
-echo ""
-echo "   -- Provided sample uses \"cpsid\""
+echo " 3. Copy the 25-digit ID:"
+echo "    - in {( \"_id\": ObjectID( \"GET_ENDPOINT_ID_RIGHT_HERE\" )}"
 echo ""
 echo ""
 echo "Once complete, press [Enter] to open the HubAPI and Visualizer"
@@ -61,10 +55,12 @@ OS=$(uname)
 if [ $OS == 'Linux' ]
 then
 	xdg-open https://localhost:3003
+	sleep 3
 	xdg-open https://localhost:3004
 elif [ $OS == 'Darwin' ]
 then
 	open https://localhost:3003
+	sleep 3
 	open https://localhost:3004
 else
 	echo ""

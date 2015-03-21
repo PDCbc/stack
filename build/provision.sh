@@ -13,7 +13,8 @@ rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY*
 
 # Install Packages
 #
-yum install -y sudo docker-io cmake mongodb
+yum remove -y vim-minimal
+yum install -y sudo vim nano docker-io cmake mongodb
 
 
 # Configure and start docker daemon
