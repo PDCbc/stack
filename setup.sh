@@ -10,51 +10,24 @@ set -e -o nounset
 vagrant up
 
 
-# Clone or pull (update) HubAPI and Visualier
+# Create PDC Admin account
 #
-cd local
-./initialize.sh
-cd ..
-
-
-# Prompt for and create Hub admin account
-#
-clear
-echo ""
-echo "Sign up with hQuery, taking note of the user name,"
-echo "then return to this script/window"
-echo ""
-echo "Please accept/bypass SSL errors for localhost"
-echo ""
-echo "Press [Enter] when ready"
-read -s enterToContinue
-echo ""
-
-
-# Open the sign up page or provide instruction on error
-#
-sleep 2
-OS=$(uname)
-if [ $OS == 'Linux' ]
-then
-	xdg-open https://localhost:3002/users/sign_up
-elif [ $OS == 'Darwin' ]
-then
-	open https://localhost:3002/users/sign_up
-else
-	echo ""
-	echo "Open error.  Visit https://localhost:3002/users/sign_up"
-	echo ""
-	echo "Press [Enter] when ready"
-	read -s enterToContinue
-	echo ""
-fi
+mongo query_composer_development --port 27019 --eval 'db.users.insert({
+	"first_name" : "PDC",
+	"last_name" : "Admin",
+	"username" : "pdcadmin",
+	"email" : "pdcadmin@pdc.io",
+	"encrypted_password" : "$2a$10$ZSuPxdODbumiMGOxtVSpRu0Rd0fQ2HhC7tMu2IobKTaAsPMmFlBD.",
+	"agree_license" : true,
+	"approved" : true,
+	"admin" : true,
+})'
 
 
 # Grand hub admin access and import *.xml files into pdc-0, pdc-1 and pdc-2
 #
 cd build/scripts
-./grant-admin.sh
+./configure-hub.sh
 ./import-xml.sh
 cd ../..
 

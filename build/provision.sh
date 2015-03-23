@@ -1,20 +1,16 @@
-#!/bin/bash
+gm#!/bin/bash
 #
 # Exit on errors or unitialized variables
 #
 set -e -o nounset
 
 
-# Configure yum and add GPG key
+# Add GPG key, install packages and update
 #
-#yum update -y
 rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY*
-
-
-# Install Packages
-#
 yum remove -y vim-minimal
 yum install -y sudo vim nano docker-io cmake mongodb
+yum update -y
 
 
 # Configure and start docker daemon
@@ -63,5 +59,4 @@ systemctl start docker
 # Make containers
 #
 cd /vagrant/build/docker
-
 make

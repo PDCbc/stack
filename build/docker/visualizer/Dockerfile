@@ -9,23 +9,20 @@ EXPOSE 3004
 # Configure Secret
 ENV SECRET "Test Secret"
 
-# Configure MONGO_URI
-ENV PROVIDER_URL https://hubapi:3003
-
 # User Authorization URL
 ENV CALLBACK_URL https://auth:3006/auth/callback
 
 # Auth URL
-#ENV AUTH_URL https://auth:300
+ENV AUTH_URL https://auth:3005
 
 # HubAPI URL
-ENV HUBAPI_URL https://hubapi:3003/
+ENV HUBAPI_URL https://hubapi:3003
 
 # Allow Self Signed SSL Certs
 ENV NODE_TLS_REJECT_UNAUTHORIZED 0
 
 
-# Install Hub Software
+# Install Visualizer Software
 #
 RUN mkdir -p /app
 WORKDIR /app

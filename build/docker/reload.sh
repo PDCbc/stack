@@ -1,6 +1,7 @@
 #!/bin/bash
 
-docker stop auth
-docker rm -v auth
-make build-auth
-make run-auth
+docker rm -fv dclapi
+make build-dclapi
+make run-dclapi
+sleep 5
+docker ps
