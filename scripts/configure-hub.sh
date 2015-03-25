@@ -11,7 +11,7 @@ mongo query_composer_development --port 27019 --eval 'db.endpoints.insert({"name
 
 # Add admin account
 #
-mongo query_composer_development --port 27019 --eval 'db.endpoints.insert({
+mongo query_composer_development --port 27019 --eval 'db.users.insert({
 	"first_name" : "PDC",
 	"last_name" : "Admin",
 	"username" : "pdcadmin",

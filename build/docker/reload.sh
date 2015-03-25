@@ -1,7 +1,10 @@
 #!/bin/bash
 
-docker rm -fv dclapi
-make build-dclapi
-make run-dclapi
-sleep 5
-docker ps
+TARGET=$1
+docker rm -fv $TARGET 
+make build-$TARGET
+make run-$TARGET
+#sleep 5
+#docker ps
+sleep 10
+docker logs $TARGET
