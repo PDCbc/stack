@@ -1,4 +1,4 @@
-gm#!/bin/bash
+#!/bin/bash
 #
 # Exit on errors or unitialized variables
 #
@@ -41,6 +41,7 @@ systemctl start docker
     echo '		sudo nsenter --target $(docker inspect --format {{.State.Pid}} $1) --mount --uts --ipc --net --pid /bin/bash' | tee -a /home/vagrant/.bashrc
     echo '	fi' | tee -a /home/vagrant/.bashrc
     echo '}' | tee -a /home/vagrant/.bashrc
+  fi
 
   if(! grep --quiet 'function reload()' /home/vagrant/.bashrc)
   then
@@ -77,12 +78,28 @@ systemctl start docker
   then
     echo '' | tee -a /home/vagrant/.bashrc
     echo '# Start in /vagrant/, instead of /home/vagrant/' | tee -a /home/vagrant/.bashrc
-    echo 'cd /vagrant/' | tee -a /home/vagrant/.bashrc
+    echo 'cd /vagrant/docker/' | tee -a /home/vagrant/.bashrc
   fi
 #EOF
 
 
 # Make containers
 #
-cd /vagrant/build/docker
+cd /vagrant/docker
 make
+
+
+# Clean up stopped containers and untagged images
+#
+docker rm $(docker ps -a -q)
+docker rmi $(docker images | grep "^<none>" | awk '{print $3}')
+
+
+# Reminders
+#
+echo ""
+echo "WARNING!!!"
+echo ""
+echo "Before putting this software into production remove vagrant user from the"
+echo "docker group.  Root-level rights are convenient for development, but"
+echo "increase the attack surface!"

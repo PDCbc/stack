@@ -11,8 +11,7 @@ build: build-hub build-endpoint build-auth build-dclapi build-hubapi build-visua
 
 run: run-hub run-endpoint-set run-auth run-dclapi run-hubapi run-visualizer
 
-clean: docker rmi phydac/endpoint
-
+destroy: destroy-all
 
 ############
 # Run Jobs #
@@ -20,6 +19,7 @@ clean: docker rmi phydac/endpoint
 run-hub:
 	docker run -dt --name hub-db -h hub-db --restart='always' -p 27019:27017 mongo
 	docker run -dt --name hub -h hub --restart='always' -p 3002:3002 --link hub-db:database phydac/hub
+	sleep 20
 	scripts/configure-hub.sh
 
 run-endpoint:
@@ -39,7 +39,8 @@ run-endpoint-set:
 	docker run -dt --name pdc-0 -h pdc-0 --restart='always' -p 40000:3001 --link pdc-0-db:database --link hub:hub phydac/endpoint
 	docker run -dt --name pdc-1 -h pdc-1 --restart='always' -p 40001:3001 --link pdc-1-db:database --link hub:hub phydac/endpoint
 	docker run -dt --name pdc-2 -h pdc-2 --restart='always' -p 40002:3001 --link pdc-2-db:database --link hub:hub phydac/endpoint
-	scripts/import-xml.sh
+	sleep 10
+	scripts/configure-endpoint-set.sh
 
 run-auth:
 	docker run -dt --name auth -h auth --restart='always' -p 3005:3005 -p 3006:3006 phydac/auth
@@ -52,6 +53,13 @@ run-hubapi:
 
 run-visualizer:
 	docker run -dt --name visualizer -h visualizer --restart='always' -p 3004:3004 --link auth:auth --link hubapi:hubapi phydac/visualizer
+
+
+################
+# Destroy Jobs #
+################
+destroy-all:
+	docker rm -fv hub-db hub pdc-2-db pdc-1-db pdc-0-db pdc-2 pdc-1 pdc-0 visualizer hubapi dclapi auth
 
 
 ###############
@@ -102,3 +110,6 @@ pull-mongo:
 
 pull-phusion:
 	docker pull phusion/passenger-ruby19
+
+pull-node:
+	docker pull node

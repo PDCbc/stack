@@ -76,7 +76,7 @@ Vagrant.configure(2) do |config|
   # config.vm.provision "shell", inline <<-SHELL
   #   sudo apt-get install apache2
   # SHELL
-  config.vm.provision "shell", path: "build/provision.sh"
+  config.vm.provision "shell", path: "scripts/provision.sh"
 
  # THE END!
 end
