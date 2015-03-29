@@ -19,7 +19,7 @@ COPY ./dcl.sqlite /app/
 # Create and switch to app user
 #
 RUN  useradd app
-RUN  chown -R app:app app/
+RUN  chown -R app:app /app/
 USER app
 ENV HOME /app/
 
