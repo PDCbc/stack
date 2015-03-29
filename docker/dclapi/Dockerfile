@@ -5,11 +5,6 @@
 FROM node
 
 
-# Allow Self Signed SSL Certs
-#
-ENV NODE_TLS_REJECT_UNAUTHORIZED 0
-
-
 # Update
 #
 RUN apt-get update
@@ -17,14 +12,21 @@ RUN apt-get update
 
 # Clone and prep /app/ directory
 #
-WORKDIR /app
-RUN     git clone https://github.com/PhyDaC/dclapi .
-COPY    ./dcl.sqlite /app/
+RUN  git clone https://github.com/PhyDaC/dclapi /app/
+COPY ./dcl.sqlite /app/
+
+
+# Create and switch to app user
+#
+RUN  useradd app
+RUN  chown -R app:app app/
+USER app
+ENV HOME /app/
 
 
 # Prepare Node and start
 #
-WORKDIR /app
+WORKDIR /app/
 RUN     rm -rf node-modules;\
         npm install
 CMD     ["npm", "start"]
