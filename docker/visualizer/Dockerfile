@@ -38,6 +38,6 @@ ENV NODE_TLS_REJECT_UNAUTHORIZED 0
 # Prepare Node and start
 #
 WORKDIR /app
-RUN     rm -rf node-modules;\
+RUN     rm -rf node-modules; \
         npm install
 CMD     ["npm", "start"]
