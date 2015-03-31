@@ -5,41 +5,16 @@
 FROM phusion/passenger-ruby19
 
 
-# Set non-interactive shell and disable policy-rc.d
+# ENV - Set non-interactive shell and disable policy-rc.d
 #
 ENV DEBIAN_FRONTEND noninteractive
 RUN sed -i -e "s/exit 101/exit 0/" /usr/sbin/policy-rc.d
 
 
-# Expose ports listening for incoming traffic
-#
-EXPOSE 3002
-
-
 # Install applications from repos
 #
 RUN apt-get update; \
-    apt-get install -y ntp \
-                       libxslt-dev \
-                       libxml2-dev \
-                       lynx
-
-
-# Configure /root/.bashrc
-#
-RUN echo "" >> /root/.bashrc
-RUN echo "# Start in /home/app/hub" >> /root/.bashrc
-RUN echo "#" >> /root/.bashrc
-RUN echo "cd /home/app/hub" >> /root/.bashrc
-RUN echo ""
-RUN echo "Add to PATH"
-RUN echo "export PATH=$PATH:/usr/local/bin"
-
-
-# Copy hub startup script and make it executable
-#
-ADD scripts/hub.sh /etc/service/hub/run
-RUN chmod +x /etc/service/hub/run
+    apt-get --yes install ntp libxslt-dev libxml2-dev lynx
 
 
 # ENV and User
@@ -56,6 +31,33 @@ WORKDIR /home/app/hub
 RUN bundle install --path vendor/bundle; \
     mkdir -p /home/app/hub/tmp/pids; \
     sed -i -e "s/localhost:27017/database:27017/" config/mongoid.yml
+
+
+# Change back to root
+#
+USER root
+
+
+# Start in /home/app/hub
+#
+RUN echo "" >> /root/.bashrc
+RUN echo "# Start in /home/app/hub" >> /root/.bashrc
+RUN echo "#" >> /root/.bashrc
+RUN echo "cd /home/app/hub" >> /root/.bashrc
+RUN echo ""
+RUN echo "Add to PATH"
+RUN echo "export PATH=$PATH:/usr/local/bin"
+
+
+# Copy hub startup script and make it executable
+#
+ADD scripts/hub.sh /etc/service/hub/run
+RUN chmod +x /etc/service/hub/run
+
+
+# Expose ports to incoming traffic
+#
+EXPOSE 3002
 
 
 # Run Command

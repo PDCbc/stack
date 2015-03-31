@@ -10,6 +10,12 @@ set -e -o nounset
 vagrant up
 
 
+
+# OS Name
+#
+OS=uname
+
+
 # Open the hub or provide instruction on error
 #
 sleep 2
