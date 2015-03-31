@@ -43,13 +43,13 @@ run-endpoint-set:
 	scripts/configure-endpoint-set.sh
 
 run-auth:
-	docker run -dt --name auth       -h auth       --restart='always' -p 3005:3005 -p 3006:3006 phydac/auth
+	docker run -dt --name auth       -h auth       --restart='always' phydac/auth
 
 run-dclapi:
-	docker run -dt --name dclapi     -h dclapi     --restart='always' -p 3007:3007 phydac/dclapi
+	docker run -dt --name dclapi     -h dclapi     --restart='always' phydac/dclapi
 
 run-hubapi:
-	docker run -dt --name hubapi     -h hubapi     --restart='always' -p 3003:3003 --link hub-db:hub-db --link auth:auth --link dclapi:dclapi phydac/hubapi
+	docker run -dt --name hubapi     -h hubapi     --restart='always' --link hub-db:hub-db --link auth:auth --link dclapi:dclapi phydac/hubapi
 
 run-visualizer:
 	docker run -dt --name visualizer -h visualizer --restart='always' -p 3004:3004 --link auth:auth --link hubapi:hubapi phydac/visualizer
