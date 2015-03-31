@@ -1,9 +1,6 @@
-# A Dockerfile!
+# Dockerfile for the PDC's Endpoint service
 #
-#
-
-
-# Select the base image to use
+# Base image
 #
 FROM phusion/passenger-ruby19
 
@@ -14,10 +11,18 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN sed -i -e "s/exit 101/exit 0/" /usr/sbin/policy-rc.d
 
 
+# Expose ports listening for incoming traffic
+#
+EXPOSE 3001 3000
+
+
 # Install applications from repos
 #
 RUN apt-get update; \
-    apt-get -y install libxslt-dev libxml2-dev lynx unzip
+    apt-get install -y libxslt-dev \
+                       libxml2-dev \
+                       lynx \
+                       unzip
 
 
 # Install multipart-post Gem
@@ -77,11 +82,6 @@ RUN echo "cd /home/app/endpoint" >> /root/.bashrc
 #
 ADD scripts/endpoint.sh /etc/service/endpoint/run
 RUN chmod +x /etc/service/endpoint/run
-
-
-# Expose ports to incoming traffic
-#
-EXPOSE 3001 3000
 
 
 # Run initialization command

@@ -5,6 +5,11 @@
 FROM node
 
 
+# Expose listening ports
+#
+EXPOSE 3007
+
+
 # Update
 #
 RUN apt-get update

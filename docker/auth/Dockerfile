@@ -11,20 +11,22 @@ ENV MAINPORT=3005
 ENV CONTROLPORT=3006
 ENV FEDERATION=pdc.dev
 ENV JURISDICTION=TEST
-ENV KEYFILE=/etc/dacs/federations/$FEDERATION/federation_keyfile
-ENV ROLEFILE=/etc/dacs/federations/$FEDERATION/roles
+ENV DACS=/etc/dacs
+ENV KEYFILE=$DACS/federations/$FEDERATION/federation_keyfile
+ENV ROLEFILE=$DACS/federations/$FEDERATION/roles
 
 
-# Expose ports for listening
+# Expose ports listening for incoming traffic
 #
 EXPOSE $MAINPORT
 EXPOSE $CONTROLPORT
 
 
-# Update, install DACS and create DACS volume
+# Update and install DACS
 #
 RUN apt-get update; \
-    apt-get install -y dacs
+    apt-get install -y dacs \
+                       lynx
 
 
 # Clone and move repo files
@@ -32,15 +34,15 @@ RUN apt-get update; \
 WORKDIR /tmp/
 RUN git clone https://github.com/phydac/auth.git; \
     mv /tmp/auth/api/ /app/; \
-    mkdir -p /etc/dacs/federations; \
-    mv /tmp/auth/config/federations/* /etc/dacs/federations/; \
+    mkdir -p $DACS/federations; \
+    mv /tmp/auth/config/federations/* $DACS/federations/; \
     rm -rf /tmp/auth
 
 
-# Create, provide permissions and  and switch to app user
+# Create, provide permissions and switch to app user
 #
 RUN useradd app; \
-    chown -R app:app /app/ /etc/dacs/federations/$FEDERATION/
+    chown -R app:app /app/ $DACS/federations/$FEDERATION/
 USER app
 ENV HOME /app/
 
