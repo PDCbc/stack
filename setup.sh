@@ -10,7 +10,7 @@ set -e -o nounset
 vagrant up
 
 
-# Grand hub admin access and import *.xml files into pdc-0, pdc-1 and pdc-2
+# Grant hub admin access and import *.xml files into pdc-0, pdc-1 and pdc-2
 #
 cd scripts
 ./configure-hub.sh
