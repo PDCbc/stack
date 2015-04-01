@@ -7,13 +7,13 @@ set -e -o nounset
 
 # Build the Vagrant box
 #
-vagrant up
+#vagrant up
 
 
 
 # OS Name
 #
-OS=uname
+OS=$(uname)
 
 
 # Open the hub or provide instruction on error
@@ -57,6 +57,7 @@ then
 	xdg-open https://github.com/PhyDaC/queries
 elif [ $OS == 'Darwin' ]
 then
+	open https://github.com/PhyDaC/queries
 else
 	echo ""
 	echo "Open error.  Visit https://github.com/PhyDaC/queries"
