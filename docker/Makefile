@@ -44,7 +44,7 @@ run-endpoint-set:
 	scripts/configure-endpoint-set.sh
 
 run-auth:
-	docker run -dt --name auth       -h auth       --restart='always' phydac/auth
+	docker run -dt --name auth       -h auth       --restart='always' -p 3006:3006 phydac/auth
 
 run-dclapi:
 	docker run -dt --name dclapi     -h dclapi     --restart='always' phydac/dclapi
@@ -85,22 +85,22 @@ remove-endpoint-set:
 # Build Jobs #
 ##############
 build-hub:
-	docker build --force-rm -t phydac/hub        hub/
+	docker build -t phydac/hub        hub/
 
 build-endpoint:
-	docker build --force-rm -t phydac/endpoint   endpoint/
+	docker build -t phydac/endpoint   endpoint/
 
 build-auth:
-	docker build --force-rm -t phydac/auth       auth/
+	docker build -t phydac/auth       auth/
 
 build-dclapi:
-	docker build --force-rm -t phydac/dclapi     dclapi/
+	docker build -t phydac/dclapi     dclapi/
 
 build-hubapi:
-	docker build --force-rm -t phydac/hubapi     hubapi/
+	docker build -t phydac/hubapi     hubapi/
 
 build-visualizer:
-	docker build --force-rm -t phydac/visualizer visualizer/
+	docker build -t phydac/visualizer visualizer/
 
 
 #############
