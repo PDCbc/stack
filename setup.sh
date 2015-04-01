@@ -7,7 +7,7 @@ set -e -o nounset
 
 # Build the Vagrant box
 #
-#vagrant up
+vagrant up
 
 
 
