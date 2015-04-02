@@ -19,7 +19,7 @@ destroy: destroy-all
 run-hub:
 	docker run -dt --name hub-db -h hub-db --restart='always' -p 27019:27017 mongo
 	docker run -dt --name hub    -h hub    --restart='always' -p 3002:3002 --link hub-db:database phydac/hub
-	sleep 20
+	sleep 15
 	scripts/configure-hub.sh
 	docker restart hub
 
@@ -40,7 +40,7 @@ run-endpoint-set:
 	docker run -dt --name pdc-0      -h pdc-0      --restart='always' -p 40000:3001 --link pdc-0-db:database --link hub:hub phydac/endpoint
 	docker run -dt --name pdc-1      -h pdc-1      --restart='always' -p 40001:3001 --link pdc-1-db:database --link hub:hub phydac/endpoint
 	docker run -dt --name pdc-2      -h pdc-2      --restart='always' -p 40002:3001 --link pdc-2-db:database --link hub:hub phydac/endpoint
-	sleep 10
+	sleep 5
 	scripts/configure-endpoint-set.sh
 
 run-auth:
