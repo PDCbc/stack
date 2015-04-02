@@ -21,7 +21,6 @@ run-hub:
 	docker run -dt --name hub    -h hub    --restart='always' -p 3002:3002 --link hub-db:database phydac/hub
 	sleep 20
 	scripts/configure-hub.sh
-	clear
 
 run-endpoint:
 	echo ""

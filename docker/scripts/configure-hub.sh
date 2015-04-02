@@ -1,17 +1,16 @@
 #!/bin/bash
 #
+# Exit on errors or unitialized variables
+#
 set -e -x -o nounset
 
 
-# Add admin account
+# Script directory, useful for running scripts from scripts
 #
-mongo query_composer_development --port 27019 --eval 'db.users.insert({
-	"first_name" : "PDC",
-	"last_name" : "Admin",
-	"username" : "pdcadmin",
-	"email" : "pdcadmin@pdc.io",
-	"encrypted_password" : "$2a$10$ZSuPxdODbumiMGOxtVSpRu0Rd0fQ2HhC7tMu2IobKTaAsPMmFlBD.",
-	"agree_license" : true,
-	"approved" : true,
-	"admin" : true
-})'
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+
+# Import Mongo databases for queries and an admin account (users)
+#
+mongoimport --port 27019 --db query_composer_development --collection queries $DIR/data/queries.json
+mongoimport --port 27019 --db query_composer_development --collection users   $DIR/data/users.json
