@@ -24,13 +24,14 @@ run-hub:
 	docker restart hub
 
 run-endpoint:
-	echo ""
-	echo "Please enter a gatewayID (#) to run: "
-	read gID; \
+	@echo ""
+	@echo "Please enter a gatewayID (#) to run: "
+	@read gID; \
 	epName=pdc-$$gID; \
 	dbName=$$epName-db; \
 	epPort=`expr 40000 + $$gID`; \
-	docker run -dt --name $$dbName   -h $$dbName   --restart='always' mongo --smallfiles; \
+	dbPort=`expr 27020 + $$gID`; \
+	docker run -dt --name $$dbName   -h $$dbName   --restart='always' -p $$dbPort:27017 mongo --smallfiles; \
 	docker run -dt --name $$epName   -h $$epName   --restart='always' -p $$epPort:3001 --link hub:hub --link $$dbName:database phydac/endpoint
 
 run-endpoint-set:
@@ -67,8 +68,8 @@ destroy-all:
 # Remove Jobs #
 ###############
 remove-endpoint:
-	echo "Please enter a gatewayID (#) to remove: "; \
-	read gID; \
+	@echo "Please enter a gatewayID (#) to remove: "; \
+	@read gID; \
 	epName=pdc-$$gID; \
 	dbName=$$epName-db; \
 	docker stop $$dbName || true; \
