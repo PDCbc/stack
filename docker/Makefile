@@ -19,7 +19,7 @@ destroy: destroy-all
 run-hub:
 	docker run -dt --name hub-db -h hub-db --restart='always' -p 27019:27017 mongo
 	docker run -dt --name hub    -h hub    --restart='always' -p 3002:3002 --link hub-db:database phydac/hub
-	sleep 15
+	sleep 20
 	scripts/configure-hub.sh
 	docker restart hub
 
