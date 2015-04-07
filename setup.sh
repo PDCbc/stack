@@ -41,7 +41,7 @@ clear
 echo ""
 echo "Done!"
 echo ""
-echo "Why not try out one of our queries from https://github.com/PhyDaC/queries?"
+echo "Why not try out one of our queries from https://github.com/PhysiciansDataCollaborative/queries?"
 echo ""
 echo "Press [Enter] when ready"
 read -s enterToContinue
@@ -54,13 +54,13 @@ sleep 2
 OS=$(uname)
 if [ $OS == 'Linux' ]
 then
-	xdg-open https://github.com/PhyDaC/queries
+	xdg-open https://github.com/PhysiciansDataCollaborative/queries
 elif [ $OS == 'Darwin' ]
 then
-	open https://github.com/PhyDaC/queries
+	open https://github.com/PhysiciansDataCollaborative/queries
 else
 	echo ""
-	echo "Open error.  Visit https://github.com/PhyDaC/queries"
+	echo "Open error.  Visit https://github.com/PhysiciansDataCollaborative/queries"
 	echo ""
 	echo "Press [Enter] when ready"
 	read -s enterToContinue

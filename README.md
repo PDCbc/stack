@@ -13,8 +13,8 @@ Currently, there is no publicly available data for the `data/` folder, we're wor
 
 Clone the repository and run start.sh
 ```bash
-git clone https://github.com/PhyDaC/scoop-env
-cd scoop-env
+git clone https://github.com/PhysiciansDataCollaborative/pdc-env
+cd pdc-env
 vagrant up
 ```
 Note: 64-bit guests in VirtualBox require VT-x support.  Ensure that VT-x support is enabled in the BIOS before installing 64-bit guests.
@@ -71,16 +71,6 @@ Due to some *unreliabilities* with Docker and Virtualbox interactions (We haven'
 
 Note: `make run` fails if the containers are already running.  Please see the troubleshooting section.
 
-
-## Configuring the Hosts File
-
-Vagrant's hosts file is configured by provision.sh, but your host (non-VM) machine will need these entries to communicate with our docker containers.
-```bash
-127.0.0.1         hubapi.scoop.local
-127.0.0.1         visualizer.scoop.local
-127.0.0.1         hub.scoop.local
-127.0.0.1         endpoint.scoop.local
-```
 
 ## Accessing Docker Containers
 
@@ -187,15 +177,6 @@ ps -aux | grep screen | grep -v grep
 Explanation: `ps -aux` shows a = all processes, u = users (e.g vagrant) and x = no tty restriction (don't ask)
 Explanation: `| grep screen` shows only processes with the word `screen`
 Explanation: `| grep -v grep` hides processes with the word `grep` in them, since greps is also a process!
-
-
-Visit one of the components in your web browser:
-
-* Auth: [https://auth.scoop.local:8080]()
-* Provider: [https://provider.scoop.local:8081/api]()
-* Visualizer: [https://visualizer.scoop.local:8082]()
-* Hub: [https://hub.scoop.local:8083]()
-* Endpoint: [https://endpoint.scoop.local:8084]()
 
 
 ## Troubleshooting

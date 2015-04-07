@@ -28,7 +28,7 @@ RUN apt-get update
 # Clone repo
 #
 WORKDIR /app
-RUN git clone https://github.com/PhyDaC/hubapi .
+RUN git clone https://github.com/PhysiciansDataCollaborative/hubapi .
 
 
 # Create and switch to app user

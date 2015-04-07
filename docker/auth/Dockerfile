@@ -32,7 +32,7 @@ RUN apt-get update; \
 # Clone and move repo files
 #
 WORKDIR /tmp/
-RUN git clone https://github.com/phydac/auth.git; \
+RUN git clone https://github.com/PhysiciansDataCollaborative/auth.git; \
     mv /tmp/auth/api/ /app/; \
     mkdir -p $DACS/federations; \
     mv /tmp/auth/config/federations/* $DACS/federations/; \

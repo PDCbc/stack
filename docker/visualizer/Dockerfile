@@ -29,7 +29,7 @@ RUN apt-get update
 # Clone repo
 #
 WORKDIR /app
-RUN git clone https://github.com/PhyDaC/visualizer.git .
+RUN git clone https://github.com/PhysiciansDataCollaborative/visualizer.git .
 
 
 # Create and switch to app user

@@ -13,12 +13,14 @@ run: run-hub run-endpoint-set run-auth run-dclapi run-hubapi run-visualizer
 
 destroy: destroy-all
 
+test: run-test
+
 ############
 # Run Jobs #
 ############
 run-hub:
 	docker run -dt --name hub-db -h hub-db --restart='always' -p 27019:27017 mongo
-	docker run -dt --name hub    -h hub    --restart='always' -p 3002:3002 --link hub-db:database phydac/hub
+	docker run -dt --name hub    -h hub    --restart='always' -p 3002:3002 --link hub-db:database physiciansdatacollaborative/hub
 	sleep 20
 	scripts/configure-hub.sh
 	docker restart hub
@@ -32,29 +34,29 @@ run-endpoint:
 	epPort=`expr 40000 + $$gID`; \
 	dbPort=`expr 27020 + $$gID`; \
 	docker run -dt --name $$dbName   -h $$dbName   --restart='always' -p $$dbPort:27017 mongo --smallfiles; \
-	docker run -dt --name $$epName   -h $$epName   --restart='always' -p $$epPort:3001 --link hub:hub --link $$dbName:database phydac/endpoint
+	docker run -dt --name $$epName   -h $$epName   --restart='always' -p $$epPort:3001 --link hub:hub --link $$dbName:database physiciansdatacollaborative/endpoint
 
 run-endpoint-set:
 	docker run -dt --name pdc-0-db   -h pdc-0-db   --restart='always' -p 27020:27017 mongo --smallfiles
 	docker run -dt --name pdc-1-db   -h pdc-1-db   --restart='always' -p 27021:27017 mongo --smallfiles
 	docker run -dt --name pdc-2-db   -h pdc-2-db   --restart='always' -p 27022:27017 mongo --smallfiles
-	docker run -dt --name pdc-0      -h pdc-0      --restart='always' -p 40000:3001 --link pdc-0-db:database --link hub:hub phydac/endpoint
-	docker run -dt --name pdc-1      -h pdc-1      --restart='always' -p 40001:3001 --link pdc-1-db:database --link hub:hub phydac/endpoint
-	docker run -dt --name pdc-2      -h pdc-2      --restart='always' -p 40002:3001 --link pdc-2-db:database --link hub:hub phydac/endpoint
+	docker run -dt --name pdc-0      -h pdc-0      --restart='always' -p 40000:3001 --link pdc-0-db:database --link hub:hub physiciansdatacollaborative/endpoint
+	docker run -dt --name pdc-1      -h pdc-1      --restart='always' -p 40001:3001 --link pdc-1-db:database --link hub:hub physiciansdatacollaborative/endpoint
+	docker run -dt --name pdc-2      -h pdc-2      --restart='always' -p 40002:3001 --link pdc-2-db:database --link hub:hub physiciansdatacollaborative/endpoint
 	sleep 5
 	scripts/configure-endpoint-set.sh
 
 run-auth:
-	docker run -dt --name auth       -h auth       --restart='always' -p 3006:3006 phydac/auth
+	docker run -dt --name auth       -h auth       --restart='always' -p 3006:3006 physiciansdatacollaborative/auth \
 
 run-dclapi:
-	docker run -dt --name dclapi     -h dclapi     --restart='always' phydac/dclapi
+	docker run -dt --name dclapi     -h dclapi     --restart='always' physiciansdatacollaborative/dclapi
 
 run-hubapi:
-	docker run -dt --name hubapi     -h hubapi     --restart='always' --link hub-db:hub-db --link auth:auth --link dclapi:dclapi phydac/hubapi
+	docker run -dt --name hubapi     -h hubapi     --restart='always' --link hub-db:hub-db --link auth:auth --link dclapi:dclapi physiciansdatacollaborative/hubapi
 
 run-visualizer:
-	docker run -dt --name visualizer -h visualizer --restart='always' -p 3004:3004 --link auth:auth --link hubapi:hubapi phydac/visualizer
+	docker run -dt --name visualizer -h visualizer --restart='always' -p 3004:3004 --link auth:auth --link hubapi:hubapi physiciansdatacollaborative/visualizer
 
 
 ################
@@ -86,22 +88,22 @@ remove-endpoint-set:
 # Build Jobs #
 ##############
 build-hub:
-	docker build -t phydac/hub        hub/
+	docker build -t physiciansdatacollaborative/hub        hub/
 
 build-endpoint:
-	docker build -t phydac/endpoint   endpoint/
+	docker build -t physiciansdatacollaborative/endpoint   endpoint/
 
 build-auth:
-	docker build -t phydac/auth       auth/
+	docker build -t physiciansdatacollaborative/auth       auth/
 
 build-dclapi:
-	docker build -t phydac/dclapi     dclapi/
+	docker build -t physiciansdatacollaborative/dclapi     dclapi/
 
 build-hubapi:
-	docker build -t phydac/hubapi     hubapi/
+	docker build -t physiciansdatacollaborative/hubapi     hubapi/
 
 build-visualizer:
-	docker build -t phydac/visualizer visualizer/
+	docker build -t physiciansdatacollaborative/visualizer visualizer/
 
 
 #############

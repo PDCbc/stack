@@ -17,7 +17,7 @@ RUN apt-get update
 
 # Clone and prep /app/ directory
 #
-RUN  git clone https://github.com/PhyDaC/dclapi /app/
+RUN  git clone https://github.com/PhysiciansDataCollaborative/dclapi /app/
 COPY ./dcl.sqlite /app/
 
 
