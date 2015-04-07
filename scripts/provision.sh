@@ -38,7 +38,8 @@ systemctl start docker
     echo '		echo "Please pass a docker container to enter"' | tee -a /home/vagrant/.bashrc
     echo '		echo "Usage: dockin [containerToEnter]"' | tee -a /home/vagrant/.bashrc
     echo '	else' | tee -a /home/vagrant/.bashrc
-    echo '		sudo nsenter --target $(docker inspect --format {{.State.Pid}} $1) --mount --uts --ipc --net --pid /bin/bash' | tee -a /home/vagrant/.bashrc
+    echo '    CONTAINER=${1%/}' | tee -a /home/vagrant/.bashrc
+    echo '    sudo nsenter --target $(docker inspect --format {{.State.Pid}} $CONTAINER)' | tee -a /home/vagrant/.bashrc
     echo '	fi' | tee -a /home/vagrant/.bashrc
     echo '}' | tee -a /home/vagrant/.bashrc
   fi
@@ -55,9 +56,10 @@ systemctl start docker
     echo '    echo "Please pass a docker container to destroy and recreate"' | tee -a /home/vagrant/.bashrc
     echo '    echo "Usage: reload [containerToReload]"' | tee -a /home/vagrant/.bashrc
     echo '  else' | tee -a /home/vagrant/.bashrc
-    echo '    docker rm -fv $1' | tee -a /home/vagrant/.bashrc
-    echo '    make build-$1' | tee -a /home/vagrant/.bashrc
-    echo '    make run-$1' | tee -a /home/vagrant/.bashrc
+    echo '    CONTAINER=${1%/}' | tee -a /home/vagrant/.bashrc
+    echo '    docker rm -fv $CONTAINER' | tee -a /home/vagrant/.bashrc
+    echo '    make build-$CONTAINER' | tee -a /home/vagrant/.bashrc
+    echo '    make run-$CONTAINER' | tee -a /home/vagrant/.bashrc
     echo '  fi' | tee -a /home/vagrant/.bashrc
     echo '}' | tee -a /home/vagrant/.bashrc
   fi
