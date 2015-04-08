@@ -20,7 +20,7 @@ test: run-test
 ############
 run-hub:
 	docker run -dt --name hub-db -h hub-db --restart='always' -p 27019:27017 mongo
-	docker run -dt --name hub    -h hub    --restart='always' -p 3002:3002 --link hub-db:database physiciansdatacollaborative/hub
+	docker run -dt --name hub    -h hub    --restart='always' -p 3002:3002 --link hub-db:database pdc.io/hub
 	sleep 20
 	scripts/configure-hub.sh
 	docker restart hub
@@ -34,29 +34,29 @@ run-endpoint:
 	epPort=`expr 40000 + $$gID`; \
 	dbPort=`expr 27020 + $$gID`; \
 	docker run -dt --name $$dbName   -h $$dbName   --restart='always' -p $$dbPort:27017 mongo --smallfiles; \
-	docker run -dt --name $$epName   -h $$epName   --restart='always' -p $$epPort:3001 --link hub:hub --link $$dbName:database physiciansdatacollaborative/endpoint
+	docker run -dt --name $$epName   -h $$epName   --restart='always' -p $$epPort:3001 --link hub:hub --link $$dbName:database pdc.io/endpoint
 
 run-endpoint-set:
 	docker run -dt --name pdc-0-db   -h pdc-0-db   --restart='always' -p 27020:27017 mongo --smallfiles
 	docker run -dt --name pdc-1-db   -h pdc-1-db   --restart='always' -p 27021:27017 mongo --smallfiles
 	docker run -dt --name pdc-2-db   -h pdc-2-db   --restart='always' -p 27022:27017 mongo --smallfiles
-	docker run -dt --name pdc-0      -h pdc-0      --restart='always' -p 40000:3001 --link pdc-0-db:database --link hub:hub physiciansdatacollaborative/endpoint
-	docker run -dt --name pdc-1      -h pdc-1      --restart='always' -p 40001:3001 --link pdc-1-db:database --link hub:hub physiciansdatacollaborative/endpoint
-	docker run -dt --name pdc-2      -h pdc-2      --restart='always' -p 40002:3001 --link pdc-2-db:database --link hub:hub physiciansdatacollaborative/endpoint
+	docker run -dt --name pdc-0      -h pdc-0      --restart='always' -p 40000:3001 --link pdc-0-db:database --link hub:hub pdc.io/endpoint
+	docker run -dt --name pdc-1      -h pdc-1      --restart='always' -p 40001:3001 --link pdc-1-db:database --link hub:hub pdc.io/endpoint
+	docker run -dt --name pdc-2      -h pdc-2      --restart='always' -p 40002:3001 --link pdc-2-db:database --link hub:hub pdc.io/endpoint
 	sleep 5
 	scripts/configure-endpoint-set.sh
 
 run-auth:
-	docker run -dt --name auth       -h auth       --restart='always' -p 3006:3006 physiciansdatacollaborative/auth \
+	docker run -dt --name auth       -h auth       --restart='always' -p 3006:3006 pdc.io/auth \
 
 run-dclapi:
-	docker run -dt --name dclapi     -h dclapi     --restart='always' physiciansdatacollaborative/dclapi
+	docker run -dt --name dclapi     -h dclapi     --restart='always' pdc.io/dclapi
 
 run-hubapi:
-	docker run -dt --name hubapi     -h hubapi     --restart='always' --link hub-db:hub-db --link auth:auth --link dclapi:dclapi physiciansdatacollaborative/hubapi
+	docker run -dt --name hubapi     -h hubapi     --restart='always' --link hub-db:hub-db --link auth:auth --link dclapi:dclapi pdc.io/hubapi
 
 run-visualizer:
-	docker run -dt --name visualizer -h visualizer --restart='always' -p 3004:3004 --link auth:auth --link hubapi:hubapi physiciansdatacollaborative/visualizer
+	docker run -dt --name visualizer -h visualizer --restart='always' -p 3004:3004 --link auth:auth --link hubapi:hubapi pdc.io/visualizer
 
 
 ################
@@ -70,7 +70,8 @@ destroy-all:
 # Remove Jobs #
 ###############
 remove-endpoint:
-	@echo "Please enter a gatewayID (#) to remove: "; \
+	@echo ""
+	@echo "Please enter a gatewayID (#) to remove: "
 	@read gID; \
 	epName=pdc-$$gID; \
 	dbName=$$epName-db; \
@@ -88,22 +89,22 @@ remove-endpoint-set:
 # Build Jobs #
 ##############
 build-hub:
-	docker build -t physiciansdatacollaborative/hub        hub/
+	docker build -t pdc.io/hub        hub/
 
 build-endpoint:
-	docker build -t physiciansdatacollaborative/endpoint   endpoint/
+	docker build -t pdc.io/endpoint   endpoint/
 
 build-auth:
-	docker build -t physiciansdatacollaborative/auth       auth/
+	docker build -t pdc.io/auth       auth/
 
 build-dclapi:
-	docker build -t physiciansdatacollaborative/dclapi     dclapi/
+	docker build -t pdc.io/dclapi     dclapi/
 
 build-hubapi:
-	docker build -t physiciansdatacollaborative/hubapi     hubapi/
+	docker build -t pdc.io/hubapi     hubapi/
 
 build-visualizer:
-	docker build -t physiciansdatacollaborative/visualizer visualizer/
+	docker build -t pdc.io/visualizer visualizer/
 
 
 #############
