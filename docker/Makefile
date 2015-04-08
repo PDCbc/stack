@@ -15,6 +15,7 @@ destroy: destroy-all
 
 test: run-test
 
+
 ############
 # Run Jobs #
 ############
@@ -47,7 +48,10 @@ run-endpoint-set:
 	scripts/configure-endpoint-set.sh
 
 run-auth:
-	docker run -dt --name auth       -h auth       --restart='always' -p 3006:3006 pdc.io/auth \
+	docker run -dt --name auth       -h auth       --restart='always' -p 3006:3006 pdc.io/auth
+	EP0=`mongo --port 27019 query_composer_development --eval 'printjson( db.endpoints.findOne({base_url:"http://10.0.2.2:40000" }, { "_id":1 }))'  | grep -o "(.*)" | grep -io "\w\+"`; \
+	echo $$EP0
+	docker exec auth /usr/bin/dacspasswd -uj TEST -pds '{"clinician":"cpsid","clinic":"$$EP0"}' foo
 
 run-dclapi:
 	docker run -dt --name dclapi     -h dclapi     --restart='always' pdc.io/dclapi
