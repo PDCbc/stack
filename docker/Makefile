@@ -30,7 +30,7 @@ run-endpoint:
 	@echo ""
 	@echo "Please enter a gatewayID (#) to run: "
 	@read gID; \
-	epName=pdc-$$gID; \
+	epName=ep-$$gID; \
 	dbName=$$epName-db; \
 	epPort=`expr 40000 + $$gID`; \
 	dbPort=`expr 27020 + $$gID`; \
@@ -38,20 +38,22 @@ run-endpoint:
 	docker run -dt --name $$epName   -h $$epName   --restart='always' -p $$epPort:3001 --link hub:hub --link $$dbName:database pdc.io/endpoint
 
 run-endpoint-set:
-	docker run -dt --name pdc-0-db   -h pdc-0-db   --restart='always' -p 27020:27017 mongo --smallfiles
-	docker run -dt --name pdc-1-db   -h pdc-1-db   --restart='always' -p 27021:27017 mongo --smallfiles
-	docker run -dt --name pdc-2-db   -h pdc-2-db   --restart='always' -p 27022:27017 mongo --smallfiles
-	docker run -dt --name pdc-0      -h pdc-0      --restart='always' -p 40000:3001 --link pdc-0-db:database --link hub:hub pdc.io/endpoint
-	docker run -dt --name pdc-1      -h pdc-1      --restart='always' -p 40001:3001 --link pdc-1-db:database --link hub:hub pdc.io/endpoint
-	docker run -dt --name pdc-2      -h pdc-2      --restart='always' -p 40002:3001 --link pdc-2-db:database --link hub:hub pdc.io/endpoint
+	docker run -dt --name ep-0-db   -h ep-0-db   --restart='always' -p 27020:27017 mongo --smallfiles
+	docker run -dt --name ep-1-db   -h ep-1-db   --restart='always' -p 27021:27017 mongo --smallfiles
+	docker run -dt --name ep-2-db   -h ep-2-db   --restart='always' -p 27022:27017 mongo --smallfiles
+	docker run -dt --name ep-0      -h ep-0      --restart='always' -p 40000:3001 --link ep-0-db:database --link hub:hub pdc.io/endpoint
+	docker run -dt --name ep-1      -h ep-1      --restart='always' -p 40001:3001 --link ep-1-db:database --link hub:hub pdc.io/endpoint
+	docker run -dt --name ep-2      -h ep-2      --restart='always' -p 40002:3001 --link ep-2-db:database --link hub:hub pdc.io/endpoint
 	sleep 5
 	scripts/configure-endpoint-set.sh
 
 run-auth:
 	docker run -dt --name auth       -h auth       --restart='always' -p 3006:3006 pdc.io/auth
 	EP0=`mongo --port 27019 query_composer_development --eval 'printjson( db.endpoints.findOne({base_url:"http://10.0.2.2:40000" }, { "_id":1 }))'  | grep -o "(.*)" | grep -io "\w\+"`; \
-	echo $$EP0
-	docker exec auth /usr/bin/dacspasswd -uj TEST -pds '{"clinician":"cpsid","clinic":"$$EP0"}' foo
+	JSON="{\"clinician\":\"cpsid\",\"clinic\":\""; \
+	JSON+=$$EP0; \
+	JSON+="\"}"; \
+	docker exec auth /usr/bin/dacspasswd -uj TEST -pds $$JSON foo
 
 run-dclapi:
 	docker run -dt --name dclapi     -h dclapi     --restart='always' pdc.io/dclapi
@@ -67,7 +69,7 @@ run-visualizer:
 # Destroy Jobs #
 ################
 destroy-all:
-	docker rm -fv hub-db hub pdc-2-db pdc-1-db pdc-0-db pdc-2 pdc-1 pdc-0 visualizer hubapi dclapi auth
+	docker rm -fv hub-db hub ep-2-db ep-1-db ep-0-db ep-2 ep-1 ep-0 visualizer hubapi dclapi auth
 
 
 ###############
@@ -77,7 +79,7 @@ remove-endpoint:
 	@echo ""
 	@echo "Please enter a gatewayID (#) to remove: "
 	@read gID; \
-	epName=pdc-$$gID; \
+	epName=ep-$$gID; \
 	dbName=$$epName-db; \
 	docker stop $$dbName || true; \
 	docker stop $$epName || true; \
@@ -85,8 +87,8 @@ remove-endpoint:
 	docker rm   $$epName || true
 
 remove-endpoint-set:
-	docker stop  pdc-2-db pdc-1-db pdc-0-db hub-db pdc-2 pdc-1 pdc-0 hub || true; \
-	docker rm -v pdc-2-db pdc-1-db pdc-0-db hub-db pdc-2 pdc-1 pdc-0 hub || true
+	docker stop  ep-2-db ep-1-db ep-0-db hub-db ep-2 ep-1 ep-0 hub || true; \
+	docker rm -v ep-2-db ep-1-db ep-0-db hub-db ep-2 ep-1 ep-0 hub || true
 
 
 ##############
