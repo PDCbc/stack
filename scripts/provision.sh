@@ -38,8 +38,8 @@ systemctl start docker
     echo '		echo "Please pass a docker container to enter"' | tee -a /home/vagrant/.bashrc
     echo '		echo "Usage: dockin [containerToEnter]"' | tee -a /home/vagrant/.bashrc
     echo '	else' | tee -a /home/vagrant/.bashrc
-    echo '    CONTAINER=${1%/}' | tee -a /home/vagrant/.bashrc
-    echo '    sudo nsenter --target $(docker inspect --format {{.State.Pid}} $CONTAINER)' | tee -a /home/vagrant/.bashrc
+    echo '		sudo nsenter --target $(docker inspect --format {{.State.Pid}} $1) --mount --uts --ipc --net --pid /bin/bash' | tee -a /home/vagrant/.bashrc
+
     echo '	fi' | tee -a /home/vagrant/.bashrc
     echo '}' | tee -a /home/vagrant/.bashrc
   fi
@@ -88,20 +88,4 @@ systemctl start docker
 # Make containers
 #
 cd /vagrant/docker
-make
-
-
-# Clean up stopped containers and untagged images
-#
-#docker rm $(docker ps -a -q)
-#docker rmi $(docker images | grep "^<none>" | awk '{print $3}')
-
-
-# Reminders
-#
-echo ""
-echo "WARNING!!!"
-echo ""
-echo "Before putting this software into production remove vagrant user from the"
-echo "docker group.  Root-level rights are convenient for development, but"
-echo "increase the attack surface!"
+make ||( make destroy; make )
