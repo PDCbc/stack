@@ -16,34 +16,13 @@ vagrant up
 OS=$(uname)
 
 
-# Open the hub or provide instruction on error
-#
-sleep 2
-if [ $OS == 'Linux' ]
-then
-	xdg-open https://localhost:3002
-elif [ $OS == 'Darwin' ]
-then
-	open https://localhost:3002
-else
-	echo ""
-	echo "Open error.  Visit https://localhost:3002"
-	echo ""
-	echo "Press [Enter] when ready"
-	read -s enterToContinue
-	echo ""
-fi
-
-
 # Done!
 #
 clear
 echo ""
 echo "Done!"
 echo ""
-echo "Why not try out one of our queries from https://github.com/PhysiciansDataCollaborative/queries?"
-echo ""
-echo "Press [Enter] when ready"
+echo "Press [Enter] to open the Visualizer, the Hub and our queries on GitHub."
 read -s enterToContinue
 echo ""
 
@@ -55,14 +34,17 @@ OS=$(uname)
 if [ $OS == 'Linux' ]
 then
 	xdg-open https://github.com/PhysiciansDataCollaborative/queries
+	xdg-open https://localhost:3002
+	xdg-open https://localhost:3004
 elif [ $OS == 'Darwin' ]
 then
 	open https://github.com/PhysiciansDataCollaborative/queries
+	open https://localhost:3002
+	open https://localhost:3004
 else
 	echo ""
-	echo "Open error.  Visit https://github.com/PhysiciansDataCollaborative/queries"
-	echo ""
-	echo "Press [Enter] when ready"
-	read -s enterToContinue
-	echo ""
+	echo "Open error.  Visit:"
+	echo " - https://github.com/PhysiciansDataCollaborative/queries"
+	echo " - https://localhost:3002"
+	echo " - https://localhost:3004"
 fi
