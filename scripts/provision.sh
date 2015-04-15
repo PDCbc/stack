@@ -24,10 +24,10 @@ systemctl start docker
 
 if(! grep --quite 'function dockin()' /home/vagrant/.vimrc) then
     echo 'set number' | tee -a /home/vagrant/.vimrc
-    echo 'set colorscheme delek' | tee -a /home/vagrant/.vimrc
+    echo 'colorscheme delek' | tee -a /home/vagrant/.vimrc
 fi
 
-# Configure ~/.bashrc 
+# Configure ~/.bashrc
 #
 if(! grep --quiet 'function dockin()' /home/vagrant/.bashrc)
 then
