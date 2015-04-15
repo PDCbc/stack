@@ -28,7 +28,8 @@ RUN apt-get update
 # Clone repo
 #
 WORKDIR /app
-RUN git clone https://github.com/PhysiciansDataCollaborative/hubapi .
+RUN git clone https://github.com/PhysiciansDataCollaborative/hubapi .; \
+    git checkout -q pdc-0.1.0
 
 
 # Create and switch to app user

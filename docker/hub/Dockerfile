@@ -26,7 +26,8 @@ ENV HOME /home/app/
 # Install Hub Software
 #
 WORKDIR /home/app
-RUN git clone https://github.com/scoophealth/query-composer hub
+RUN git clone https://github.com/physiciansdatacollaborative/hub.git; \
+    git -C hub/ checkout -q pdc-0.1.0
 WORKDIR /home/app/hub
 COPY ./branding/assets-images/* /home/app/hub/app/assets/images/
 COPY ./branding/views-devise-passwords/* /home/app/hub/app/views/devise/passwords/
