@@ -54,5 +54,9 @@ WORKDIR /app
 RUN npm install; \
     dacskey -uj $JURISDICTION -v $KEYFILE; \
     dacspasswd -uj $JURISDICTION -p foo -a foo; \
+    echo "foo:admin" > $ROLEFILE; \
+    dacspasswd -uj $JURISDICTION -p osler -a osler; \
+    echo "foo:admin" > $ROLEFILE; \
+    dacspasswd -uj $JURISDICTION -p oscar -a oscar; \
     echo "foo:admin" > $ROLEFILE
 CMD ["npm", "start"]
