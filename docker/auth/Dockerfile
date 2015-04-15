@@ -33,7 +33,7 @@ RUN apt-get update; \
 #
 WORKDIR /tmp/
 RUN git clone https://github.com/PhysiciansDataCollaborative/auth.git; \
-    git -C hubapi auth pdc-0.1.0; \
+    git -C auth checkout pdc-0.1.0; \
     mv /tmp/auth/api/ /app/; \
     mkdir -p $DACS/federations; \
     mv /tmp/auth/config/federations/* $DACS/federations/; \
