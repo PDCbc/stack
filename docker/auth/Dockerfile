@@ -56,7 +56,7 @@ RUN npm install; \
     dacspasswd -uj $JURISDICTION -p foo -a foo; \
     echo "foo:admin" > $ROLEFILE; \
     dacspasswd -uj $JURISDICTION -p osler -a osler; \
-    echo "foo:admin" > $ROLEFILE; \
+    echo "osler:admin" > $ROLEFILE; \
     dacspasswd -uj $JURISDICTION -p oscar -a oscar; \
-    echo "foo:admin" > $ROLEFILE
+    echo "oscar:admin" > $ROLEFILE
 CMD ["npm", "start"]
