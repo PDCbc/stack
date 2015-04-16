@@ -20,8 +20,8 @@ test: run-test
 # Run Jobs #
 ############
 run-hub:
-	docker run -dt --name hub-db -h hub-db --restart='always' -p 27019:27017 mongo
-	docker run -dt --name hub    -h hub    --restart='always' -p 3002:3002 --link hub-db:database pdc.io/hub
+	docker run -dt --name hub-db     -h hub-db     --restart='always' -p 27019:27017 mongo
+	docker run -dt --name hub        -h hub        --restart='always' -p 3002:3002 --link hub-db:database pdc.io/hub
 	sleep 20
 	scripts/configure-hub.sh
 	docker restart hub
@@ -38,22 +38,25 @@ run-endpoint:
 	docker run -dt --name $$epName   -h $$epName   --restart='always' -p $$epPort:3001 --link hub:hub --link $$dbName:database pdc.io/endpoint
 
 run-endpoint-set:
-	docker run -dt --name ep-0-db   -h ep-0-db   --restart='always' -p 27020:27017 mongo --smallfiles
-	docker run -dt --name ep-1-db   -h ep-1-db   --restart='always' -p 27021:27017 mongo --smallfiles
-	docker run -dt --name ep-2-db   -h ep-2-db   --restart='always' -p 27022:27017 mongo --smallfiles
-	docker run -dt --name ep-0      -h ep-0      --restart='always' -p 40000:3001 --link ep-0-db:database --link hub:hub pdc.io/endpoint
-	docker run -dt --name ep-1      -h ep-1      --restart='always' -p 40001:3001 --link ep-1-db:database --link hub:hub pdc.io/endpoint
-	docker run -dt --name ep-2      -h ep-2      --restart='always' -p 40002:3001 --link ep-2-db:database --link hub:hub pdc.io/endpoint
+	docker run -dt --name ep-0-db    -h ep-0-db    --restart='always' -p 27020:27017 mongo --smallfiles
+	docker run -dt --name ep-1-db    -h ep-1-db    --restart='always' -p 27021:27017 mongo --smallfiles
+	docker run -dt --name ep-0       -h ep-0       --restart='always' -p 40000:3001 --link ep-0-db:database --link hub:hub pdc.io/endpoint
+	docker run -dt --name ep-1       -h ep-1       --restart='always' -p 40001:3001 --link ep-1-db:database --link hub:hub pdc.io/endpoint
 	sleep 5
 	scripts/configure-endpoint-set.sh
 
 run-auth:
 	docker run -dt --name auth       -h auth       --restart='always' -p 3006:3006 pdc.io/auth
 	EP0=`mongo --port 27019 query_composer_development --eval 'printjson( db.endpoints.findOne({base_url:"http://10.0.2.2:40000" }, { "_id":1 }))'  | grep -o "(.*)" | grep -io "\w\+"`; \
-	JSON="{\"clinician\":\"cpsid\",\"clinic\":\""; \
-	JSON+=$$EP0; \
-	JSON+="\"}"; \
-	docker exec auth /usr/bin/dacspasswd -uj TEST -pds $$JSON foo
+	JS0="{\"clinician\":\"cpsid\",\"clinic\":\""; \
+	JS0+=$$EP0; \
+	JS0+="\"}"; \
+	docker exec auth /usr/bin/dacspasswd -uj TEST -pds $$JS0 oscar
+	EP1=`mongo --port 27019 query_composer_development --eval 'printjson( db.endpoints.findOne({base_url:"http://10.0.2.2:40001" }, { "_id":1 }))'  | grep -o "(.*)" | grep -io "\w\+"`; \
+	JS1="{\"clinician\":\"27542\",\"clinic\":\""; \
+	JS1+=$$EP1; \
+	JS1+="\"}"; \
+	docker exec auth /usr/bin/dacspasswd -uj TEST -pds $$JS1 osler
 
 run-dclapi:
 	docker run -dt --name dclapi     -h dclapi     --restart='always' pdc.io/dclapi
@@ -69,7 +72,7 @@ run-visualizer:
 # Destroy Jobs #
 ################
 destroy-all:
-	docker rm -fv hub-db hub ep-2-db ep-1-db ep-0-db ep-2 ep-1 ep-0 visualizer hubapi dclapi auth
+	docker rm -fv hub-db hub ep-1-db ep-0-db ep-1 ep-0 visualizer hubapi dclapi auth
 
 
 ###############
