@@ -20,14 +20,17 @@ gpasswd -a vagrant docker
 systemctl enable docker
 systemctl start docker
 
+# Set up ~/.vimrc
 
-# Pass commands as vagrant user, not root
+if(! grep --quite 'function dockin()' /home/vagrant/.vimrc) then
+    echo 'set number' | tee -a /home/vagrant/.vimrc
+    echo 'colorscheme delek' | tee -a /home/vagrant/.vimrc
+fi
+
+# Configure ~/.bashrc
 #
-#su vagrant << EOF
-  # Add dockin() function to .bashrc
-  #
-  if(! grep --quiet 'function dockin()' /home/vagrant/.bashrc)
-  then
+if(! grep --quiet 'function dockin()' /home/vagrant/.bashrc)
+then
     echo '' | tee -a /home/vagrant/.bashrc
     echo '# Function to make nsenter easier' | tee -a /home/vagrant/.bashrc
     echo '#' | tee -a /home/vagrant/.bashrc
@@ -42,10 +45,10 @@ systemctl start docker
 
     echo '	fi' | tee -a /home/vagrant/.bashrc
     echo '}' | tee -a /home/vagrant/.bashrc
-  fi
+fi
 
-  if(! grep --quiet 'function reload()' /home/vagrant/.bashrc)
-  then
+if(! grep --quiet 'function reload()' /home/vagrant/.bashrc)
+then
     echo '' | tee -a /home/vagrant/.bashrc
     echo '# Function to make container rebuilds easier' | tee -a /home/vagrant/.bashrc
     echo '#' | tee -a /home/vagrant/.bashrc
@@ -62,10 +65,10 @@ systemctl start docker
     echo '    make run-$CONTAINER' | tee -a /home/vagrant/.bashrc
     echo '  fi' | tee -a /home/vagrant/.bashrc
     echo '}' | tee -a /home/vagrant/.bashrc
-  fi
+fi
 
-  if(! grep --quiet "alias c='dockin'" /home/vagrant/.bashrc)
-  then
+if(! grep --quiet "alias c='dockin'" /home/vagrant/.bashrc)
+then
     echo '' | tee -a /home/vagrant/.bashrc
     echo '# Aliases to frequently used functions and applications' | tee -a /home/vagrant/.bashrc
     echo '#' | tee -a /home/vagrant/.bashrc
@@ -73,17 +76,15 @@ systemctl start docker
     echo "alias d='docker'" | tee -a /home/vagrant/.bashrc
     echo "alias r='reload'" | tee -a /home/vagrant/.bashrc
     echo "alias l='docker logs'" | tee -a /home/vagrant/.bashrc
-  fi
+fi
 
-  # Start in /vagrant/, instead of /home/vagrant/
-  if(! grep --quiet 'cd /vagrant/' /home/vagrant/.bashrc)
-  then
+# Start in /vagrant/, instead of /home/vagrant/
+if(! grep --quiet 'cd /vagrant/' /home/vagrant/.bashrc)
+then
     echo '' | tee -a /home/vagrant/.bashrc
     echo '# Start in /vagrant/, instead of /home/vagrant/' | tee -a /home/vagrant/.bashrc
     echo 'cd /vagrant/docker/' | tee -a /home/vagrant/.bashrc
-  fi
-#EOF
-
+fi
 
 # Make containers
 #

@@ -33,6 +33,7 @@ RUN apt-get update; \
 #
 WORKDIR /tmp/
 RUN git clone https://github.com/PhysiciansDataCollaborative/auth.git; \
+    git -C auth checkout -q pdc-0.1.0; \
     mv /tmp/auth/api/ /app/; \
     mkdir -p $DACS/federations; \
     mv /tmp/auth/config/federations/* $DACS/federations/; \
@@ -52,6 +53,8 @@ ENV HOME /app/
 WORKDIR /app
 RUN npm install; \
     dacskey -uj $JURISDICTION -v $KEYFILE; \
-    dacspasswd -uj $JURISDICTION -p foo -a foo; \
-    echo "foo:admin" > $ROLEFILE
+    dacspasswd -uj $JURISDICTION -p oscar -a oscar; \
+    echo "oscar:admin" >> $ROLEFILE; \
+    dacspasswd -uj $JURISDICTION -p osler -a osler; \
+    echo "osler:admin" >> $ROLEFILE
 CMD ["npm", "start"]

@@ -1,3 +1,2 @@
-{ "name" : "ep-0", "base_url" : "http://10.0.2.2:40000" }
-{ "name" : "ep-1", "base_url" : "http://10.0.2.2:40001" }
-{ "name" : "ep-2", "base_url" : "http://10.0.2.2:40002" }
+{ "name" : "ep-0-oscar", "base_url" : "http://10.0.2.2:40000" }
+{ "name" : "ep-1-osler", "base_url" : "http://10.0.2.2:40001" }

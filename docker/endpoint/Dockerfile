@@ -39,7 +39,8 @@ ENV HOME /home/app/
 # Clone endpoint software
 #
 WORKDIR /home/app
-RUN git clone https://github.com/scoophealth/query-gateway.git endpoint
+RUN git clone https://github.com/physiciansdatacollaborative/endpoint.git; \
+    git -C endpoint checkout -q pdc-0.1.0
 
 
 # Create directories needed by endpoint software

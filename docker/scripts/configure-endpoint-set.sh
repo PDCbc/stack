@@ -19,4 +19,3 @@ mongoimport --port 27019 --db query_composer_development --collection endpoints 
 #
 mongoimport --port 27020 --db query_gateway_development --collection records $DIR/data/oscar10.json
 mongoimport --port 27021 --db query_gateway_development --collection records $DIR/data/oscar10.json
-mongoimport --port 27022 --db query_gateway_development --collection records $DIR/data/oscar10.json
