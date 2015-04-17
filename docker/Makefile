@@ -48,14 +48,10 @@ run-endpoint-set:
 run-auth:
 	docker run -dt --name auth       -h auth       --restart='always' -p 3006:3006 pdc.io/auth
 	EP0=`mongo --port 27019 query_composer_development --eval 'printjson( db.endpoints.findOne({base_url:"http://10.0.2.2:40000" }, { "_id":1 }))'  | grep -o "(.*)" | grep -io "\w\+"`; \
-	JS0="{\"clinician\":\"cpsid\",\"clinic\":\""; \
-	JS0+=$$EP0; \
-	JS0+="\"}"; \
+	JS0="{\"clinician\":\"cpsid\",\"clinic\":\""$$EP0"\"}"; \
 	docker exec auth /usr/bin/dacspasswd -uj TEST -pds $$JS0 oscar
 	EP1=`mongo --port 27019 query_composer_development --eval 'printjson( db.endpoints.findOne({base_url:"http://10.0.2.2:40001" }, { "_id":1 }))'  | grep -o "(.*)" | grep -io "\w\+"`; \
-	JS1="{\"clinician\":\"27542\",\"clinic\":\""; \
-	JS1+=$$EP1; \
-	JS1+="\"}"; \
+	JS1="{\"clinician\":\"27542\",\"clinic\":\""$$EP1"\"}"; \
 	docker exec auth /usr/bin/dacspasswd -uj TEST -pds $$JS1 osler
 
 run-dclapi:

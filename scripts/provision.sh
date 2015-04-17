@@ -7,25 +7,28 @@ set -e -o nounset
 
 # Add GPG key, install packages and update
 #
-rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY*
-yum remove -y vim-minimal
-yum install -y sudo vim nano docker-io cmake mongodb
-yum update -y
+apt-get install -y sudo vim nano cmake mongodb wget
+apt-get update -y
+
+# Install the most recent version of docker
+#
+curl https://get.docker.com/ > docker_install.sh
+sudo sh docker_install.sh
 
 
 # Configure and start docker daemon
 #
 groupadd docker || true
 gpasswd -a vagrant docker
-systemctl enable docker
-systemctl start docker
+
 
 # Set up ~/.vimrc
-
+#
 if(! grep --quite 'function dockin()' /home/vagrant/.vimrc) then
     echo 'set number' | tee -a /home/vagrant/.vimrc
     echo 'colorscheme delek' | tee -a /home/vagrant/.vimrc
 fi
+
 
 # Configure ~/.bashrc
 #
@@ -72,7 +75,7 @@ then
     echo '' | tee -a /home/vagrant/.bashrc
     echo '# Aliases to frequently used functions and applications' | tee -a /home/vagrant/.bashrc
     echo '#' | tee -a /home/vagrant/.bashrc
-    echo "alias c='dockin'" | tee -a /home/vagrant/.bashrc
+    echo "alias c='docker exec -it'" | tee -a /home/vagrant/.bashrc
     echo "alias d='docker'" | tee -a /home/vagrant/.bashrc
     echo "alias r='reload'" | tee -a /home/vagrant/.bashrc
     echo "alias l='docker logs'" | tee -a /home/vagrant/.bashrc
@@ -85,6 +88,7 @@ then
     echo '# Start in /vagrant/, instead of /home/vagrant/' | tee -a /home/vagrant/.bashrc
     echo 'cd /vagrant/docker/' | tee -a /home/vagrant/.bashrc
 fi
+
 
 # Make containers
 #
