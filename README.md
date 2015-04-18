@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/physiciansdatacollaborative/pdc-env.png?label=ready&title=Ready)](https://waffle.io/physiciansdatacollaborative/pdc-env)
 ## Requirements:
 
 * [Vagrant](http://www.vagrantup.com/)
