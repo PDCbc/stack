@@ -27,16 +27,10 @@ ENV HOME /home/app/
 #
 WORKDIR /home/app
 RUN git clone https://github.com/physiciansdatacollaborative/hub.git; \
-    git -C hub/ checkout -q pdc-0.1.0
+    git -C hub/ checkout dev
 
 
 WORKDIR /home/app/hub
-COPY ./branding/assets-images/* /home/app/hub/app/assets/images/
-COPY ./branding/views-devise-passwords/* /home/app/hub/app/views/devise/passwords/
-COPY ./branding/views-devise-registrations/* /home/app/hub/app/views/devise/registrations/
-COPY ./branding/views-devise-sessions/* /home/app/hub/app/views/devise/sessions/
-COPY ./branding/views-shared/* /home/app/hub/app/views/shared/
-COPY ./branding/views-layouts/* /home/app/hub/app/views/layouts/
 RUN bundle install --path vendor/bundle; \
     mkdir -p /home/app/hub/tmp/pids; \
     sed -i -e "s/localhost:27017/database:27017/" config/mongoid.yml
