@@ -45,7 +45,6 @@ var querySchema = mongoose.Schema(
 		description : String,
 		map : String,
 		reduce : String, 
-		executions : Array,
 		user_id :  mongoose.Schema.ObjectId
 	}, {
 		collection: 'queries'

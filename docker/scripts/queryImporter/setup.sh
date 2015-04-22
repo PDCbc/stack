@@ -1,1 +1,1 @@
-npm install assert async fs minimist mongodb mongoose
+npm install assert async fs minimist mongodb mongoose --save
