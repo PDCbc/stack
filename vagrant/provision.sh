@@ -41,4 +41,4 @@ gpasswd -a vagrant docker
 # Make containers
 #
 cd /vagrant/docker
-make ||( make destroy; make )
+make
