@@ -30,6 +30,7 @@ Specifiy a username to push the scripts into the database with: `--pdc-user=USER
 
 The following are a list of things that could be updated/changed about the current implementation of the tool: 
 
+* Pull reduce functions for the appropriate location in the repo. There is currently a hardcoded string that is the reduce function, this is not ideal....
 * Linting of the queries and functions 
     - Also checking to make sure map() functions are present in the queries before they are pushed into the DB.
     - We currently assume the user knows what they are doing......
@@ -37,6 +38,7 @@ The following are a list of things that could be updated/changed about the curre
 * Change the update/overwrite behaviour to support a more robust understanding of a query lifecycle. 
     - This will likely require some significant changes
 * Code refactor to make it prettier. 
+
 
 ### Dependencies
 

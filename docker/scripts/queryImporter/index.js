@@ -76,8 +76,16 @@ var Query = mongoose.model("Query", querySchema);
 var Library_Function = mongoose.model("LibraryFunction", functionSchema); 
 var User = mongoose.model("User", userSchema); 
 
+
+/*
+* THIS IS A BAD THING!!!!!!!!!!!! It should be fixed at some point 
+* to acutally pull the reduce function from the queries repo. However,
+* since all of the reduce are the same at this point (2015-05-22). 
+*/ 
+var reduceFunction = "function reduce(key, values){return Array.sum(values);}"; 
+
 function helpMessage(){
-	var s = "This is a help message."; 
+	var s = "See the README.md file in the repo."; 
 	return s;  
 }
 
@@ -250,7 +258,7 @@ function getTextBlobs(path, pattern){
 		var title = name.match(pattern); 
 		if(title != null){
 			title=title[0]; 
-			tmp = {description:name, map:tmp, title:title}; 
+			tmp = {description:name, map:tmp, title:title, reduce:reduceFunction}; 
 			results.push(tmp); 
 		}else{
 			console.log("WARNING: omitting "+name+" as it does not conform to naming convention enforced by: "+pattern)
