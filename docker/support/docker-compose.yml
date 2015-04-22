@@ -1,0 +1,7 @@
+dclapi:
+    build: dclapi/.
+    ports:
+        - "3007:3007"
+
+ambassador:
+    build: ambassador/.

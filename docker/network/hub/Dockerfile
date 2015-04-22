@@ -5,7 +5,7 @@
 FROM phusion/passenger-ruby19
 
 
-# ENV - Set non-interactive shell and disable policy-rc.d
+# Set non-interactive shell and disable policy-rc.d
 #
 ENV DEBIAN_FRONTEND noninteractive
 RUN sed -i -e "s/exit 101/exit 0/" /usr/sbin/policy-rc.d
@@ -14,7 +14,7 @@ RUN sed -i -e "s/exit 101/exit 0/" /usr/sbin/policy-rc.d
 # Install applications from repos
 #
 RUN apt-get update; \
-    apt-get --yes install ntp libxslt-dev libxml2-dev lynx
+    apt-get install -y libxslt-dev libxml2-dev lynx
 
 
 # ENV and User
@@ -31,9 +31,9 @@ RUN git clone https://github.com/physiciansdatacollaborative/hub.git; \
 
 
 WORKDIR /home/app/hub
-RUN bundle install --path vendor/bundle; \
-    mkdir -p /home/app/hub/tmp/pids; \
-    sed -i -e "s/localhost:27017/database:27017/" config/mongoid.yml
+RUN bundle install --path vendor/bundle
+RUN mkdir -p /home/app/hub/tmp/pids
+RUN sed -i -e "s/localhost:27017/hubdb:27017/" config/mongoid.yml
 
 
 # Change back to root
@@ -52,9 +52,17 @@ RUN echo "Add to PATH"
 RUN echo "export PATH=$PATH:/usr/local/bin"
 
 
-# Copy hub startup script and make it executable
+# Create hub startup script and make it executable
 #
-ADD scripts/hub.sh /etc/service/hub/run
+RUN mkdir -p /etc/service/hub
+RUN echo "#!/bin/bash" >> /etc/service/hub/run
+RUN echo "#" >> /etc/service/hub/run
+RUN echo "# Halt on errors" >> /etc/service/hub/run
+RUN echo "set -e -x -o nounset" >> /etc/service/hub/run
+RUN echo "" >> /etc/service/hub/run
+RUN echo "# Run hub as app user" >> /etc/service/hub/run
+RUN echo "#" >> /etc/service/hub/run
+RUN echo "chpst -u app bash -c 'export PATH=$PATH:/usr/local/bin; cd /home/app/hub/; ./runme.sh'" >> /etc/service/hub/run
 RUN chmod +x /etc/service/hub/run
 
 

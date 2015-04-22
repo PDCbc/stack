@@ -1,0 +1,37 @@
+hubdb:
+    image: mongo
+    ports:
+        - "27019:27017"
+
+hub:
+    build: hub/.
+    ports:
+        - "3002:3002" # Be sure to quote these, else casting errors!
+    links:
+        - hubdb
+
+ep0db:
+    image: mongo
+    ports:
+        - "27020:27017"
+
+ep0:
+    build: ep0/.
+    ports:
+        - "40000:3001"
+    links:
+        - ep0db
+        - hub
+
+ep1db:
+    image: mongo
+    ports:
+        - "27021:27017"
+
+ep1:
+    build: ep1/.
+    ports:
+        - "40001:3001"
+    links:
+        - ep1db
+        - hub

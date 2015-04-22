@@ -1,0 +1,27 @@
+auth:
+    build: auth/.
+    ports:
+        - "3005:3005"
+        - "3006:3006"
+
+dclapi:
+    build: dclapi/.
+    ports:
+        - "3007:3007"
+
+hubapi:
+    build: hubapi/.
+    ports:
+        - "3003:3003"
+    links:
+        - hubdb
+        - auth
+        - dclapi
+
+visualizer:
+    build: visualizer/.
+    ports:
+        - "3004:3004"
+    links:
+        - auth
+        - hubapi

@@ -8,7 +8,7 @@ FROM node
 # Configure Mongo URI, secret and enable Node to use self signed SSL certs
 #
 ENV PORT 3003
-ENV MONGO_URI mongodb://hub-db:27017/query_composer_development
+ENV MONGO_URI mongodb://hubdb:27017/query_composer_development
 ENV AUTH_CONTROL https://auth:3006
 ENV ROLES ./roles
 #ENV SECRET "Test Secret"

@@ -50,20 +50,15 @@ RUN mkdir -p /home/app/endpoint/tmp/pids; \
     mkdir -p /home/app/endpoint/util/files
 
 
-# Copy import files
-#
-ADD import/* /home/app/endpoint/util/files/
-
-
 # Run endpoint software
 #
 WORKDIR /home/app/endpoint
 RUN bundle install --path vendor/bundle
 
 
-# Configure mongo port (db at ‘database:27017’, instead of local install)
+# Configure mongo port (db at ‘ep1db:27017’, instead of local install)
 #
-RUN sed -i -e "s/localhost:27017/database:27017/" config/mongoid.yml
+RUN sed -i -e "s/localhost:27017/ep1db:27017/" config/mongoid.yml
 
 
 # Change back to root
@@ -79,9 +74,17 @@ RUN echo "#" >> /root/.bashrc
 RUN echo "cd /home/app/endpoint" >> /root/.bashrc
 
 
-# Copy endpoint startup script and make it executable
+# Create endpoint startup script and make it executable
 #
-ADD scripts/endpoint.sh /etc/service/endpoint/run
+RUN mkdir -p /etc/service/endpoint
+RUN echo "#!/bin/bash" >> /etc/service/endpoint/run
+RUN echo "#" >> /etc/service/endpoint/run
+RUN echo "# Halt on errors" >> /etc/service/endpoint/run
+RUN echo "set -e -x -o nounset" >> /etc/service/endpoint/run
+RUN echo "" >> /etc/service/endpoint/run
+RUN echo "# Run hub as app user" >> /etc/service/endpoint/run
+RUN echo "#" >> /etc/service/endpoint/run
+RUN echo "chpst -u app bash -c 'export PATH=$PATH:/usr/local/bin; cd /home/app/endpoint/; ./runme.sh'" >> /etc/service/endpoint/run
 RUN chmod +x /etc/service/endpoint/run
 
 
