@@ -5,15 +5,26 @@
 set -e -o nounset
 
 
-# Add GPG key, install packages and update
+# Tell Ubuntu not to use tty
 #
-apt-get install -y sudo vim nano cmake mongodb wget
-apt-get update -y
+sed -i 's/^mesg n$/tty -s \&\& mesg n/g' /root/.profile
+
+
+# Update and install
+apt-get update
+apt-get install -y sudo vim nano node cmake mongodb wget
+
 
 # Install the most recent version of docker
 #
 curl https://get.docker.com/ > docker_install.sh
 sudo sh docker_install.sh
+
+
+# Install docker-compose
+#
+curl -L https://github.com/docker/compose/releases/download/1.2.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
 
 
 # Configure and start docker daemon
@@ -22,72 +33,9 @@ groupadd docker || true
 gpasswd -a vagrant docker
 
 
-# Set up ~/.vimrc
-#
-if(! grep --quite 'function dockin()' /home/vagrant/.vimrc) then
-    echo 'set number' | tee -a /home/vagrant/.vimrc
-    echo 'colorscheme delek' | tee -a /home/vagrant/.vimrc
-fi
-
-
 # Configure ~/.bashrc
 #
-if(! grep --quiet 'function dockin()' /home/vagrant/.bashrc)
-then
-    echo '' | tee -a /home/vagrant/.bashrc
-    echo '# Function to make nsenter easier' | tee -a /home/vagrant/.bashrc
-    echo '#' | tee -a /home/vagrant/.bashrc
-    echo 'function dockin()' | tee -a /home/vagrant/.bashrc
-    echo '{' | tee -a /home/vagrant/.bashrc
-    echo '  if [ $# -eq 0 ]' | tee -a /home/vagrant/.bashrc
-    echo '  then' | tee -a /home/vagrant/.bashrc
-    echo '		echo "Please pass a docker container to enter"' | tee -a /home/vagrant/.bashrc
-    echo '		echo "Usage: dockin [containerToEnter]"' | tee -a /home/vagrant/.bashrc
-    echo '	else' | tee -a /home/vagrant/.bashrc
-    echo '		sudo nsenter --target $(docker inspect --format {{.State.Pid}} $1) --mount --uts --ipc --net --pid /bin/bash' | tee -a /home/vagrant/.bashrc
-
-    echo '	fi' | tee -a /home/vagrant/.bashrc
-    echo '}' | tee -a /home/vagrant/.bashrc
-fi
-
-if(! grep --quiet 'function reload()' /home/vagrant/.bashrc)
-then
-    echo '' | tee -a /home/vagrant/.bashrc
-    echo '# Function to make container rebuilds easier' | tee -a /home/vagrant/.bashrc
-    echo '#' | tee -a /home/vagrant/.bashrc
-    echo 'function reload()' | tee -a /home/vagrant/.bashrc
-    echo '{' | tee -a /home/vagrant/.bashrc
-    echo '  if [ $# -eq 0 ]' | tee -a /home/vagrant/.bashrc
-    echo '  then' | tee -a /home/vagrant/.bashrc
-    echo '    echo "Please pass a docker container to destroy and recreate"' | tee -a /home/vagrant/.bashrc
-    echo '    echo "Usage: reload [containerToReload]"' | tee -a /home/vagrant/.bashrc
-    echo '  else' | tee -a /home/vagrant/.bashrc
-    echo '    CONTAINER=${1%/}' | tee -a /home/vagrant/.bashrc
-    echo '    docker rm -fv $CONTAINER' | tee -a /home/vagrant/.bashrc
-    echo '    make build-$CONTAINER' | tee -a /home/vagrant/.bashrc
-    echo '    make run-$CONTAINER' | tee -a /home/vagrant/.bashrc
-    echo '  fi' | tee -a /home/vagrant/.bashrc
-    echo '}' | tee -a /home/vagrant/.bashrc
-fi
-
-if(! grep --quiet "alias c='dockin'" /home/vagrant/.bashrc)
-then
-    echo '' | tee -a /home/vagrant/.bashrc
-    echo '# Aliases to frequently used functions and applications' | tee -a /home/vagrant/.bashrc
-    echo '#' | tee -a /home/vagrant/.bashrc
-    echo "alias c='docker exec -it'" | tee -a /home/vagrant/.bashrc
-    echo "alias d='docker'" | tee -a /home/vagrant/.bashrc
-    echo "alias r='reload'" | tee -a /home/vagrant/.bashrc
-    echo "alias l='docker logs'" | tee -a /home/vagrant/.bashrc
-fi
-
-# Start in /vagrant/, instead of /home/vagrant/
-if(! grep --quiet 'cd /vagrant/' /home/vagrant/.bashrc)
-then
-    echo '' | tee -a /home/vagrant/.bashrc
-    echo '# Start in /vagrant/, instead of /home/vagrant/' | tee -a /home/vagrant/.bashrc
-    echo 'cd /vagrant/docker/' | tee -a /home/vagrant/.bashrc
-fi
+../docker/scripts/docker-bash.sh
 
 
 # Make containers
