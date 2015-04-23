@@ -7,11 +7,11 @@ all: up
 
 pull: pull-phusion pull-mongo pull-node
 
-up: up-network up-support up-app
+up: up-network up-support up-app configure
 
 build: build-network build-support build-app
 
-run: run-network run-endpoint-support run-app
+run: run-network run-endpoint-support run-app configure
 
 stop: stop-app stop-support stop-network
 
@@ -27,10 +27,17 @@ up-network:
 	docker-compose -f network/docker-compose.yml up -d
 
 up-support:
-	docker-compose -f network/docker-support.yml up -d
+	docker-compose -f support/docker-compose.yml up -d
 
 up-app:
-	docker-compose -f network/docker-app.yml up -d
+	docker-compose -f app/docker-compose.yml up -d
+
+
+#################
+# Configuration #
+#################
+configure:
+	scripts/config.sh
 
 
 #############
