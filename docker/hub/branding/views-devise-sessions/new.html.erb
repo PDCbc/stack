@@ -1,0 +1,42 @@
+<%= form_for(resource, :as => resource_name, :url => session_path(resource_name)) do |f| %>
+<div id="login">
+  <div id="cap-top"></div>
+  <div id="cap-body">
+    <div id="branding">
+	  <%= image_tag "PDC-Logo.png", :width => "100%", :alt => "PDC logo"%>
+    </div>
+    <div id="panelLogin" class="panel">
+      <div class="accountError">
+		  <%=devise_error_messages!%>
+		  <%=flash[:alert]%>
+      </div>
+	  <%= f.label :username %>
+	  <%= f.text_field :username %>
+	  <%= f.label :password %>
+	  <%= f.password_field :password, onkeypress: "return submitKeyPress(event);" %>
+
+	  <% if devise_mapping.rememberable? -%>
+      <div id="remembercheckbox">
+	    <%= f.check_box :remember_me %> <%= f.label :remember_me %>
+      </div>
+	  <% end -%>
+
+      <div class="actions">
+        <a class="btn" href="#" onclick="submitLoginform();"><span>Login</span></a>
+      </div>
+
+      <div class="links">
+        <%= render :partial => "devise/shared/links" %>
+      </div>
+
+      <div class="links info">
+          PDC/hQuery v0.1<br>
+          <a href="http://www.pdc.io">PhysiciansDataCollaborative.ca Coming Soon</a>
+      </div>
+
+    </div>
+  </div>
+  <div id="cap-bottom"></div>
+</div><!-- END #login -->
+
+<% end %>

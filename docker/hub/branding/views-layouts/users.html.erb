@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Cache-Control" content="no-cache" />
+  <title>PDC Hub</title>
+  <!-- %= stylesheet_link_tag 'basic' %> -->
+  <!-- %= stylesheet_link_tag 'account' %> -->
+  <%= stylesheet_link_tag 'users' %>
+  <%= javascript_include_tag 'account' %>
+
+  <%= yield :head %>
+
+</head>
+
+<body class="login" onload="document.getElementById('user_username').focus();">
+
+<%= yield %>
+
+</body>
+</html>

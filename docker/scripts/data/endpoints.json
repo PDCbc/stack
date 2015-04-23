@@ -1,2 +1,2 @@
-{ "_id" : { "$oid" : "5536da5b91fe1a80e887a1ed" }, "name" : "ep-0-oscar", "base_url" : "http://10.0.2.2:40000" }
-{ "_id" : { "$oid" : "5536da5b91fe1a80e887a1ee" }, "name" : "ep-1-osler", "base_url" : "http://10.0.2.2:40001" }
+{ "name" : "ep-0-oscar", "base_url" : "http://10.0.2.2:40000" }
+{ "name" : "ep-1-osler", "base_url" : "http://10.0.2.2:40001" }
