@@ -3,6 +3,7 @@
 **/*.zip
 **/*.sql
 **/*.rar
+osler*.json
 .vagrant/
 local/hubapi/
 local/visualizer/
