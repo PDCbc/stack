@@ -28,18 +28,16 @@ apt-get update
 apt-get upgrade -y
 
 
-# Install packages
-
-
-# Install updated kernel extra modules (incl. aufs)
+# Create list of packages and then install
 #
-dpkg -l | grep linux-image-extra-$(uname -r) || apt-get install -y linux-image-extra-$(uname -r)
-
-
-# Install apps
-#
-(type -p mongo  )|| apt-get install -y mongodb
-(type -p nodejs )|| apt-get install -y nodejs
+declare -a APPS=( linux-image-extra-$(uname -r) \
+                  mongodb \
+                  nodejs
+                )
+for a in ${APPS[@]}
+do
+  ( dpkg -l | grep $a )|| apt-get install -y $a
+done
 
 
 # Install the most recent version of docker (requires aufs loaded)

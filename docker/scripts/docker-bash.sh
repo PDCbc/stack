@@ -82,7 +82,7 @@ fi
 
 # Set up $HOME/.vimrc
 #
-if(! grep --quiet 'function dockin()' $HOME/.vimrc)
+if([ ! -e $HOME/.vimrc ]||(! grep --quiet 'function dockin()' $HOME/.vimrc))
 then
     echo 'set number' | tee -a $HOME/.vimrc
     echo 'colorscheme delek' | tee -a $HOME/.vimrc

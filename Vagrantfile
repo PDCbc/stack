@@ -78,5 +78,10 @@ Vagrant.configure(2) do |config|
   # SHELL
   config.vm.provision "shell", path: "vagrant/provision.sh"
 
+  # Set session as not interactive, suppressing TTY (session env) errors
+  # (may interfere with vagrant-exec plugin, which we're not using)
+  #
+  config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
+
  # THE END!
 end
