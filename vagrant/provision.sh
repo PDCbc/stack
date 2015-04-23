@@ -9,11 +9,14 @@ set -e -o nounset
 #
 if(! grep --quiet 'mirror://mirrors' /etc/apt/sources.list )
 then
-  (echo 'deb mirror://mirrors.ubuntu.com/mirrors.txt trusty main restricted universe multiverse'; \
-  echo 'deb mirror://mirrors.ubuntu.com/mirrors.txt trusty-updates main restricted universe multiverse'; \
-  echo 'deb mirror://mirrors.ubuntu.com/mirrors.txt trusty-backports main restricted universe multiverse'; \
-  echo 'deb mirror://mirrors.ubuntu.com/mirrors.txt trusty-security main restricted universe multiverse'; \
-  cat /etc/apt/sources.list) | tee /etc/apt/sources.list
+  (
+    echo 'deb mirror://mirrors.ubuntu.com/mirrors.txt trusty main restricted universe multiverse'; \
+    echo 'deb mirror://mirrors.ubuntu.com/mirrors.txt trusty-updates main restricted universe multiverse'; \
+    echo 'deb mirror://mirrors.ubuntu.com/mirrors.txt trusty-backports main restricted universe multiverse'; \
+    echo 'deb mirror://mirrors.ubuntu.com/mirrors.txt trusty-security main restricted universe multiverse'
+  ) | tee /etc/apt/sources.list
+  # ; \
+  # cat /etc/apt/sources.list
 else
   echo 'Mirrors already updated'
 fi
@@ -23,6 +26,9 @@ fi
 #
 apt-get update
 apt-get upgrade -y
+
+
+# Install packages
 
 
 # Install updated kernel extra modules (incl. aufs)
