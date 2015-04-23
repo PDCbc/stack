@@ -12,7 +12,7 @@ Vagrant.configure(2) do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = "chef/fedora-20"
+  config.vm.box = "ubuntu/trusty64"
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -76,7 +76,12 @@ Vagrant.configure(2) do |config|
   # config.vm.provision "shell", inline <<-SHELL
   #   sudo apt-get install apache2
   # SHELL
-  config.vm.provision "shell", path: "scripts/provision.sh"
+  config.vm.provision "shell", path: "vagrant/provision.sh"
+
+  # Set session as not interactive, suppressing TTY (session env) errors
+  # (may interfere with vagrant-exec plugin, which we're not using)
+  #
+  config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
 
  # THE END!
 end
