@@ -1,7 +1,22 @@
 dclapi:
     build: dclapi/.
+    hostname: dclapi
+    restart: always
     ports:
         - "3007:3007"
+    restart: always
 
-ambassador:
-    build: ambassador/.
+
+#ambassador:
+#    build: ambassador/.
+#    hostname: ambassador
+#    restart: always
+#    ports:
+#        - "3002:3002"
+#        - "3003:3003"
+#        - "3004:3004"
+#        - "3005:3005"
+#        - "3006:3006"
+#        - "3007:3007"
+#
+# Coming soon!

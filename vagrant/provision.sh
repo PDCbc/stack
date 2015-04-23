@@ -5,37 +5,64 @@
 set -e -o nounset
 
 
-# Tell Ubuntu not to use tty
+# Pick fastest mirrors
 #
-sed -i 's/^mesg n$/tty -s \&\& mesg n/g' /root/.profile
+if(! grep --quiet 'mirror://mirrors' /etc/apt/sources.list )
+then
+  (echo 'deb mirror://mirrors.ubuntu.com/mirrors.txt trusty main restricted universe multiverse'; \
+  echo 'deb mirror://mirrors.ubuntu.com/mirrors.txt trusty-updates main restricted universe multiverse'; \
+  echo 'deb mirror://mirrors.ubuntu.com/mirrors.txt trusty-backports main restricted universe multiverse'; \
+  echo 'deb mirror://mirrors.ubuntu.com/mirrors.txt trusty-security main restricted universe multiverse'; \
+  cat /etc/apt/sources.list) | tee /etc/apt/sources.list
+else
+  echo 'Mirrors already updated'
+fi
 
 
-# Update and install
+# Update and upgrade
+#
 apt-get update
-apt-get install -y sudo vim nano node cmake mongodb wget
+apt-get upgrade -y
 
 
-# Install the most recent version of docker
+# Install updated kernel extra modules (incl. aufs)
 #
-curl https://get.docker.com/ > docker_install.sh
-sudo sh docker_install.sh
+dpkg -l | grep linux-image-extra-$(uname -r) || apt-get install -y linux-image-extra-$(uname -r)
+
+
+# Install apps
+#
+(type -p mongo  )|| apt-get install -y mongodb
+(type -p nodejs )|| apt-get install -y nodejs
+
+
+# Install the most recent version of docker (requires aufs loaded)
+#
+if( type -p docker )
+then
+ echo "Docker is already installed"
+else
+ modprobe aufs
+ curl https://get.docker.com/ > docker_install.sh
+ sudo sh docker_install.sh
+ gpasswd -a vagrant docker
+fi
 
 
 # Install docker-compose
 #
-curl -L https://github.com/docker/compose/releases/download/1.2.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
-chmod +x /usr/local/bin/docker-compose
-
-
-# Configure and start docker daemon
-#
-groupadd docker || true
-gpasswd -a vagrant docker
+if( type -p docker-compose )
+then
+ echo "Docker Compose is already installed"
+else
+ curl -L https://github.com/docker/compose/releases/download/1.2.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+ chmod +x /usr/local/bin/docker-compose
+fi
 
 
 # Configure ~/.bashrc
 #
-../docker/scripts/docker-bash.sh
+/vagrant/docker/scripts/docker-bash.sh
 
 
 # Make containers
