@@ -22,7 +22,7 @@ else
 fi
 
 
-# Update and upgrade
+# Update and upgrade, non-interactive
 #
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
@@ -37,7 +37,16 @@ declare -a APPS=( linux-image-extra-$(uname -r) \
                 )
 for a in ${APPS[@]}
 do
-  ( dpkg -l | grep $a )|| apt-get install -y $a
+  # suppress stdout, show errors
+  (
+    ( dpkg -l | grep $a )|| apt-get install -y $a
+  ) 2>&1 >/dev/null
+
+  if(! dpkg -l | grep $a )
+  then
+    # send output to stderr (red)
+    echo "ERROR:" $a "install failed!" >&2
+  fi
 done
 
 
@@ -45,12 +54,23 @@ done
 #
 if( type -p docker )
 then
- echo "Docker is already installed"
+  echo "Docker is already installed"
 else
- modprobe aufs
- curl https://get.docker.com/ > docker_install.sh
- sudo sh docker_install.sh
- gpasswd -a vagrant docker
+  # suppress stdout, show errors
+  (
+    modprobe aufs
+    curl https://get.docker.com/ > docker_install.sh
+    sudo sh docker_install.sh
+    gpasswd -a vagrant docker
+  ) 2>&1 >/dev/null
+
+  if( type -p docker )
+  then
+    echo "Docker successfully installed"
+  else
+    # send output to stderr (red)
+    echo "ERROR: Docker install failed!" >&2
+  fi
 fi
 
 
@@ -58,10 +78,20 @@ fi
 #
 if( type -p docker-compose )
 then
- echo "Docker Compose is already installed"
+  echo "Docker Compose is already installed"
 else
- curl -L https://github.com/docker/compose/releases/download/1.2.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
- chmod +x /usr/local/bin/docker-compose
+  # suppress stdout, show errors
+  (
+    curl -L https://github.com/docker/compose/releases/download/1.2.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+    chmod +x /usr/local/bin/docker-compose
+  ) 2>&1 >/dev/null
+  if( type -p docker-compose )
+  then
+    echo "Docker Compose successfully installed"
+  else
+    # send output to stderr (red)
+    echo "ERROR: Docker Compose install failed!" >&2
+  fi
 fi
 
 
