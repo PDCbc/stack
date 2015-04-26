@@ -26,13 +26,13 @@ ep0db:
         - "27020:27017"
 
 ep0:
-    build: ep0/.
+    build: endpoint/.
     hostname: ep0
     restart: always
     ports:
         - "40000:3001"
     links:
-        - ep0db
+        - ep0db:epdb
         - hub
 
 ep1db:
@@ -45,11 +45,11 @@ ep1db:
         - "27021:27017"
 
 ep1:
-    build: ep1/.
+    build: endpoint/.
     hostname: ep1
     restart: always
     ports:
         - "40001:3001"
     links:
-        - ep1db
+        - ep1db:epdb
         - hub

@@ -60,7 +60,7 @@ Vagrant.configure(2) do |config|
   config.vm.provider "virtualbox" do |vb|
     vb.gui = false
     vb.cpus = 4
-    vb.memory = 2048
+    vb.memory = 4096
   end
 
   # Define a Vagrant Push strategy for pushing to Atlas. Other push strategies
@@ -77,6 +77,10 @@ Vagrant.configure(2) do |config|
   #   sudo apt-get install apache2
   # SHELL
   config.vm.provision "shell", path: "vagrant/provision.sh"
+
+  # Hostname
+  #
+  config.vm.hostname = "pdc-env"
 
   # Set session as not interactive, suppressing TTY (session env) errors
   # (may interfere with vagrant-exec plugin, which we're not using)
