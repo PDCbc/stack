@@ -56,9 +56,9 @@ WORKDIR /home/app/endpoint
 RUN bundle install --path vendor/bundle
 
 
-# Configure mongo port (db at ‘ep1db:27017’, instead of local install)
+# Configure mongo port (db at ‘epdb:27017’, instead of local install)
 #
-RUN sed -i -e "s/localhost:27017/ep1db:27017/" config/mongoid.yml
+RUN sed -i -e "s/localhost:27017/epdb:27017/" config/mongoid.yml
 
 
 # Change back to root
