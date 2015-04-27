@@ -20,8 +20,9 @@ mongoimport --port 27019 --db query_composer_development --collection users     
 # Import Mongo databases for Oscar sample 10 records into endpoints
 #
 mongoimport --port 27020 --db query_gateway_development --collection records $DIR/data/oscar.json
-mongoimport --port 27021 --db query_gateway_development --collection records $DIR/data/osler.json
-#rm $DIR/data/osler.json
+
+( mongoimport --port 27021 --db query_gateway_development --collection records $DIR/data/osler.json )|| \
+  ( echo -e "*\n*\nERROR: Osler data not imported. Please ensure osler.json exists.\n*\n*" >&2 )
 
 
 # Add endpoints to auth
