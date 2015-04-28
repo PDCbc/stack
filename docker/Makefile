@@ -24,13 +24,13 @@ destroy: stop remove
 # Up Jobs #
 ###########
 up-network:
-	docker-compose -f network/docker-compose.yml up -d
+	docker-compose -f network/network.yml up -d
 
 up-support:
-	docker-compose -f support/docker-compose.yml up -d
+	docker-compose -f support/support.yml up -d
 
 up-app:
-	docker-compose -f app/docker-compose.yml up -d
+	docker-compose -f app/app.yml up -d
 
 up-endpoint:
 	@echo ""
@@ -71,52 +71,52 @@ pull-node:
 # Build Jobs #
 ##############
 build-network:
-	docker-compose -f network/docker-compose.yml build
+	docker-compose -f network/network.yml build
 
 build-support:
-	docker-compose -f support/docker-compose.yml build
+	docker-compose -f support/support.yml build
 
 build-app:
-	docker-compose -f app/docker-compose.yml build
+	docker-compose -f app/app.yml build
 
 
 ############
 # Run Jobs #
 ############
 run-network:
-	docker-compose -f network/docker-compose.yml run -d
+	docker-compose -f network/network.yml run -d
 
 run-support:
-	docker-compose -f support/docker-compose.yml run -d
+	docker-compose -f support/support.yml run -d
 
 run-app:
-	docker-compose -f app/docker-compose.yml run -d
+	docker-compose -f app/app.yml run -d
 
 
 #############
 # Stop Jobs #
 #############
 stop-network:
-	docker-compose -f network/docker-compose.yml stop
+	docker-compose -f network/network.yml stop
 
 stop-support:
-	docker-compose -f support/docker-compose.yml stop
+	docker-compose -f support/support.yml stop
 
 stop-app:
-	docker-compose -f app/docker-compose.yml stop
+	docker-compose -f app/app.yml stop
 
 
 ###############
 # Remove Jobs #
 ###############
 remove-network:
-	docker-compose -f network/docker-compose.yml rm -f
+	docker-compose -f network/network.yml rm -f
 
 remove-support:
-	docker-compose -f support/docker-compose.yml rm -f
+	docker-compose -f support/support.yml rm -f
 
 remove-app:
-	docker-compose -f app/docker-compose.yml rm -f
+	docker-compose -f app/app.yml rm -f
 
 remove-endpoint:
 	@echo ""

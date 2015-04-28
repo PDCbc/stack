@@ -12,7 +12,7 @@ hub:
     hostname: hub
     restart: always
     ports:
-        - "3002:3002" # Be sure to quote these, else casting errors!
+        - "3002:3002"
     links:
         - hubdb
 
@@ -33,23 +33,3 @@ ep0:
         - "40000:3001"
     links:
         - ep0db:epdb
-        - hub
-
-ep1db:
-    image: mongo
-    hostname: ep1db
-    restart: always
-    environment:
-        - LC_ALL=C # Addresses a mongo language bug
-    ports:
-        - "27021:27017"
-
-ep1:
-    build: endpoint/.
-    hostname: ep1
-    restart: always
-    ports:
-        - "40001:3001"
-    links:
-        - ep1db:epdb
-        - hub
