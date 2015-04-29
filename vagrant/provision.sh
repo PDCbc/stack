@@ -15,8 +15,6 @@ then
     echo 'deb mirror://mirrors.ubuntu.com/mirrors.txt trusty-backports main restricted universe multiverse'; \
     echo 'deb mirror://mirrors.ubuntu.com/mirrors.txt trusty-security main restricted universe multiverse'
   ) | tee /etc/apt/sources.list
-  # ; \
-  # cat /etc/apt/sources.list
 else
   echo 'Mirrors already updated'
 fi
@@ -97,7 +95,7 @@ fi
 
 # Configure ~/.bashrc
 #
-/vagrant/docker/scripts/docker-bash.sh
+/vagrant/docker/scripts/bash-config.sh
 
 
 # Make containers
