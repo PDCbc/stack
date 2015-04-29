@@ -7,15 +7,15 @@ all: up
 
 pull: pull-phusion pull-mongo pull-node
 
-up: up-network up-support up-app configure
+up: up-network up-support up-app config-data
 
 build: build-network build-support build-app
-
-run: run-network run-endpoint-support run-app configure
 
 stop: stop-app stop-support stop-network
 
 remove: remove-app remove-support remove-network
+
+bash: config-bash
 
 destroy: stop remove
 
@@ -50,8 +50,11 @@ up-endpoint:
 #################
 # Configuration #
 #################
-configure:
-	scripts/config.sh
+config-data:
+	scripts/data.sh
+
+config-bash:
+	scripts/bash-config.sh
 
 
 #############
@@ -78,19 +81,6 @@ build-support:
 
 build-app:
 	docker-compose -f app/app.yml build
-
-
-############
-# Run Jobs #
-############
-run-network:
-	docker-compose -f network/network.yml run -d
-
-run-support:
-	docker-compose -f support/support.yml run -d
-
-run-app:
-	docker-compose -f app/app.yml run -d
 
 
 #############
