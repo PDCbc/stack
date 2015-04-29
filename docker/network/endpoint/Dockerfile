@@ -5,24 +5,23 @@
 FROM phusion/passenger-ruby19
 
 
-# ENV - Set non-interactive shell and disable policy-rc.d
+# Branch to use from GitHub
+#
+ENV BRANCH pdc-0.1.0
+
+
+# Update (non-interactive) and install packages
 #
 ENV DEBIAN_FRONTEND noninteractive
-RUN sed -i -e "s/exit 101/exit 0/" /usr/sbin/policy-rc.d
+RUN apt-get update; apt-get install -y lynx unzip
 
 
-# Expose ports listening for incoming traffic
+# Install Endpoint software
 #
-EXPOSE 3001 3000
-
-
-# Install applications from repos
-#
-RUN apt-get update; \
-    apt-get install -y libxslt-dev \
-                       libxml2-dev \
-                       lynx \
-                       unzip
+WORKDIR /app
+RUN git clone https://github.com/physiciansdatacollaborative/endpoint.git
+RUN git -C endpoint checkout -q $BRANCH
+RUN chown -R app:app /app
 
 
 # Install multipart-post Gem
@@ -30,61 +29,24 @@ RUN apt-get update; \
 RUN /usr/bin/gem install multipart-post
 
 
-# Switch to app (non-root) user and set home directory
+# Configure Endpoint (run bundler as non-root)
 #
-USER app
-ENV HOME /home/app/
-
-
-# Clone endpoint software
-#
-WORKDIR /home/app
-RUN git clone https://github.com/physiciansdatacollaborative/endpoint.git; \
-    git -C endpoint checkout -q pdc-0.1.0
-
-
-# Create directories needed by endpoint software
-#
-WORKDIR /home/app/endpoint
-RUN mkdir -p /home/app/endpoint/tmp/pids; \
-    mkdir -p /home/app/endpoint/util/files
-
-
-# Run endpoint software
-#
-WORKDIR /home/app/endpoint
-RUN bundle install --path vendor/bundle
-
-
-# Configure mongo port (db at ‘epdb:27017’, instead of local install)
-#
+RUN /sbin/setuser app bundle install --path vendor/bundle
+RUN mkdir -p /app/endpoint/tmp/pids; \
+    mkdir -p /app/endpoint/util/files
 RUN sed -i -e "s/localhost:27017/epdb:27017/" config/mongoid.yml
 
 
-# Change back to root
-#
-USER root
-
-
-# Start in /home/app/endpoint
-#
-RUN echo "" >> /root/.bashrc
-RUN echo "# Start in /home/app/endpoint" >> /root/.bashrc
-RUN echo "#" >> /root/.bashrc
-RUN echo "cd /home/app/endpoint" >> /root/.bashrc
-
-
-# Create endpoint startup script and make it executable
+# Create Endpoint startup script and make it executable
 #
 RUN mkdir -p /etc/service/endpoint
-RUN echo "#!/bin/bash" >> /etc/service/endpoint/run
-RUN echo "#" >> /etc/service/endpoint/run
-RUN echo "# Halt on errors" >> /etc/service/endpoint/run
-RUN echo "set -e -x -o nounset" >> /etc/service/endpoint/run
-RUN echo "" >> /etc/service/endpoint/run
-RUN echo "# Run hub as app user" >> /etc/service/endpoint/run
-RUN echo "#" >> /etc/service/endpoint/run
-RUN echo "chpst -u app bash -c 'export PATH=$PATH:/usr/local/bin; cd /home/app/endpoint/; ./runme.sh'" >> /etc/service/endpoint/run
+RUN ( \
+      echo "#!/bin/bash"; \
+      echo ""; \
+      echo "cd /app"; \
+      echo "exec /sbin/setuser app './runme.sh'"; \
+    )  \
+    >> /etc/service/endpoint/run
 RUN chmod +x /etc/service/endpoint/run
 
 

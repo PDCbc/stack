@@ -10,7 +10,7 @@ FROM phusion/passenger-ruby19
 ENV BRANCH dev
 
 
-# Update (non-interactive) and install lynx
+# Update (non-interactive) and install packages
 #
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update; apt-get install -y lynx
@@ -31,7 +31,7 @@ RUN mkdir -p /home/app/hub/tmp/pids
 RUN sed -i -e "s/localhost:27017/hubdb:27017/" config/mongoid.yml
 
 
-# Create hub startup script and make it executable
+# Create Hub startup script and make it executable
 #
 RUN mkdir -p /etc/service/hub
 RUN ( \
