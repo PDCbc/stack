@@ -3,7 +3,7 @@
 ################
 default: up
 
-all: up
+all: environment up
 
 pull: pull-phusion pull-mongo pull-node
 
@@ -15,7 +15,11 @@ stop: stop-app stop-support stop-network
 
 remove: remove-app remove-support remove-network
 
+environment: config-packages config-bash
+
 bash: config-bash
+
+packages: config-packages
 
 destroy: stop remove
 
@@ -55,6 +59,9 @@ config-data:
 
 config-bash:
 	scripts/bash-config.sh
+
+config-packages:
+	scripts/package-config.sh
 
 
 #############
