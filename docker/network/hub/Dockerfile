@@ -5,70 +5,69 @@
 FROM phusion/passenger-ruby19
 
 
-# Set non-interactive shell and disable policy-rc.d
+# Branch to use from GitHub
+#
+ENV BRANCH dev
+
+
+# Update (non-interactive) and install packages
 #
 ENV DEBIAN_FRONTEND noninteractive
-RUN sed -i -e "s/exit 101/exit 0/" /usr/sbin/policy-rc.d
+RUN apt-get update; apt-get install -y lynx
 
 
-# Install applications from repos
+# Clone repo, assign to app
 #
-RUN apt-get update; \
-    apt-get install -y libxslt-dev libxml2-dev lynx
+WORKDIR /app
+RUN git clone https://github.com/physiciansdatacollaborative/hub.git .
+RUN git checkout $BRANCH
+RUN chown -R app:app /app
 
 
-# ENV and User
+# Configure Hub (run bundler as non-root)
 #
-USER app
-ENV HOME /home/app/
-
-
-# Install Hub Software
-#
-WORKDIR /home/app
-RUN git clone https://github.com/physiciansdatacollaborative/hub.git; \
-    git -C hub/ checkout dev
-
-
-WORKDIR /home/app/hub
-RUN bundle install --path vendor/bundle
+RUN /sbin/setuser app bundle install --path vendor/bundle
 RUN mkdir -p /home/app/hub/tmp/pids
 RUN sed -i -e "s/localhost:27017/hubdb:27017/" config/mongoid.yml
 
 
-# Change back to root
-#
-USER root
-
-
-# Start in /home/app/hub
-#
-RUN echo "" >> /root/.bashrc
-RUN echo "# Start in /home/app/hub" >> /root/.bashrc
-RUN echo "#" >> /root/.bashrc
-RUN echo "cd /home/app/hub" >> /root/.bashrc
-RUN echo ""
-RUN echo "Add to PATH"
-RUN echo "export PATH=$PATH:/usr/local/bin"
-
-
-# Create hub startup script and make it executable
+# Create Hub startup script and make it executable
 #
 RUN mkdir -p /etc/service/hub
-RUN echo "#!/bin/bash" >> /etc/service/hub/run
-RUN echo "#" >> /etc/service/hub/run
-RUN echo "# Halt on errors" >> /etc/service/hub/run
-RUN echo "set -e -x -o nounset" >> /etc/service/hub/run
-RUN echo "" >> /etc/service/hub/run
-RUN echo "# Run hub as app user" >> /etc/service/hub/run
-RUN echo "#" >> /etc/service/hub/run
-RUN echo "chpst -u app bash -c 'export PATH=$PATH:/usr/local/bin; cd /home/app/hub/; ./runme.sh'" >> /etc/service/hub/run
+RUN ( \
+      echo "#!/bin/bash"; \
+      echo ""; \
+      echo "cd /app"; \
+      echo "exec /sbin/setuser app './runme.sh'"; \
+    )  \
+    >> /etc/service/hub/run
 RUN chmod +x /etc/service/hub/run
 
 
-# Expose ports to incoming traffic
+# Expose ports
 #
 EXPOSE 3002
+EXPOSE 22
+
+
+# Enable SSH
+#
+RUN rm -f /etc/service/sshd/down
+
+
+# Regenerate SSH host keys. baseimage-docker does not contain any, so you
+# have to do that yourself. You may also comment out this instruction; the
+# init system will auto-generate one during boot.
+RUN /etc/my_init.d/00_regen_ssh_host_keys.sh
+
+
+# AutoSSH
+#
+RUN adduser --quiet --disabled-password autossh
+RUN mkdir /home/autossh/.ssh
+RUN touch /home/autossh/.ssh/authorized_keys
+RUN chmod -R go-rwx /home/autossh/.ssh
+RUN chown -R autossh:autossh /home/autossh/.ssh
 
 
 # Run Command

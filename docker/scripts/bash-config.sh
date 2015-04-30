@@ -5,15 +5,29 @@
 set -e -o nounset
 
 
-# If running vagrant use a partiular home directory for .bashrc
+# Vagrant VM case: provision uses root, but we access it as vagrant
 #
-if [ -d /vagrant/ ]&&[ -d /home/vagrant ];
+if [ -d /vagrant/ ]&&[ -d /home/vagrant ]
 then
   echo "Vagrant!"
   HOME=/home/vagrant
 else
   echo "Not vagrant!"
-  HOME=~
+fi
+
+
+## Vagrant VM starts in docker folder
+#
+if ([ "$HOME" == "/home/vagrant" ]&&(! grep --quiet 'cd /vagrant/docker/' $HOME/.bashrc ))
+then
+  echo "Added!"
+  (
+    echo ''
+    echo '# Start in docker directory'
+    echo 'cd /vagrant/docker/'
+  ) | tee -a $HOME/.bashrc
+else
+  echo "Not added!"
 fi
 
 
@@ -23,7 +37,7 @@ if(! grep --quiet 'function dockin()' $HOME/.bashrc)
 then
   (
     echo ''
-    echo '# Function to make nsenter easier'
+    echo '# Function to quickly enter containers'
     echo '#'
     echo 'function dockin()'
     echo '{'
@@ -33,7 +47,6 @@ then
     echo '		echo "Usage: dockin [containerToEnter]"'
     echo '	else'
     echo '		docker exec -it $1 /bin/bash'
-
     echo '	fi'
     echo '}'
   ) | tee -a $HOME/.bashrc
@@ -76,25 +89,19 @@ then
 fi
 
 
-# Start in /vagrant/, instead of $HOME/
+# Configure $HOME/.vimrc
 #
-if(! grep --quiet 'cd /vagrant/' $HOME/.bashrc)
-then
-  (
-    echo ''
-    echo '# Start in /vagrant/, instead of $HOME/'
-    echo 'cd /vagrant/docker/'
-  ) | tee -a $HOME/.bashrc
-fi
-
-
-# Set up $HOME/.vimrc
-#
-if([ ! -e $HOME/.vimrc ]||(! grep --quiet 'function dockin()' $HOME/.vimrc))
+if([ ! -e $HOME/.vimrc ]||(! grep --quiet 'colorscheme delek' $HOME/.vimrc))
 then
   (
     echo 'set number'
     echo 'colorscheme delek'
   ) | tee -a $HOME/.vimrc
-
 fi
+
+
+# Reminder
+#
+echo ""
+echo "Please log in/out for changes to take effect!"
+echo ""
