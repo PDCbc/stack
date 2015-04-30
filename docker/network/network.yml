@@ -13,7 +13,7 @@ hub:
     restart: always
     ports:
         - "3002:3002"
-        - "22:22"
+        - "2774:22"
     links:
         - hubdb
 

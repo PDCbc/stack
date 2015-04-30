@@ -16,24 +16,20 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update; apt-get install -y lynx unzip
 
 
-# Install Endpoint software
+# Clone repo, assign to app
 #
 WORKDIR /app
-RUN git clone https://github.com/physiciansdatacollaborative/endpoint.git
-RUN git -C endpoint checkout -q $BRANCH
+RUN git clone https://github.com/physiciansdatacollaborative/endpoint.git .
+RUN git checkout -q $BRANCH
+RUN mkdir -p /app/tmp/pids; \
+    mkdir -p /app/util/files
 RUN chown -R app:app /app
-
-
-# Install multipart-post Gem
-#
-RUN /usr/bin/gem install multipart-post
 
 
 # Configure Endpoint (run bundler as non-root)
 #
+RUN /usr/bin/gem install multipart-post
 RUN /sbin/setuser app bundle install --path vendor/bundle
-RUN mkdir -p /app/endpoint/tmp/pids; \
-    mkdir -p /app/endpoint/util/files
 RUN sed -i -e "s/localhost:27017/epdb:27017/" config/mongoid.yml
 
 
