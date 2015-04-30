@@ -2,7 +2,18 @@
 #
 # Base image
 #
-FROM node
+FROM phusion/passenger-nodejs
+
+
+# Update (non-interactive) and install packages
+#
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update; apt-get install -y dacs lynx
+
+
+# Branch to use from GitHub
+#
+ENV BRANCH pdc-0.1.0
 
 
 # Set environment variables
@@ -16,45 +27,46 @@ ENV KEYFILE=$DACS/federations/$FEDERATION/federation_keyfile
 ENV ROLEFILE=$DACS/federations/$FEDERATION/roles
 
 
+# Clone and move repo files
+#
+WORKDIR /tmp/
+RUN git clone https://github.com/PhysiciansDataCollaborative/auth.git; \
+    git -C auth checkout -q $BRANCH
+RUN mv /tmp/auth/api/ /app/; \
+    mkdir -p $DACS/federations; \
+    mv /tmp/auth/config/federations/* $DACS/federations/; \
+    rm -rf /tmp/auth
+
+
+# Prepare and run node
+#
+WORKDIR /app
+RUN npm install
+RUN dacskey -uj $JURISDICTION -v $KEYFILE
+RUN dacspasswd -uj $JURISDICTION -p oscar -a oscar; \
+    echo "oscar:admin" >> $ROLEFILE
+RUN chown -R app:app /app/ $DACS/federations/$FEDERATION/
+
+
+# Create startup script and make it executable
+#
+RUN mkdir -p /etc/service/auth
+RUN ( \
+      echo "#!/bin/bash"; \
+      echo ""; \
+      echo "cd /app"; \
+      echo "exec /sbin/setuser app npm start"; \
+    )  \
+    >> /etc/service/auth/run
+RUN chmod +x /etc/service/auth/run
+
+
 # Expose ports listening for incoming traffic
 #
 EXPOSE $MAINPORT
 EXPOSE $CONTROLPORT
 
 
-# Update and install DACS
+# Run Command
 #
-RUN apt-get update; \
-    apt-get install -y dacs \
-                       lynx
-
-
-# Clone and move repo files
-#
-WORKDIR /tmp/
-RUN git clone https://github.com/PhysiciansDataCollaborative/auth.git; \
-    git -C auth checkout -q pdc-0.1.0; \
-    mv /tmp/auth/api/ /app/; \
-    mkdir -p $DACS/federations; \
-    mv /tmp/auth/config/federations/* $DACS/federations/; \
-    rm -rf /tmp/auth
-
-
-# Create, provide permissions and switch to app user
-#
-RUN useradd app; \
-    chown -R app:app /app/ $DACS/federations/$FEDERATION/
-USER app
-ENV HOME /app/
-
-
-# Prepare and run node
-#
-WORKDIR /app
-RUN npm install; \
-    dacskey -uj $JURISDICTION -v $KEYFILE; \
-    dacspasswd -uj $JURISDICTION -p oscar -a oscar; \
-    echo "oscar:admin" >> $ROLEFILE; \
-    dacspasswd -uj $JURISDICTION -p osler -a osler; \
-    echo "osler:admin" >> $ROLEFILE
-CMD ["npm", "start"]
+CMD ["/sbin/my_init"]
