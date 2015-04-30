@@ -16,7 +16,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update; apt-get install -y lynx
 
 
-# Install Hub software
+# Clone repo, assign to app
 #
 WORKDIR /app
 RUN git clone https://github.com/physiciansdatacollaborative/hub.git .
@@ -42,6 +42,32 @@ RUN ( \
     )  \
     >> /etc/service/hub/run
 RUN chmod +x /etc/service/hub/run
+
+
+# Expose ports
+#
+EXPOSE 3002
+EXPOSE 22
+
+
+# Enable SSH
+#
+RUN rm -f /etc/service/sshd/down
+
+
+# Regenerate SSH host keys. baseimage-docker does not contain any, so you
+# have to do that yourself. You may also comment out this instruction; the
+# init system will auto-generate one during boot.
+RUN /etc/my_init.d/00_regen_ssh_host_keys.sh
+
+
+# AutoSSH
+#
+RUN adduser --quiet --disabled-password autossh
+RUN mkdir /home/autossh/.ssh
+RUN touch /home/autossh/.ssh/authorized_keys
+RUN chmod -R go-rwx /home/autossh/.ssh
+RUN chown -R autossh:autossh /home/autossh/.ssh
 
 
 # Run Command
