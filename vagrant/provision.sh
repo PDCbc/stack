@@ -30,4 +30,5 @@ apt-get upgrade -y
 # Makefile installs packages, configures .bashrc and handles containers
 #
 cd /vagrant/docker
-make all
+make environment
+make

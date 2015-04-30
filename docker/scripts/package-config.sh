@@ -5,12 +5,13 @@
 set -e -o nounset
 
 
-# Vagrant VM only - use apt-get non-interactive
+# Vagrant VM case: non-interactive apt-get, set user=vagrant
 #
 if [ -d /vagrant/ ]&&[ -d /home/vagrant ];
 then
   echo "Vagrant!"
   export DEBIAN_FRONTEND=noninteractive
+  USER=vagrant
 else
   echo "Not vagrant!"
 fi
@@ -34,10 +35,10 @@ do
   # suppress stdout, show errors
   (
 #    ( dpkg -l | grep $a )|| sudo apt-get install -y $a
-    ( which $a )|| sudo apt-get install -y $a
+    ( dpkg -l | grep -w $a )|| sudo apt-get install -y $a
   ) 2>&1 >/dev/null
 
-  if(! dpkg -l | grep $a )
+  if(! dpkg -l | grep -w $a )
   then
     # send output to stderr (red)
     echo "ERROR:" $a "install failed!" >&2
@@ -79,8 +80,6 @@ else
   # suppress stdout, show errors
   (
     sudo curl -L https://github.com/docker/compose/releases/download/1.2.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
-    #curl -L https://github.com/docker/compose/releases/download/1.2.0/docker-compose-`uname -s`-`uname -m` > docker-compose.tmp
-    #sudo mv docker-compose.tmp /usr/local/bin/docker-compose
     sudo chmod +x /usr/local/bin/docker-compose
   ) 2>&1 >/dev/null
   if( type -p docker-compose )

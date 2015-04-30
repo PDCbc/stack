@@ -55,7 +55,7 @@ up-endpoint:
 # Configuration #
 #################
 config-data:
-	scripts/data.sh
+	scripts/data-config.sh
 
 config-bash:
 	scripts/bash-config.sh
@@ -101,6 +101,22 @@ stop-support:
 
 stop-app:
 	docker-compose -f app/app.yml stop
+
+
+################
+# Destroy Jobs #
+################
+destroy-network:
+	docker-compose -f network/network.yml stop
+	docker-compose -f network/network.yml rm -f
+
+destroy-support:
+	docker-compose -f support/support.yml stop
+	docker-compose -f support/support.yml rm -f
+
+destroy-app:
+	docker-compose -f app/app.yml stop
+	docker-compose -f app/app.yml rm -f
 
 
 ###############

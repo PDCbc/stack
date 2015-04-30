@@ -5,6 +5,32 @@
 set -e -o nounset
 
 
+# Vagrant VM case: provision uses root, but we access it as vagrant
+#
+if [ -d /vagrant/ ]&&[ -d /home/vagrant ]
+then
+  echo "Vagrant!"
+  HOME=/home/vagrant
+else
+  echo "Not vagrant!"
+fi
+
+
+## Vagrant VM starts in docker folder
+#
+if ([ "$HOME" == "/home/vagrant" ]&&(! grep --quiet 'cd /vagrant/docker/' $HOME/.bashrc ))
+then
+  echo "Added!"
+  (
+    echo ''
+    echo '# Start in docker directory'
+    echo 'cd /vagrant/docker/'
+  ) | tee -a $HOME/.bashrc
+else
+  echo "Not added!"
+fi
+
+
 # Configure $HOME/.bashrc
 #
 if(! grep --quiet 'function dockin()' $HOME/.bashrc)
@@ -74,25 +100,8 @@ then
 fi
 
 
-# Vagrant VM only - start in docker folder
-#
-if ([ -d /vagrant/ ]&&[ -d /home/vagrant ]&&(! grep --quiet 'cd /vagrant/docker/' $HOME/.bashrc ));
-then
-  echo "Vagrant!"
-  (
-    echo ''
-    echo '# Start in docker directory'
-    echo 'cd /vagrant/docker/'
-  ) | tee -a $HOME/.bashrc
-else
-  echo "Not vagrant!"
-fi
-
-
 # Reminder
 #
 echo ""
-tput setaf 1
-  echo "Please log in/out for changes to take effect!"
-tput sgr0
+echo "Please log in/out for changes to take effect!"
 echo ""
