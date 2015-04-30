@@ -2,7 +2,12 @@
 #
 # Base image
 #
-FROM node
+FROM phusion/passenger-nodejs
+
+
+# Branch to use from GitHub
+#
+ENV BRANCH pdc-0.1.0
 
 
 # Configure port and URLs
@@ -21,29 +26,30 @@ ENV NODE_TLS_REJECT_UNAUTHORIZED 0
 EXPOSE $PORT
 
 
-# Update
-#
-RUN apt-get update
-
-
-# Clone repo
+# Clone repo, copy db, install dependencies, assign to app
 #
 WORKDIR /app
-RUN git clone https://github.com/PhysiciansDataCollaborative/visualizer.git .; \
-    git checkout -q pdc-0.1.0
+RUN git clone https://github.com/PhysiciansDataCollaborative/visualizer.git .
+RUN git checkout -q $BRANCH
+RUN chown -R app:app /app
 
 
-# Create and switch to app user
+# Create startup script and make it executable
 #
-RUN  useradd app; \
-     chown -R app:app /app/
-USER app
-ENV HOME /app/
+RUN mkdir -p /etc/service/visualizer
+RUN ( \
+      echo "#!/bin/bash"; \
+      echo ""; \
+      echo "cd /app"; \
+      echo "npm config set python /usr/bin/python"; \
+      echo "npm config set home /app"; \
+      echo "npm install"; \
+      echo "exec /sbin/setuser app npm start"; \
+    )  \
+    >> /etc/service/visualizer/run
+RUN chmod +x /etc/service/visualizer/run
 
 
-# Prepare Node and start
+# Run Command
 #
-WORKDIR /app
-RUN     rm -rf node-modules; \
-        npm install
-CMD     ["npm", "start"]
+CMD ["/sbin/my_init"]
