@@ -2,37 +2,37 @@
 #
 # Base image
 #
-FROM node
+FROM phusion/passenger-nodejs
 
 
-# Expose listening ports
+# Branch to use from GitHub
 #
-EXPOSE 3007
+ENV BRANCH master
 
 
-# Update
+# Clone repo, copy db, install dependencies, assign to app
 #
-RUN apt-get update
-
-
-# Clone and prep /app/ directory
-#
-RUN  git clone https://github.com/PhysiciansDataCollaborative/dclapi /app/; \
-    git -C /app/ checkout -q pdc-0.1.0
+WORKDIR /app
+RUN git clone https://github.com/PhysiciansDataCollaborative/dclapi.git .
+RUN git checkout -q $BRANCH
 COPY ./dcl.sqlite /app/
+RUN npm install
+RUN chown -R app:app /app
 
 
-# Create and switch to app user
+# Create Hub startup script and make it executable
 #
-RUN  useradd app
-RUN  chown -R app:app /app/
-USER app
-ENV HOME /app/
+RUN mkdir -p /etc/service/dclapi
+RUN ( \
+      echo "#!/bin/bash"; \
+      echo ""; \
+      echo "cd /app"; \
+      echo "exec /sbin/setuser app npm start"; \
+    )  \
+    >> /etc/service/dclapi/run
+RUN chmod +x /etc/service/dclapi/run
 
 
-# Prepare Node and start
+# Run Command
 #
-WORKDIR /app/
-RUN     rm -rf node-modules;\
-        npm install
-CMD     ["npm", "start"]
+CMD ["/sbin/my_init"]
