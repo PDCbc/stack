@@ -22,7 +22,7 @@ Execute this script from the scripts directory, `/vagrant/docker/scripts/`
 
 This will run the importer on the local MongoDB: 
 
-`nodejs queryImporter import --mongo-host=127.0.0.1 --mongo-db=query_composer_development --mongo-port=27019`
+`nodejs queryImporter import --mongo-host=127.0.0.1 --mongo-db=query_composer_development --mongo-port=27019 --version=pdc-0.1.0`
 
 Specifiy a username to push the scripts into the database with: `--pdc-user=USERNAME`, not the username must exist in the `users` collection in the existing MongoDB. 
 
