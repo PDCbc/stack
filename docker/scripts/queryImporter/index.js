@@ -21,7 +21,6 @@ var global_vars = {
 	port: 			null, 
 	database: 		null, 
 	queries_repo:  "https://github.com/PhysiciansDataCollaborative/queries.git", 
-	repo_tag:		null,
 	reclone: 		false, 
 	pdc_user:		null
 }; 
@@ -145,11 +144,6 @@ function processArgs(args){
 			global_vars.pdc_user = "pdcadmin"; 
 		}
 
-		if(args["version"] != null && args["version"] != undefined){
-			global_vars.repo_tag = args["version"]; 
-		}else{
-			global_vars.repo_tag = "master"; 
-		}
 		return "import"; 
 	}
 }
@@ -183,12 +177,12 @@ function clone(reclone){
 
 		//clone a new copy of the the repo. 
 		console.log("Cloning into: "+global_vars.queries_repo); 
-		child = execSync("git clone --branch "+globals.repo_tag+" "+global_vars.queries_repo+" "+QUERIES_DIR); 
+		child = execSync("git clone "+global_vars.queries_repo+" "+QUERIES_DIR); 
 	}else{
 		if(!fs.existsSync(QUERIES_DIR)){
 			//clone a new copy of the the repo. 
 			console.log("Cloning into: "+global_vars.queries_repo); 
-			child = execSync("git clone --branch "+global_vars.repo_tag+" "+global_vars.queries_repo+" "+QUERIES_DIR); 
+			child = execSync("git clone "+global_vars.queries_repo+" "+QUERIES_DIR); 
 		}
 	}
 }
