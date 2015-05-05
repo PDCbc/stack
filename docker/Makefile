@@ -7,7 +7,7 @@ all: environment up
 
 pull: pull-phusion pull-mongo pull-node
 
-up: up-network up-support up-app config-data
+up: up-network up-support up-app up-monitor config-data
 
 build: build-network build-support build-app
 
@@ -27,6 +27,17 @@ up-support:
 
 up-app:
 	docker-compose -f app/app.yml up -d
+
+up-monitor:
+	sudo docker run \
+  --volume=/:/rootfs:ro \
+  --volume=/var/run:/var/run:rw \
+  --volume=/sys:/sys:ro \
+  --volume=/var/lib/docker/:/var/lib/docker:ro \
+  --publish=8080:8080 \
+  --detach=true \
+  --name=cadvisor \
+  google/cadvisor:latest
 
 up-endpoint:
 	@echo ""; \
