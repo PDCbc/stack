@@ -10,11 +10,19 @@ set -e -o nounset
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 
-# Import Mongo databases for endpoints, queries and an admin account (users)
+# Import Mongo databases for endpoints and an admin account (users)
 #
 mongoimport --port 27019 --db query_composer_development --collection endpoints $DIR/data/endpoints.json
-mongoimport --port 27019 --db query_composer_development --collection queries   $DIR/data/queries.json
 mongoimport --port 27019 --db query_composer_development --collection users     $DIR/data/users.json
+
+
+# Npm deoendencies for importer, import to Mongo
+#
+cd $DIR
+sudo npm install n -g
+sudo n stable
+npm install assert async fs minimist mongodb mongoose --save
+n use 0.12.2 queryImporter import --mongo-host=127.0.0.1 --mongo-db=query_composer_development --mongo-port=27019
 
 
 # Import Mongo databases for Oscar sample 10 records into endpoints

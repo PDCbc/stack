@@ -28,7 +28,8 @@ sudo apt-get upgrade -y
 declare -a APPS=( linux-image-extra-`uname -r` \
                   curl \
                   mongodb \
-                  nodejs
+                  nodejs \
+                  npm
                 )
 for a in ${APPS[@]}
 do
