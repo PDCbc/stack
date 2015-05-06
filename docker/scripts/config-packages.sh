@@ -17,6 +17,15 @@ else
 fi
 
 
+# Install Docker PPA and key
+#
+if(! grep --quiet 'https://get.docker.io/ubuntu' /etc/apt/sources.list.d/docker.list )
+then
+  sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
+  sudo sh -c "echo deb https://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
+fi
+
+
 # Update and upgrade, non-interactive
 #
 sudo apt-get update
@@ -27,6 +36,7 @@ sudo apt-get upgrade -y
 #
 declare -a APPS=( linux-image-extra-`uname -r` \
                   curl \
+                  lxc-docker \
                   mongodb \
                   nodejs \
                   npm
@@ -47,29 +57,10 @@ do
 done
 
 
-# Install the most recent version of docker (requires aufs loaded)
+# Docker post-install configuration
 #
-if( type -p docker )
-then
-  echo "Docker is already installed"
-else
-  # suppress stdout, show errors
-  (
-    modprobe aufs
-    curl https://get.docker.com/ > docker_install.sh
-    sudo sh docker_install.sh
-    rm docker_install.sh
-    gpasswd -a $USER docker
-  ) 2>&1 >/dev/null
-
-  if( type -p docker )
-  then
-    echo "Docker successfully installed"
-  else
-    # send output to stderr (red)
-    echo "ERROR: Docker install failed!" >&2
-  fi
-fi
+gpasswd -a $USER docker
+#sudo ln -sf /usr/bin/docker.io /usr/local/bin/docker
 
 
 # Install docker-compose
