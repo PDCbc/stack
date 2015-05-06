@@ -1,0 +1,8 @@
+importer:
+    build: .
+    hostname: importer
+    restart: always
+    env_file:
+        - ../config.env
+    external_links:
+        - network_hubdb_1
