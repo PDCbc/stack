@@ -10,28 +10,45 @@ set -e -o nounset
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 
-# Import Mongo databases for endpoints and an admin account (users)
+# Add admin account
 #
-mongoimport --port 27019 --db query_composer_development --collection endpoints $DIR/data/endpoints.json
-mongoimport --port 27019 --db query_composer_development --collection users     $DIR/data/users.json
+INSERT='{ "first_name" : "PDC", "last_name" : "Admin", "username" : "pdcadmin", "email" : "pdcadmin@pdc.io", "encrypted_password" : "$2a$10$ZSuPxdODbumiMGOxtVSpRu0Rd0fQ2HhC7tMu2IobKTaAsPMmFlBD.", "agree_license" : true, "approved" : true, "admin" : true }'
+INSERT="--eval 'db.users.insert( ${INSERT} )'"
+/bin/bash -c "docker exec network_hubdb_1 mongo query_composer_development ${INSERT}"
 
 
-# Npm deoendencies for importer, import to Mongo
+# If Ep0 is not in the Hub, then add it
 #
-cd $DIR
-sudo npm install n -g
-sudo n stable
-npm install assert async fs minimist mongodb mongoose --save
-n use 0.12.2 queryImporter import --mongo-host=127.0.0.1 --mongo-db=query_composer_development --mongo-port=27019
-
-
-# Import Mongo databases for Oscar sample 10 records into endpoints
+CHECK='{ "base_url" : "http://10.0.2.2:40000"}'
+CHECK="--eval 'db.endpoints.count( ${CHECK} )'"
+CHECK="docker exec network_hubdb_1 mongo query_composer_development ${CHECK}"
+CHECK=$( /bin/bash -c "${CHECK} | grep -v Mongo | grep -v connecting" )
 #
+if [ $CHECK = "0" ]
+then
+INSERT='{ "name" : "ep0-oscar", "base_url" : "http://10.0.2.2:40000" }'
+INSERT="--eval 'db.endpoints.insert( ${INSERT} )'"
+	(
+    /bin/bash -c "docker exec network_hubdb_1 mongo query_composer_development ${INSERT}"
+	) || echo "ERROR: "${EPNAME}" will not be pre-populated in the Hub."
+else
+	echo "Endpoint already added to Hub."
+fi
+
+
+# Import Mongo databases for queries and Oscar sample 10 records
+#
+mongoimport --port 27019 --db query_composer_development --collection queries $DIR/data/queries.json
 mongoimport --port 27020 --db query_gateway_development --collection records $DIR/data/oscar.json
 
 
-# Add endpoints to auth
+# Add Ep0 private data to Auth
 #
-EP0=`mongo --port 27019 query_composer_development --eval 'printjson( db.endpoints.findOne({base_url:"http://10.0.2.2:40000" }, { "_id":1 }))'  | grep -o "(.*)" | grep -io "\w\+"`
-JS0="{\"clinician\":\"cpsid\",\"clinic\":\""$EP0"\"}"
-docker exec app_auth_1 /usr/bin/dacspasswd -uj TEST -pds $JS0 oscar
+EP0_id='{ base_url : "http://10.0.2.2:40000" }, { _id : 1 }'
+EP0_id="--eval 'printjson( db.endpoints.findOne( ${EP0_id} ))'"
+EP0_id=$( /bin/bash -c "docker exec network_hubdb_1 mongo query_composer_development ${EP0_id}" )
+EP0_id=$( echo ${EP0_id} | grep -o "(.*)" | grep -io "\w\+" )
+JS0="'{\"clinician\":\"cpsid\",\"clinic\":\"'${EP0_id}'\"}'"
+(
+  /bin/bash -c "docker exec app_auth_1 /usr/bin/dacspasswd -uj TEST -pds ${JS0} oscar"
+) || echo "ERROR: "${EPNAME}" will not be pre-configured in Auth."
