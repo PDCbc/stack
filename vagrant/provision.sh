@@ -5,6 +5,12 @@
 set -e -o nounset
 
 
+# Vagrant 4.3.?? Bug
+# https://github.com/mitchellh/vagrant/issues/3341
+#
+ln -s /opt/VBoxGuestAdditions-4.3.10/lib/VBoxGuestAdditions /usr/lib/VBoxGuestAdditions
+
+
 # Pick fastest mirrors
 #
 if(! grep --quiet 'mirror://mirrors' /etc/apt/sources.list )
@@ -30,5 +36,4 @@ apt-get upgrade -y
 # Makefile installs packages, configures .bashrc and handles containers
 #
 cd /vagrant/docker
-make environment
 make
