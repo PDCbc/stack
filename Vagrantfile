@@ -12,7 +12,7 @@ Vagrant.configure(2) do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = "chef/fedora-20"
+  config.vm.box = "ubuntu/trusty64"
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -23,7 +23,7 @@ Vagrant.configure(2) do |config|
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
   # config.vm.network "forwarded_port", guest: 80, host: 8080
-  [3002, 3004, 27019, 40000, 40001, 40002].each do |x|
+  [2774, 3002, 3004, 8080, 27019, 40000, 40001, 40002].each do |x|
     config.vm.network "forwarded_port", guest: x, host: x
   end
 
@@ -60,7 +60,7 @@ Vagrant.configure(2) do |config|
   config.vm.provider "virtualbox" do |vb|
     vb.gui = false
     vb.cpus = 4
-    vb.memory = 2048
+    vb.memory = 4096
   end
 
   # Define a Vagrant Push strategy for pushing to Atlas. Other push strategies
@@ -76,7 +76,16 @@ Vagrant.configure(2) do |config|
   # config.vm.provision "shell", inline <<-SHELL
   #   sudo apt-get install apache2
   # SHELL
-  config.vm.provision "shell", path: "scripts/provision.sh"
+  config.vm.provision "shell", path: "vagrant/provision.sh"
+
+  # Hostname
+  #
+  config.vm.hostname = "pdc-env"
+
+  # Set session as not interactive, suppressing TTY (session env) errors
+  # (may interfere with vagrant-exec plugin, which we're not using)
+  #
+  config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
 
  # THE END!
 end
