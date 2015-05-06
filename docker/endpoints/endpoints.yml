@@ -1,0 +1,17 @@
+ep0db:
+    image: mongo
+    hostname: ep0db
+    restart: always
+    environment:
+        - LC_ALL=C # Addresses a mongo language bug
+    ports:
+        - "27020:27017"
+
+ep0:
+    build: endpoint/.
+    hostname: ep0
+    restart: always
+    ports:
+        - "40000:3001"
+    links:
+        - ep0db:epdb

@@ -1,4 +1,4 @@
-# Dockerfile for the PDC's HubAPI service
+# Dockerfile for the PDC's HAPI service
 #
 # Base image
 #
@@ -28,7 +28,7 @@ RUN apt-get update
 # Clone repo
 #
 WORKDIR /app
-RUN git clone https://github.com/PhysiciansDataCollaborative/hubapi .; \
+RUN git clone https://github.com/PhysiciansDataCollaborative/hapi .; \
     git checkout -q pdc-0.1.0
 
 

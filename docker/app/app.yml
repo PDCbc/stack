@@ -1,33 +1,25 @@
-auth:
-    build: auth/.
-    hostname: auth
-    restart: always
-    ports:
-        - "3005:3005"
-        - "3006:3006"
 
 
-hubapi:
-    build: hubapi/.
-    hostname: hubapi
+hapi:
+    build: hapi/.
+    hostname: hapi
     restart: always
     ports:
         - "3003:3003"
-    links:
-        - auth
     external_links:
-        - network_hubdb_1
-        - support_dclapi_1
+        - data_auth_1
+        - data_hubdb_1
+        - network_dclapi_1
 
-
-visualizer:
-    build: visualizer/.
-    hostname: visualizer
+viz:
+    build: viz/.
+    hostname: viz
     restart: always
     ports:
         - "3004:3004"
         - "80:3004"
         - "443:3004"
     links:
-        - auth
-        - hubapi
+        - hapi
+    external_links:
+        - data_auth_1
