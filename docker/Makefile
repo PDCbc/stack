@@ -1,17 +1,17 @@
 ################
 # General Jobs #
 ################
-default: up
+default: environment up
 
 all: environment up
 
-pull: pull-phusion pull-mongo pull-node
+pull: pull-mongo pull-phusion pull-phusionBaseImage pull-node
 
-up: up-network up-support up-app up-monitor config-data
+up: up-network up-support up-app config-data
 
 build: build-network build-support build-app
 
-environment: config-packages config-bash
+environment: config-env
 
 destroy: destroy-app destroy-support destroy-network
 
@@ -54,11 +54,8 @@ up-endpoint:
 config-data:
 	scripts/config-data.sh
 
-config-bash:
-	scripts/config-bash.sh
-
-config-packages:
-	scripts/config-package.sh
+config-env:
+	scripts/config-env.sh
 
 
 #############
@@ -69,6 +66,9 @@ pull-mongo:
 
 pull-phusion:
 	docker pull phusion/passenger-ruby19
+
+pull-phusionBaseImage:
+	docker pull phusion/baseimage
 
 pull-node:
 	docker pull node
@@ -85,19 +85,6 @@ build-support:
 
 build-app:
 	docker-compose -f app/app.yml build
-
-
-#############
-# Stop Jobs #
-#############
-stop-network:
-	docker-compose -f network/network.yml stop
-
-stop-support:
-	docker-compose -f support/support.yml stop
-
-stop-app:
-	docker-compose -f app/app.yml stop
 
 
 ################
