@@ -27,6 +27,11 @@ then
 fi
 
 
+# Script directory, useful for running scripts from scripts
+#
+SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+
 # Set variables from parameters
 #
 EPNAME=ep${1}
@@ -56,7 +61,7 @@ echo ""
 # Start containers
 #
 (
-	docker build -t endpoint endpoint/ep
+	docker build -t endpoint ${SCRIPT_DIR}
   docker run -dt --name ${DBNAME} -h ${DBNAME} --restart='always' mongo --smallfiles
   docker run -dt --name ${EPNAME} -h ${EPNAME} --restart='always' -p ${EPPORT}:3001 --link network_hub_1:hub --link ${DBNAME}:epdb endpoint
 ) || echo "ERROR: Does "${EPNAME}" already exist?"
@@ -125,9 +130,9 @@ then
 	MNT=$(docker inspect -f '{{.Id}}' ep0db)
 	sudo ls /var/lib/docker/aufs/mnt/${MNT}/
 	echo ${MNT}
-	sudo cp -r ./endpoint/import/ /var/lib/docker/aufs/mnt/${MNT}/
+	sudo cp -r ${SCRIPT_DIR}/oscar.json /var/lib/docker/aufs/mnt/${MNT}/tmp/
 	sudo ls /var/lib/docker/aufs/mnt/${MNT}/
-	docker exec ep0db mongoimport --db query_gateway_development --collection records /import/oscar.json
+	docker exec ep0db mongoimport --db query_gateway_development --collection records /tmp/oscar.json
 else
 	echo "no match"
 fi
