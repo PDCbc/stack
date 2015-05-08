@@ -26,12 +26,18 @@ up-network:
 	INSERT='{ "first_name" : "PDC", "last_name" : "Admin", "username" : "pdcadmin", "email" : "pdcadmin@pdc.io", "encrypted_password" : "$$2a$$10$$ZSuPxdODbumiMGOxtVSpRu0Rd0fQ2HhC7tMu2IobKTaAsPMmFlBD.", "agree_license" : true, "approved" : true, "admin" : true }'; \
 	INSERT="--eval 'db.users.insert( $${INSERT} )'"; \
 	/bin/bash -c "docker exec data_hubdb_1 mongo query_composer_development $${INSERT}"
-	mongoimport --port 27019 --db query_composer_development --collection queries ./scripts/data/queries.json
 
 up-app:
 	docker-compose -f app/app.yml up -d
 
+up-importer:
+	docker build -t importer extras/queryImporter/
+	docker run -dt --name importer -h importer --link data_hubdb_1:hubdb importer
+	docker exec -it importer /app/setup.sh
+	docker rm -fv importer
+
 up-cadvisor:
+	( docker rm -fv cadvisor )|| true
 	docker run \
   --volume=/:/rootfs:ro \
   --volume=/var/run:/var/run:rw \
