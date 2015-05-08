@@ -5,7 +5,7 @@ default: environment up
 
 all: environment up
 
-up: up-data up-network up-app
+up: up-data up-network up-app up-cadvisor
 
 build: build-data build-network build-app
 
@@ -31,13 +31,24 @@ up-network:
 up-app:
 	docker-compose -f app/app.yml up -d
 
+up-cadvisor:
+	docker run \
+  --volume=/:/rootfs:ro \
+  --volume=/var/run:/var/run:rw \
+  --volume=/sys:/sys:ro \
+  --volume=/var/lib/docker/:/var/lib/docker:ro \
+  --publish=8080:8080 \
+  --detach=true \
+  --name=cadvisor \
+  google/cadvisor:latest
+
 up-endpoint:
 	@echo ""
 	@echo "Gateway ID (#): "
 	@read gID; \
 	echo "Clinician ID (#####): "; \
 	read cID; \
-	./scripts/up-endpoint.sh $${gID} $${cID}
+	./extras/endpoint/up-endpoint.sh $${gID} $${cID}
 
 
 #################
@@ -64,7 +75,7 @@ build-app:
 # Remove Jobs #
 ###############
 remove-cadvisor:
-	@echo "cAdvisor removal not scripted yet!"
+	docker rm -fv cadvisor
 
 remove-data:
 	docker-compose -f data/data.yml stop
@@ -82,4 +93,4 @@ remove-endpoint:
 	@echo ""
 	@echo "Please enter a gatewayID (#) to remove: "
 	@read gID; \
-	./scripts/remove-endpoint.sh $${gID}
+	./extras/endpoint/remove-endpoint.sh $${gID}

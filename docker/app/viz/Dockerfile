@@ -26,7 +26,7 @@ ENV NODE_TLS_REJECT_UNAUTHORIZED 0
 EXPOSE $PORT
 
 
-# Clone repo, copy db, install dependencies, assign to app
+# Clone repo, assign to app
 #
 WORKDIR /app
 RUN git clone https://github.com/PhysiciansDataCollaborative/visualizer.git .
