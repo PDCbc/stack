@@ -1,0 +1,24 @@
+hubdb:
+    image: mongo
+    hostname: hubdb
+    restart: always
+    environment:
+        - LC_ALL=C # Addresses a mongo language bug
+    ports:
+        - "27019:27017"                                     # -to-do- close this
+
+auth:
+    build: auth/.
+    hostname: auth
+    restart: always
+    ports:
+        - "3005:3005"                               # -to-do- close one of these
+        - "3006:3006"
+
+# Coming soon!
+#autossh:
+#    build: auth/.
+#    hostname: auth
+#    restart: always
+#    ports:
+#        - "2774:22"

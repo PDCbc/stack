@@ -13,7 +13,7 @@ ENV BRANCH pdc-0.1.0
 # Configure port and URLs
 #
 ENV PORT 3004
-ENV HUBAPI_URL https://hubapi:3003
+ENV HUBAPI_URL https://hapi:3003
 ENV AUTH_MAIN_URL https://auth:3005
 ENV AUTH_CONTROL_URL https://auth:3006
 ENV CALLBACK_URL https://auth:3006/auth/callback

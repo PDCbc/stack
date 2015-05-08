@@ -2,7 +2,7 @@
 #
 # Exit on errors or unitialized variables
 #
-set -e -o nounset
+set -e -o nounset -x
 
 
 # Expected input
@@ -53,12 +53,13 @@ read -s PASSWORD
 echo ""
 
 
-# Start container
+# Start containers
 #
 (
+	docker build -t endpoint endpoint/ep
   docker run -dt --name ${DBNAME} -h ${DBNAME} --restart='always' mongo --smallfiles
-  docker run -dt --name ${EPNAME} -h ${EPNAME} --restart='always' -p ${EPPORT}:3001 --link network_hub_1:hub --link ${DBNAME}:epdb network_ep0
-) || echo "ERROR: Does "$EPNAME" already exist?"
+  docker run -dt --name ${EPNAME} -h ${EPNAME} --restart='always' -p ${EPPORT}:3001 --link network_hub_1:hub --link ${DBNAME}:epdb endpoint
+) || echo "ERROR: Does "${EPNAME}" already exist?"
 
 
 # Check (by URL) if Endpoint is already in the Hub
@@ -75,7 +76,7 @@ then
 	INSERT='{ "name" : "'${EPNAME}'", "base_url" : "http://10.0.2.2:'${EPPORT}'" }'
 	INSERT="--eval 'db.endpoints.insert( ${INSERT} )'"
 	(
-	  /bin/bash -c "docker exec network_hubdb_1 mongo query_composer_development ${INSERT}"
+	  /bin/bash -c "docker exec data_hubdb_1 mongo query_composer_development ${INSERT}"
 	) || echo "ERROR: "${EPNAME}" will not be pre-populated in the Hub."
 else
 	echo "Endpoint already added to Hub."
@@ -85,13 +86,13 @@ fi
 # Auth - Add user to DACS,
 #
 (
-  /bin/bash -c "docker exec app_auth_1 dacspasswd -uj ${JURISDICTION} -p ${PASSWORD} -a ${USERNAME}"
+  /bin/bash -c "docker exec data_auth_1 dacspasswd -uj ${JURISDICTION} -p ${PASSWORD} -a ${USERNAME}"
 ) || echo "ERROR: Failed on Auth add."
 
 
 # Add user to ROLEFILE, unless already there
 #
-CHECK=$( docker exec -it app_auth_1 /bin/bash -c "cat /etc/dacs/federations/pdc.dev/roles" )
+CHECK=$( docker exec -it data_auth_1 /bin/bash -c "cat /etc/dacs/federations/pdc.dev/roles" )
 if (( `echo ${CHECK} | grep -c ${USERNAME}` > 0 ))
 then
 	echo "User already added."
@@ -99,7 +100,7 @@ else
 	ROLEFILE=/etc/dacs/federations/pdc.dev/roles
 	INROLE="${USERNAME}:admin >> ${ROLEFILE}"
 	(
-	  /bin/bash -c "docker exec -it app_auth_1 /bin/bash -c \"echo ${INROLE}\""
+	  /bin/bash -c "docker exec -it data_auth_1 /bin/bash -c \"echo ${INROLE}\""
 	) || echo "ERROR: Failed appending to ROLEFILE."
 fi
 
@@ -108,12 +109,28 @@ fi
 #
 CLINIC='{ "base_url" : "http://10.0.2.2:'${EPPORT}'" }, { "_id": 1 }'
 CLINIC="printjson( db.endpoints.findOne( ${CLINIC} ))"
-CLINIC="docker exec network_hubdb_1 mongo query_composer_development --eval '${CLINIC}'"
+CLINIC="docker exec data_hubdb_1 mongo query_composer_development --eval '${CLINIC}'"
 CLINIC=`/bin/bash -c "${CLINIC}" | grep -o "(.*)" | grep -io "\w\+"`
 INJSON=`echo \'{ \"clinician\":\""${CLINICIAN}"\", \"clinic\":\""${CLINIC}"\" }\'`
 (
-	/bin/bash -c "docker exec app_auth_1 /usr/bin/dacspasswd -uj TEST -pds ${INJSON} ${USERNAME}"
+	/bin/bash -c "docker exec data_auth_1 /usr/bin/dacspasswd -uj TEST -pds ${INJSON} ${USERNAME}"
 ) || echo "ERROR: Failed to add private data."
+
+
+# If using sample doctor (cpsid), add sample data
+#
+if [ $CLINICIAN="cpsid" ]
+then
+	echo "match"
+	MNT=$(docker inspect -f '{{.Id}}' ep0db)
+	sudo ls /var/lib/docker/aufs/mnt/${MNT}/
+	echo ${MNT}
+	sudo cp -r ./endpoint/import/ /var/lib/docker/aufs/mnt/${MNT}/
+	sudo ls /var/lib/docker/aufs/mnt/${MNT}/
+	docker exec ep0db mongoimport --db query_gateway_development --collection records /import/oscar.json
+else
+	echo "no match"
+fi
 
 
 # Wrap up

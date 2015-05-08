@@ -12,8 +12,7 @@ then
   echo "Vagrant!"
   export DEBIAN_FRONTEND=noninteractive
   USER=vagrant
-else
-  echo "Not vagrant!"
+  HOME=/home/vagrant/
 fi
 
 
