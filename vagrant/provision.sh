@@ -8,7 +8,12 @@ set -e -o nounset
 # Vagrant 4.3.?? Bug
 # https://github.com/mitchellh/vagrant/issues/3341
 #
-ln -s /opt/VBoxGuestAdditions-4.3.10/lib/VBoxGuestAdditions /usr/lib/VBoxGuestAdditions
+if [ ! -L /usr/lib/VBoxGuestAdditions ]
+then
+  ln -s /opt/VBoxGuestAdditions-4.3.10/lib/VBoxGuestAdditions /usr/lib/VBoxGuestAdditions
+else
+  echo "Symbolic link already exists."
+fi
 
 
 # Pick fastest mirrors
