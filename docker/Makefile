@@ -5,15 +5,16 @@ default: environment up
 
 all: environment up
 
-up: up-data up-network up-app up-cadvisor
+up: up-data up-network up-app
 
 build: build-data build-network build-app
 
-remove: remove-cadvisor remove-app remove-network remove-data
+remove: remove-app remove-network remove-data
 
 environment: config-env
 
 import: import-ep
+
 
 ###########
 # Up Jobs #
@@ -36,18 +37,6 @@ up-importer:
 	docker exec -it importer /app/setup.sh
 	docker rm -fv importer
 
-up-cadvisor:
-	( docker rm -fv cadvisor )|| true
-	docker run \
-  --volume=/:/rootfs:ro \
-  --volume=/var/run:/var/run:rw \
-  --volume=/sys:/sys:ro \
-  --volume=/var/lib/docker/:/var/lib/docker:ro \
-  --publish=8080:8080 \
-  --detach=true \
-  --name=cadvisor \
-  google/cadvisor:latest
-
 up-endpoint:
 	@echo ""
 	@echo "Gateway ID (#): "
@@ -61,7 +50,7 @@ up-endpoint:
 # Configuration #
 #################
 config-env:
-	scripts/config-env.sh
+	extras/config-env.sh
 
 
 ##############
@@ -80,9 +69,6 @@ build-app:
 ###############
 # Remove Jobs #
 ###############
-remove-cadvisor:
-	docker rm -fv cadvisor
-
 remove-data:
 	docker-compose -f data/data.yml stop
 	docker-compose -f data/data.yml rm -f
