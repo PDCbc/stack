@@ -18,8 +18,6 @@ WORKDIR /app
 EXPOSE 2000
 RUN git clone https://github.com/PhysiciansDataCollaborative/queryImporter.git .
 RUN npm install
-RUN node index import --mongo-host=hubdb --mongo-db=query_composer_development --mongo-port=27017 --mongo-user=pdcadmin
-
 
 # Run Command
 #

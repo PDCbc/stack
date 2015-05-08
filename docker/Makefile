@@ -1,11 +1,11 @@
-################
+###############
 # General Jobs #
 ################
 default: environment up
 
 all: environment up
 
-up: up-data up-network up-app
+up: up-data up-network up-app up-importer
 
 build: build-data build-network build-app
 
@@ -13,7 +13,7 @@ remove: remove-app remove-network remove-data
 
 environment: config-env
 
-import: import-ep
+import: up-importer
 
 
 ###########
