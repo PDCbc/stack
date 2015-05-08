@@ -43,7 +43,7 @@ up-endpoint:
 	@read gID; \
 	echo "Clinician ID (#####): "; \
 	read cID; \
-	./extras/endpoint/up-endpoint.sh $${gID} $${cID}
+	./extras/endpoint/up-endpoint.sh $${gID} $${cID} ep$${gID}
 
 
 #################
