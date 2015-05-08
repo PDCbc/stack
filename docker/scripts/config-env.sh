@@ -12,7 +12,7 @@ then
   echo "Vagrant!"
   export DEBIAN_FRONTEND=noninteractive
   USER=vagrant
-  HOME=/home/vagrant/
+  HOME=/home/vagrant
 fi
 
 
@@ -80,7 +80,7 @@ then
     echo "alias c='dockin'"
     echo "alias d='docker'"
     echo "alias r='reload'"
-    echo "alias l='docker logs'"
+    echo "alias l='docker logs -f'"
     echo "alias dc='docker-compose'"
   ) | tee -a $HOME/.bashrc
 fi
