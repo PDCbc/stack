@@ -2,7 +2,7 @@
 #
 # Exit on errors or unitialized variables
 #
-set -e -o nounset -x
+set -e -o nounset
 
 
 # Expected input
@@ -126,15 +126,11 @@ INJSON=`echo \'{ \"clinician\":\""${CLINICIAN}"\", \"clinic\":\""${CLINIC}"\" }\
 #
 if [ $CLINICIAN="cpsid" ]
 then
-	echo "match"
-	MNT=$(docker inspect -f '{{.Id}}' ep0db)
+	MNT=$( docker inspect -f '{{.Id}}' ${DBNAME} )
 	sudo ls /var/lib/docker/aufs/mnt/${MNT}/
-	echo ${MNT}
 	sudo cp -r ${SCRIPT_DIR}/oscar.json /var/lib/docker/aufs/mnt/${MNT}/tmp/
 	sudo ls /var/lib/docker/aufs/mnt/${MNT}/
-	docker exec ep0db mongoimport --db query_gateway_development --collection records /tmp/oscar.json
-else
-	echo "no match"
+	docker exec ${DBNAME} mongoimport --db query_gateway_development --collection records /tmp/oscar.json
 fi
 
 
