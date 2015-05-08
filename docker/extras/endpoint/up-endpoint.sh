@@ -2,7 +2,7 @@
 #
 # Exit on errors or unitialized variables
 #
-set -e -o nounset -x
+set -e -o nounset
 
 
 # Expected input
