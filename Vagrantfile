@@ -61,6 +61,7 @@ Vagrant.configure(2) do |config|
     vb.gui = false
     vb.cpus = 4
     vb.memory = 4096
+    vb.name = "pdc-env"
   end
 
   # Define a Vagrant Push strategy for pushing to Atlas. Other push strategies
