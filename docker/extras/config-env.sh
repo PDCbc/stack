@@ -98,8 +98,10 @@ declare -a APPS=(
   linux-image-extra-`uname -r` \
   curl \
   lxc-docker \
+  lynx \
   mongodb \
   nodejs \
+  nodejs-legacy \
   npm
 )
 for a in ${APPS[@]}
