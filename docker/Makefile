@@ -34,7 +34,7 @@ up-app:
 up-importer:
 	sudo docker build -t importer extras/queryImporter/
 	sudo docker run -dt --name importer -h importer --link data_hubdb_1:hubdb importer
-	sudo docker exec -dt importer /app/setup.sh
+	sudo docker exec -it importer /app/setup.sh
 	sudo docker rm -fv importer
 
 up-endpoint:
