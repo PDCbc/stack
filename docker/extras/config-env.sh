@@ -43,30 +43,8 @@ then
     echo '		echo "Please pass a docker container to enter"'
     echo '		echo "Usage: dockin [containerToEnter]"'
     echo '	else'
-    echo '		docker exec -it $1 /bin/bash'
+    echo '		sudo docker exec -it $1 /bin/bash'
     echo '	fi'
-    echo '}'
-  ) | tee -a $HOME/.bashrc
-fi
-
-if(! grep --quiet 'function reload()' $HOME/.bashrc)
-then
-  (
-    echo ''
-    echo '# Function to make container rebuilds easier'
-    echo '#'
-    echo 'function reload()'
-    echo '{'
-    echo '  if [ $# -eq 0 ]'
-    echo '  then'
-    echo '    echo "Please pass a docker container to destroy and recreate"'
-    echo '    echo "Usage: reload [containerToReload]"'
-    echo '  else'
-    echo '    CONTAINER=${1%/}'
-    echo '    docker rm -fv $CONTAINER'
-    echo '    make build-$CONTAINER'
-    echo '    make run-$CONTAINER'
-    echo '  fi'
     echo '}'
   ) | tee -a $HOME/.bashrc
 fi
@@ -78,10 +56,9 @@ then
     echo '# Aliases to frequently used functions and applications'
     echo '#'
     echo "alias c='dockin'"
-    echo "alias d='docker'"
-    echo "alias r='reload'"
-    echo "alias l='docker logs -f'"
-    echo "alias dc='docker-compose'"
+    echo "alias d='sudo docker'"
+    echo "alias l='sudo docker logs -f'"
+    echo "alias dc='sudo docker-compose'"
   ) | tee -a $HOME/.bashrc
 fi
 
@@ -99,9 +76,11 @@ fi
 
 # Install Docker PPA and key
 #
-if(! grep --quiet 'https://get.docker.io/ubuntu' /etc/apt/sources.list.d/docker.list )
+if([ ! -f /etc/apt/sources.list.d/docker.list ]||(! grep --quiet 'https://get.docker.io/ubuntu' /etc/apt/sources.list.d/docker.list ))
 then
-  sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
+  (
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
+  ) 2>&1 >/dev/null
   sudo sh -c "echo deb https://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
 fi
 
@@ -115,18 +94,18 @@ sudo apt-get dist-upgrade -y
 
 # Create list of packages and then install
 #
-declare -a APPS=( linux-image-extra-`uname -r` \
-                  curl \
-                  lxc-docker \
-                  mongodb \
-                  nodejs \
-                  npm
-                )
+declare -a APPS=(
+  linux-image-extra-`uname -r` \
+  curl \
+  lxc-docker \
+  mongodb \
+  nodejs \
+  npm
+)
 for a in ${APPS[@]}
 do
   # suppress stdout, show errors
   (
-#    ( dpkg -l | grep $a )|| sudo apt-get install -y $a
     ( dpkg -l | grep -w $a )|| sudo apt-get install -y $a
   ) 2>&1 >/dev/null
 
@@ -136,11 +115,6 @@ do
     echo "ERROR:" $a "install failed!" >&2
   fi
 done
-
-
-# Docker post-install, add user to Docker group
-#
-sudo gpasswd -a $USER docker
 
 
 # Install docker-compose

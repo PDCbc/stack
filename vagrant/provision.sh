@@ -35,7 +35,12 @@ fi
 #
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get upgrade -y
+(
+  apt-get upgrade -y
+  apt-get dist-upgrade -y
+  apt-get autoremove
+  apt-get install -f
+) 2>&1 >/dev/null
 
 
 # Makefile installs packages, configures .bashrc and handles containers
