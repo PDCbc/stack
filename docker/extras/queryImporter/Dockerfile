@@ -15,7 +15,6 @@ RUN apt-get update; apt-get install -y nodejs
 # Clone repo, assign to app
 #
 WORKDIR /app
-EXPOSE 2000
 RUN git clone https://github.com/PhysiciansDataCollaborative/queryImporter.git .
 RUN npm install
 
