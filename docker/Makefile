@@ -34,7 +34,7 @@ up-app:
 up-importer:
 	sudo docker build -t importer extras/queryImporter/
 	sudo docker run -dt --name importer -h importer --link data_hubdb_1:hubdb importer
-	sudo docker exec -it importer /app/setup.sh
+	sudo docker exec -i importer /app/setup.sh
 	sudo docker rm -fv importer
 
 up-ep:
@@ -64,6 +64,10 @@ build-network:
 
 build-app:
 	sudo docker-compose -f app/app.yml build
+
+build-ep:
+	sudo docker build -t endpoint extras/endpoint
+
 
 
 ###############
