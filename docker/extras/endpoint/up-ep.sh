@@ -63,7 +63,7 @@ echo ""
 (
 	sudo docker build -t endpoint ${SCRIPT_DIR}
   sudo docker run -dt --name ${DBNAME} -h ${DBNAME} --restart='always' mongo --smallfiles
-  sudo docker run -dt --name ${EPNAME} -h ${EPNAME} --restart='always' -p ${EPPORT}:3001 --link network_hub_1:hub --link ${DBNAME}:epdb endpoint
+  sudo docker run -dt --name ${EPNAME} -h ${EPNAME} --restart='always' -p ${EPPORT}:3001 -e "gID=${1}" --link ${DBNAME}:epdb endpoint
 ) || echo "ERROR: Does "${EPNAME}" already exist?"
 
 

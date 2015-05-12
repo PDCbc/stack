@@ -31,12 +31,12 @@ EPNAME=ep${1}
 DBNAME=ep${1}db
 EPPORT=`expr 40000 + ${1}`
 (
-	docker stop ${EPNAME} ${DBNAME}
-	docker rm -v ${EPNAME} ${DBNAME}
+	sudo docker stop ${EPNAME} ${DBNAME}
+	sudo docker rm -v ${EPNAME} ${DBNAME}
 ) || echo "ERROR: Does "$EPNAME" exist?"
 
 
 # Set variables from parameters
 #
 REMOVE="'db.endpoints.remove( { \"base_url\" : \"http://10.0.2.2:${EPPORT}\" } )'"; \
-/bin/bash -c "docker exec data_hubdb_1 mongo query_composer_development --eval ${REMOVE}"
+/bin/bash -c "sudo docker exec data_hubdb_1 mongo query_composer_development --eval ${REMOVE}"
