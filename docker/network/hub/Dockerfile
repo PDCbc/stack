@@ -47,6 +47,7 @@ RUN chmod +x /etc/service/hub/run
 # Expose ports
 #
 EXPOSE 3002
+EXPOSE 2774
 EXPOSE 22
 
 
@@ -55,9 +56,9 @@ EXPOSE 22
 RUN rm -f /etc/service/sshd/down
 
 
-# AutoSSH
+# AutoSSH (suppress errors, not providing adduser details)
 #
-RUN adduser --quiet --disabled-password autossh
+RUN adduser --quiet --disabled-password autossh 2>&1
 RUN mkdir /home/autossh/.ssh
 RUN touch /home/autossh/.ssh/authorized_keys
 RUN chmod -R go-rwx /home/autossh/.ssh
