@@ -59,7 +59,9 @@ then
     echo "alias d='sudo docker'"
     echo "alias l='sudo docker logs -f'"
     echo "alias drm='sudo docker rm -fv'"
+    echo "alias dless='sudo docker ps | less -S'"
     echo "alias dc='sudo docker-compose'"
+    echo "alias m='make'"
   ) | tee -a $HOME/.bashrc
 fi
 
