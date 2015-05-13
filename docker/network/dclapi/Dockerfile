@@ -5,32 +5,24 @@
 FROM phusion/passenger-nodejs
 
 
-# Branch to use from GitHub
-#
-ENV BRANCH master
-
-
-# Clone repo, copy db, install dependencies, assign to app
+# Clone DB and startup script
 #
 WORKDIR /app
-RUN git clone https://github.com/PhysiciansDataCollaborative/dclapi.git .
-RUN git checkout -q $BRANCH
 COPY ./dcl.sqlite /app/
-RUN npm install
+COPY ./app.sh /app/
 RUN chown -R app:app /app
 
 
-# Create Hub startup script and make it executable
+# Create startup script and make it executable
 #
-RUN mkdir -p /etc/service/dclapi
+RUN mkdir -p /etc/service/app
 RUN ( \
       echo "#!/bin/bash"; \
-      echo ""; \
-      echo "cd /app"; \
-      echo "exec /sbin/setuser app npm start"; \
+      echo "#"; \
+      echo "exec /sbin/setuser app /app/app.sh"; \
     )  \
-    >> /etc/service/dclapi/run
-RUN chmod +x /etc/service/dclapi/run
+    >> /etc/service/app/run
+RUN chmod +x /etc/service/app/run
 
 
 # Run Command
