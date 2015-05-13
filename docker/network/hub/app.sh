@@ -10,8 +10,8 @@ set -e
 
 # Service name
 #
-REPO=${REPO_DCLAPI}
-BRANCH=${BRANCH_DLAPI}
+REPO=${REPO_HUB}
+BRANCH=${BRANCH_HUB}
 
 
 # Clone and checkout branch or tag
@@ -25,7 +25,15 @@ rm -rf /tmp/app/
 cd /app
 
 
+# Configure Hub (run bundler as non-root)
+#
+bundle install --path vendor/bundle
+sed -i -e "s/localhost:27017/${HUB_HUBDB}:27017/" config/mongoid.yml
+
+
 # Start service
 #
-npm install
-npm start
+bundle install
+bundle exec script/delayed_job start
+bundle exec rails server -p 3002
+bundle exec script/delayed_job stop

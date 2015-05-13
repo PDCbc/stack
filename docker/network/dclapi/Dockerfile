@@ -5,7 +5,7 @@
 FROM phusion/passenger-nodejs
 
 
-# Clone DB and startup script
+# Copy DB and startup script
 #
 WORKDIR /app
 COPY ./dcl.sqlite /app/
