@@ -1,3 +1,10 @@
+#################
+# Source Config #
+#################
+
+include config.env
+
+
 ################
 # General Jobs #
 ################
@@ -31,6 +38,7 @@ e: eb eu
 eu: up-endpoint
 eb: build-endpoint
 er: rm-endpoint
+
 
 ###########
 # Up Jobs #
