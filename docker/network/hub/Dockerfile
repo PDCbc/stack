@@ -59,10 +59,9 @@ RUN rm -f /etc/service/sshd/down
 # AutoSSH (suppress errors, not providing adduser details)
 #
 RUN adduser --quiet --disabled-password autossh 2>&1
-RUN mkdir /home/autossh/.ssh
-RUN touch /home/autossh/.ssh/authorized_keys
-RUN chmod -R go-rwx /home/autossh/.ssh
-RUN chown -R autossh:autossh /home/autossh/.ssh
+RUN /sbin/setuser autossh mkdir /home/autossh/.ssh
+RUN /sbin/setuser autossh touch /home/autossh/.ssh/authorized_keys
+RUN /sbin/setuser autossh chmod -R go-rwx /home/autossh/.ssh
 
 
 # Run Command

@@ -38,6 +38,12 @@ up-importer:
 	sudo docker rm -fv importer
 
 up-ep:
+	( sudo docker exec network_hub_1 grep -q pdcadmin /etc/passwd )||( \
+		echo ""; \
+		echo "Please enter a password for pdcadmin on network_hub_1:"; \
+		/bin/bash -c "sudo docker exec -dt network_hub_1 useradd pdcadmin -m -G sudo"; \
+		/bin/bash -c "sudo docker exec -it network_hub_1 passwd pdcadmin" \
+	)
 	@echo ""
 	@echo "Gateway ID (#): "
 	@read gID; \
@@ -67,7 +73,6 @@ build-app:
 
 build-ep:
 	sudo docker build -t endpoint extras/endpoint
-
 
 
 ###############

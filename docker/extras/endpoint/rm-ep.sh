@@ -38,5 +38,5 @@ EPPORT=`expr 40000 + ${1}`
 
 # Set variables from parameters
 #
-REMOVE="'db.endpoints.remove( { \"base_url\" : \"http://10.0.2.2:${EPPORT}\" } )'"; \
+REMOVE="'db.endpoints.remove( { \"base_url\" : \"http://localhost:${EPPORT}\" } )'"; \
 /bin/bash -c "sudo docker exec data_hubdb_1 mongo query_composer_development --eval ${REMOVE}"
