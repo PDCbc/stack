@@ -1,25 +1,29 @@
-###############
+################
 # General Jobs #
 ################
-default: env build up
+default: environment build up queries
 
-all: env build up
-
-up: up-data up-network up-app import
+up: up-data up-network up-app
 
 build: build-data build-network build-app
 
 remove: rm-app rm-network rm-data
 
+environment: config-environment
+
+queries: config-queries
+
+
+############
+# Shotcuts #
+############
+
+u: up
+b: build
+r: remove
 d: rm-data build-data up-data
-
 n: rm-network build-network up-network
-
 a: rm-app build-app up-app
-
-env: config-env
-
-import: up-importer
 
 
 ###########
@@ -37,12 +41,6 @@ up-network:
 up-app:
 	sudo docker-compose -f app/app.yml up -d
 
-up-importer:
-	sudo docker build -t importer extras/queryImporter/
-	sudo docker run -dt --name importer -h importer --link data_hubdb_1:hubdb importer
-	sudo docker exec -i importer /app/setup.sh
-	sudo docker rm -fv importer
-
 up-ep:
 	( sudo docker exec network_hub_1 grep -q pdcadmin /etc/passwd )||( \
 		echo ""; \
@@ -56,13 +54,6 @@ up-ep:
 	echo "Clinician ID (#####): "; \
 	read cID; \
 	./extras/endpoint/up-ep.sh $${gID} $${cID} ep$${gID}
-
-
-#################
-# Configuration #
-#################
-config-env:
-	extras/config-env.sh
 
 
 ##############
@@ -82,7 +73,7 @@ build-ep:
 
 
 ###############
-# rm Jobs #
+# Remove Jobs #
 ###############
 rm-data:
 	sudo docker-compose -f data/data.yml stop
@@ -101,3 +92,29 @@ rm-ep:
 	@echo "Please enter a gatewayID (#) to rm: "
 	@read gID; \
 	./extras/endpoint/rm-ep.sh $${gID}
+
+
+#################
+# Configuration #
+#################
+config-environment:
+	extras/config-env.sh
+
+config-queries:
+	sudo docker build -t importer extras/queryImporter/
+	sudo docker run -dt --name importer -h importer --link data_hubdb_1:hubdb importer
+	sudo docker exec -it importer /app/setup.sh
+	sudo docker rm -fv importer
+
+
+############################
+# Non-Interactive, Vagrant #
+############################
+
+noninteractive: environment build up config-queries-noninteractive
+
+config-queries-noninteractive:
+	sudo docker build -t importer extras/queryImporter/
+	sudo docker run -dt --name importer -h importer --link data_hubdb_1:hubdb importer
+	sudo docker exec -i importer /app/setup.sh
+	sudo docker rm -fv importer
