@@ -14,4 +14,3 @@ dclapi:
     restart: always
     ports:
         - "3007:3007"
-    restart: always

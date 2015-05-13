@@ -1,17 +1,17 @@
 ###############
 # General Jobs #
 ################
-default: environment build up
+default: env build up
 
-all: environment build up
+all: env build up
 
 up: up-data up-network up-app import
 
 build: build-data build-network build-app
 
-remove: remove-app remove-network remove-data
+rm: rm-app rm-network rm-data
 
-environment: config-env
+env: config-env
 
 import: up-importer
 
@@ -34,16 +34,22 @@ up-app:
 up-importer:
 	sudo docker build -t importer extras/queryImporter/
 	sudo docker run -dt --name importer -h importer --link data_hubdb_1:hubdb importer
-	sudo docker exec -dt importer /app/setup.sh
+	sudo docker exec -i importer /app/setup.sh
 	sudo docker rm -fv importer
 
-up-endpoint:
+up-ep:
+	( sudo docker exec network_hub_1 grep -q pdcadmin /etc/passwd )||( \
+		echo ""; \
+		echo "Please enter a password for pdcadmin on network_hub_1:"; \
+		/bin/bash -c "sudo docker exec -dt network_hub_1 useradd pdcadmin -m -G sudo"; \
+		/bin/bash -c "sudo docker exec -it network_hub_1 passwd pdcadmin" \
+	)
 	@echo ""
 	@echo "Gateway ID (#): "
 	@read gID; \
 	echo "Clinician ID (#####): "; \
 	read cID; \
-	./extras/endpoint/up-endpoint.sh $${gID} $${cID} ep$${gID}
+	./extras/endpoint/up-ep.sh $${gID} $${cID} ep$${gID}
 
 
 #################
@@ -65,24 +71,27 @@ build-network:
 build-app:
 	sudo docker-compose -f app/app.yml build
 
+build-ep:
+	sudo docker build -t endpoint extras/endpoint
+
 
 ###############
-# Remove Jobs #
+# rm Jobs #
 ###############
-remove-data:
+rm-data:
 	sudo docker-compose -f data/data.yml stop
 	sudo docker-compose -f data/data.yml rm -f
 
-remove-network:
+rm-network:
 	sudo docker-compose -f network/network.yml stop
 	sudo docker-compose -f network/network.yml rm -f
 
-remove-app:
+rm-app:
 	sudo docker-compose -f app/app.yml stop
 	sudo docker-compose -f app/app.yml rm -f
 
-remove-endpoint:
+rm-ep:
 	@echo ""
-	@echo "Please enter a gatewayID (#) to remove: "
+	@echo "Please enter a gatewayID (#) to rm: "
 	@read gID; \
-	./extras/endpoint/remove-endpoint.sh $${gID}
+	./extras/endpoint/rm-ep.sh $${gID}

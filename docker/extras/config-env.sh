@@ -30,7 +30,7 @@ fi
 
 # Configure $HOME/.bashrc
 #
-if(! grep --quiet 'function dockin()' $HOME/.bashrc)
+if(! grep --quiet 'function dockin()' $HOME/.bashrc )
 then
   (
     echo ''
@@ -49,7 +49,7 @@ then
   ) | tee -a $HOME/.bashrc
 fi
 
-if(! grep --quiet "alias c='dockin'" $HOME/.bashrc)
+if(! grep --quiet "alias c='dockin'" $HOME/.bashrc )
 then
   (
     echo ''
@@ -58,14 +58,17 @@ then
     echo "alias c='dockin'"
     echo "alias d='sudo docker'"
     echo "alias l='sudo docker logs -f'"
+    echo "alias drm='sudo docker rm -fv'"
+    echo "alias dless='sudo docker ps | less -S'"
     echo "alias dc='sudo docker-compose'"
+    echo "alias m='make'"
   ) | tee -a $HOME/.bashrc
 fi
 
 
 # Configure $HOME/.vimrc
 #
-if([ ! -e $HOME/.vimrc ]||(! grep --quiet 'colorscheme delek' $HOME/.vimrc))
+if([ ! -e $HOME/.vimrc ]||(! grep --quiet 'colorscheme delek' $HOME/.vimrc ))
 then
   (
     echo 'set number'
@@ -98,8 +101,10 @@ declare -a APPS=(
   linux-image-extra-`uname -r` \
   curl \
   lxc-docker \
+  lynx \
   mongodb \
   nodejs \
+  nodejs-legacy \
   npm
 )
 for a in ${APPS[@]}

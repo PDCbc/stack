@@ -34,6 +34,7 @@ SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 # Set variables from parameters
 #
+HUB=10.0.2.2
 EPNAME=ep${1}
 DBNAME=ep${1}db
 EPPORT=`expr 40000 + ${1}`
@@ -63,13 +64,14 @@ echo ""
 (
 	sudo docker build -t endpoint ${SCRIPT_DIR}
   sudo docker run -dt --name ${DBNAME} -h ${DBNAME} --restart='always' mongo --smallfiles
-  sudo docker run -dt --name ${EPNAME} -h ${EPNAME} --restart='always' -p ${EPPORT}:3001 --link network_hub_1:hub --link ${DBNAME}:epdb endpoint
+  sudo docker run -dt --name ${EPNAME} -h ${EPNAME} --restart='always' -e "gID=${1}" -e "HUB=${HUB}" --link ${DBNAME}:epdb endpoint
+	sudo docker exec -it ${EPNAME} /app/key_exchange.sh
 ) || echo "ERROR: Does "${EPNAME}" already exist?"
 
 
 # Check (by URL) if Endpoint is already in the Hub
 #
-CHECK='{ "base_url" : "http://10.0.2.2:'${EPPORT}'"}'
+CHECK='{ "base_url" : "http://localhost:'${EPPORT}'"}'
 CHECK="mongo --port 27019 query_composer_development --eval 'db.endpoints.count( ${CHECK} )'"
 CHECK=`/bin/bash -c "${CHECK} | grep -v Mongo | grep -v connecting"`
 
@@ -78,7 +80,7 @@ CHECK=`/bin/bash -c "${CHECK} | grep -v Mongo | grep -v connecting"`
 #
 if [ $CHECK = "0" ]
 then
-	INSERT='{ "name" : "'${EPNAME}'", "base_url" : "http://10.0.2.2:'${EPPORT}'" }'
+	INSERT='{ "name" : "'${EPNAME}'", "base_url" : "http://localhost:'${EPPORT}'" }'
 	INSERT="--eval 'db.endpoints.insert( ${INSERT} )'"
 	(
 	  /bin/bash -c "sudo docker exec data_hubdb_1 mongo query_composer_development ${INSERT}"
@@ -112,7 +114,7 @@ fi
 
 # Set private data
 #
-CLINIC='{ "base_url" : "http://10.0.2.2:'${EPPORT}'" }, { "_id": 1 }'
+CLINIC='{ "base_url" : "http://localhost:'${EPPORT}'" }, { "_id": 1 }'
 CLINIC="printjson( db.endpoints.findOne( ${CLINIC} ))"
 CLINIC="sudo docker exec data_hubdb_1 mongo query_composer_development --eval '${CLINIC}'"
 CLINIC=`/bin/bash -c "${CLINIC}" | grep -o "(.*)" | grep -io "\w\+"`
@@ -127,9 +129,7 @@ INJSON=`echo \'{ \"clinician\":\""${CLINICIAN}"\", \"clinic\":\""${CLINIC}"\" }\
 if [ $CLINICIAN="cpsid" ]
 then
 	MNT=$( sudo docker inspect -f '{{.Id}}' ${DBNAME} )
-	sudo ls /var/lib/docker/aufs/mnt/${MNT}/
 	sudo cp -r ${SCRIPT_DIR}/oscar.json /var/lib/docker/aufs/mnt/${MNT}/tmp/
-	sudo ls /var/lib/docker/aufs/mnt/${MNT}/
 	sudo docker exec ${DBNAME} mongoimport --db query_gateway_development --collection records /tmp/oscar.json
 fi
 
