@@ -24,7 +24,11 @@ r: remove
 d: rm-data build-data up-data
 n: rm-network build-network up-network
 a: rm-app build-app up-app
-
+q: queries
+e: eb eu
+eu: up-endpoint
+eb: build-endpoint
+er: rm-endpoint
 
 ###########
 # Up Jobs #
@@ -41,7 +45,7 @@ up-network:
 up-app:
 	sudo docker-compose -f app/app.yml up -d
 
-up-ep:
+up-endpoint:
 	( sudo docker exec network_hub_1 grep -q pdcadmin /etc/passwd )||( \
 		echo ""; \
 		echo "Please enter a password for pdcadmin on network_hub_1:"; \
@@ -53,7 +57,7 @@ up-ep:
 	@read gID; \
 	echo "Clinician ID (#####): "; \
 	read cID; \
-	./extras/endpoint/up-ep.sh $${gID} $${cID} ep$${gID}
+	./extras/endpoint/up-endpoint.sh $${gID} $${cID} ep$${gID}
 
 
 ##############
@@ -68,7 +72,7 @@ build-network:
 build-app:
 	sudo docker-compose -f app/app.yml build
 
-build-ep:
+build-endpoint:
 	sudo docker build -t endpoint extras/endpoint
 
 
@@ -87,11 +91,11 @@ rm-app:
 	sudo docker-compose -f app/app.yml stop
 	sudo docker-compose -f app/app.yml rm -f
 
-rm-ep:
+rm-endpoint:
 	@echo ""
 	@echo "Please enter a gatewayID (#) to rm: "
 	@read gID; \
-	./extras/endpoint/rm-ep.sh $${gID}
+	./extras/endpoint/rm-endpoint.sh $${gID}
 
 
 #################
