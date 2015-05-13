@@ -3,6 +3,8 @@
 ################
 default: environment build up queries
 
+all: default
+
 up: up-data up-network up-app
 
 build: build-data build-network build-app
