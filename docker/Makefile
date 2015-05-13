@@ -9,7 +9,13 @@ up: up-data up-network up-app import
 
 build: build-data build-network build-app
 
-rm: rm-app rm-network rm-data
+remove: rm-app rm-network rm-data
+
+d: rm-data build-data up-data
+
+n: rm-network build-network up-network
+
+a: rm-app build-app up-app
 
 env: config-env
 
