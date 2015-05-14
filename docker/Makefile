@@ -28,14 +28,14 @@ queries: config-queries
 ############
 u: up
 b: build
-r: remove
 d: rm-data build-data up-data
 n: rm-network build-network up-network
 a: rm-app build-app up-app
 q: queries
 e: up-endpoint
 er: rm-endpoint
-
+r:
+	sudo docker rm -fv `sudo docker ps -a -q`
 
 ###########
 # Up Jobs #
