@@ -16,26 +16,28 @@ up: up-data up-network up-app
 
 build: build-data build-network build-app
 
-remove: rm-app rm-network rm-data
+remove: rm-everything
 
 environment: config-environment
 
 queries: config-queries
+
+endpoint: up-endpoint
+
+reset: remove build up queries up-endpoint
 
 
 ############
 # Shotcuts #
 ############
 u: up
-b: build
+r: remove
+q: queries
+e: up-endpoint
 d: rm-data build-data up-data
 n: rm-network build-network up-network
 a: rm-app build-app up-app
-q: queries
-e: up-endpoint
-er: rm-endpoint
-r:
-	sudo docker rm -fv `sudo docker ps -a -q`
+
 
 ###########
 # Up Jobs #
@@ -100,6 +102,9 @@ rm-endpoint:
 	@echo "Please enter a gatewayID (#) to rm: "
 	@read gID; \
 	./extras/endpoint/rm-endpoint.sh $${gID}
+
+rm-everything:
+	( sudo docker rm -fv `sudo docker ps -a -q` )|| echo "No containers to delete"
 
 
 #################
