@@ -16,19 +16,16 @@ BRANCH=${BRANCH_HUB}
 
 # Clone and checkout branch or tag
 #
-rm -rf /tmp/app || true
-git clone https://github.com/${REPO} /tmp/app
-git -C /tmp/app checkout ${BRANCH}
-mkdir -p /app
-mv /tmp/app/* /app
+git clone -b ${BRANCH} --single-branch https://github.com/${REPO} /tmp/app/
+mv /tmp/app/* /app/
 rm -rf /tmp/app/
-cd /app
 
 
 # Configure Hub (run bundler as non-root)
 #
+cd /app/
 bundle install --path vendor/bundle
-sed -i -e "s/localhost:27017/${HUB_HUBDB}:27017/" config/mongoid.yml
+sed -i -e "s/localhost:27017/hubdb:27017/" config/mongoid.yml
 
 
 # Start service
