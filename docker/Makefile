@@ -26,7 +26,6 @@ queries: config-queries
 ############
 # Shotcuts #
 ############
-
 u: up
 b: build
 r: remove
@@ -34,9 +33,7 @@ d: rm-data build-data up-data
 n: rm-network build-network up-network
 a: rm-app build-app up-app
 q: queries
-e: eb eu
-eu: up-endpoint
-eb: build-endpoint
+e: up-endpoint
 er: rm-endpoint
 
 
@@ -81,9 +78,6 @@ build-network:
 
 build-app:
 	sudo docker-compose -f app/app.yml build
-
-build-endpoint:
-	sudo docker build -t endpoint extras/endpoint
 
 
 ###############
