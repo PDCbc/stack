@@ -32,6 +32,7 @@ reset: remove build up queries up-endpoint
 ############
 u: up
 r: remove
+t: reset
 q: queries
 e: up-endpoint
 d: rm-data build-data up-data
