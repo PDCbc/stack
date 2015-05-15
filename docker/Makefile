@@ -35,6 +35,7 @@ r: remove
 t: reset
 q: queries
 e: up-endpoint
+f: rm-endpoint
 d: rm-data build-data up-data
 n: rm-network build-network up-network
 a: rm-app build-app up-app
