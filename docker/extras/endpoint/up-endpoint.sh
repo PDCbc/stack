@@ -34,13 +34,18 @@ SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 # Set variables from parameters
 #
-HUB=10.0.2.2
-EPNAME=ep${1}
-DBNAME=ep${1}db
-EPPORT=`expr 40000 + ${1}`
-CLINICIAN=$2
-USERNAME=${3:-$CLINICIAN}
-JURISDICTION=${4:-TEST}
+export HUB_URL=10.0.2.2
+export EPNAME=ep${1}
+export DBNAME=ep${1}db
+export EPPORT=`expr 40000 + ${1}`
+export CLINICIAN=$2
+export USERNAME=${3:-$CLINICIAN}
+export JURISDICTION=${4:-TEST}
+
+
+# Script directory, useful for running scripts from scripts
+#
+export SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 
 # If a username has not been specified, output default (Endpoint name)
@@ -57,10 +62,6 @@ fi
 echo "Please provide a password for user "${USERNAME}":"
 read -s PASSWORD
 echo ""
-if [ ${PASSWORD} = "" ]
-then
-	echo "No password provided"
-fi
 
 
 # Start containers
@@ -68,7 +69,7 @@ fi
 (
 	sudo docker build -t endpoint ${SCRIPT_DIR}
   sudo docker run -dt --name ${DBNAME} -h ${DBNAME} --restart='always' mongo --smallfiles
-  sudo docker run -dt --name ${EPNAME} -h ${EPNAME} --restart='always' -e "gID=${1}" -e "HUB=${HUB}" --link ${DBNAME}:epdb endpoint
+  sudo docker run -dt --name ${EPNAME} -h ${EPNAME} --restart='always' --env-file=${SCRIPT_DIR}/../../config.env -e "gID=${1}" --link ${DBNAME}:epdb endpoint
 	sudo docker exec -it ${EPNAME} /app/key_exchange.sh
 ) || echo "ERROR: Does "${EPNAME}" already exist?"
 

@@ -21,12 +21,10 @@ RUN apt-get update; apt-get install -y \
 
 # Clone repo, assign to app
 #
-WORKDIR /app
-RUN git clone https://github.com/physiciansdatacollaborative/endpoint.git .
-RUN git checkout -q $BRANCH
-RUN mkdir -p /app/tmp/pids; \
-    mkdir -p /app/util/files
-RUN chown -R app:app /app
+WORKDIR /app/
+RUN git clone -b ${BRANCH} https://github.com/physiciansdatacollaborative/endpoint.git .
+RUN mkdir -p /app/tmp/pids /app/util/files
+RUN chown -R app:app /app/
 
 
 # Configure Endpoint (run bundler as non-root)
@@ -50,15 +48,16 @@ RUN ( \
       echo "#"; \
       echo "while [ -f /app/wait ]"; \
       echo "do"; \
+      echo "  echo 'Waiting for key exchange'"; \
       echo "  sleep 10"; \
       echo "done"; \
       echo ""; \
       echo "# Start tunnel"; \
       echo "#"; \
-      echo "cd /app"; \
+      echo "cd /app/"; \
       echo "export AUTOSSH_PIDFILE=/app/tmp/pids/autossh.pid"; \
       echo "export REMOTE_PORT=\`expr 40000 + \${gID}\`"; \
-      echo "/usr/bin/autossh -M0 -p2774 -N -R \${REMOTE_PORT}:localhost:3001 autossh@\${HUB} -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o Protocol=2 -o ExitOnForwardFailure=yes &"; \
+      echo "/usr/bin/autossh -M0 -p2774 -N -R \${REMOTE_PORT}:localhost:3001 autossh@\${HUB_URL} -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o Protocol=2 -o ExitOnForwardFailure=yes &"; \
       echo "sleep 5"; \
       echo ""; \
       echo "# Start Endpoint"; \
@@ -81,8 +80,8 @@ RUN ( \
       echo "# Create an SSH key and exchange it"; \
       echo "#"; \
       echo "ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -N \"\""; \
-      echo "scp -P 2774 -p /root/.ssh/id_rsa.pub pdcadmin@\${HUB}:/tmp/endpoint_id_rsa.pub"; \
-      echo "ssh -p 2774 -t pdcadmin@\${HUB} \"sudo su - autossh -c 'cat /tmp/endpoint_id_rsa.pub >> /home/autossh/.ssh/authorized_keys'\""; \
+      echo "scp -P 2774 -p /root/.ssh/id_rsa.pub pdcadmin@\${HUB_URL}:/tmp/endpoint_id_rsa.pub"; \
+      echo "ssh -p 2774 -t pdcadmin@\${HUB_URL} \"sudo su - autossh -c 'cat /tmp/endpoint_id_rsa.pub >> /home/autossh/.ssh/authorized_keys'\""; \
       echo ""; \
       echo "# Remove the hold on Endpoint startup"; \
       echo "#"; \
