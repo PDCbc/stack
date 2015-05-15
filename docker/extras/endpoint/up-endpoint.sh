@@ -57,6 +57,10 @@ fi
 echo "Please provide a password for user "${USERNAME}":"
 read -s PASSWORD
 echo ""
+if [ ${PASSWORD} = "" ]
+then
+	echo "No password provided"
+fi
 
 
 # Start containers
@@ -78,7 +82,7 @@ CHECK=`/bin/bash -c "${CHECK} | grep -v Mongo | grep -v connecting"`
 
 # Add to Hub, if not there
 #
-if [ $CHECK = "0" ]
+if [ ${CHECK} = "0" ]
 then
 	INSERT='{ "name" : "'${EPNAME}'", "base_url" : "http://localhost:'${EPPORT}'" }'
 	INSERT="--eval 'db.endpoints.insert( ${INSERT} )'"
@@ -93,7 +97,7 @@ fi
 # Auth - Add user to DACS,
 #
 (
-  /bin/bash -c "sudo docker exec data_auth_1 dacspasswd -uj ${JURISDICTION} -p ${PASSWORD} -a ${USERNAME}"
+  /bin/bash -c "sudo docker exec data_auth_1 /sbin/setuser app /usr/bin/dacspasswd -uj ${JURISDICTION} -p ${PASSWORD} -a ${USERNAME}"
 ) || echo "ERROR: Failed on Auth add."
 
 
@@ -120,13 +124,13 @@ CLINIC="sudo docker exec data_hubdb_1 mongo query_composer_development --eval '$
 CLINIC=`/bin/bash -c "${CLINIC}" | grep -o "(.*)" | grep -io "\w\+"`
 INJSON=`echo \'{ \"clinician\":\""${CLINICIAN}"\", \"clinic\":\""${CLINIC}"\" }\'`
 (
-	/bin/bash -c "sudo docker exec data_auth_1 /usr/bin/dacspasswd -uj TEST -pds ${INJSON} ${USERNAME}"
+	/bin/bash -c "sudo docker exec data_auth_1 /sbin/setuser app /usr/bin/dacspasswd -uj TEST -pds ${INJSON} ${USERNAME}"
 ) || echo "ERROR: Failed to add private data."
 
 
 # If using sample doctor (cpsid), add sample data
 #
-if [ $CLINICIAN="cpsid" ]
+if [ ${CLINICIAN}="cpsid" ]
 then
 	MNT=$( sudo docker inspect -f '{{.Id}}' ${DBNAME} )
 	sudo cp -r ${SCRIPT_DIR}/oscar.json /var/lib/docker/aufs/mnt/${MNT}/tmp/
