@@ -34,13 +34,18 @@ SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 # Set variables from parameters
 #
-HUB=10.0.2.2
-EPNAME=ep${1}
-DBNAME=ep${1}db
-EPPORT=`expr 40000 + ${1}`
-CLINICIAN=$2
-USERNAME=${3:-$CLINICIAN}
-JURISDICTION=${4:-TEST}
+export HUB_URL=10.0.2.2
+export EPNAME=ep${1}
+export DBNAME=ep${1}db
+export EPPORT=`expr 40000 + ${1}`
+export CLINICIAN=$2
+export USERNAME=${3:-$CLINICIAN}
+export JURISDICTION=${4:-TEST}
+
+
+# Script directory, useful for running scripts from scripts
+#
+export SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 
 # If a username has not been specified, output default (Endpoint name)
@@ -64,7 +69,7 @@ echo ""
 (
 	sudo docker build -t endpoint ${SCRIPT_DIR}
   sudo docker run -dt --name ${DBNAME} -h ${DBNAME} --restart='always' mongo --smallfiles
-  sudo docker run -dt --name ${EPNAME} -h ${EPNAME} --restart='always' -e "gID=${1}" -e "HUB=${HUB}" --link ${DBNAME}:epdb endpoint
+  sudo docker run -dt --name ${EPNAME} -h ${EPNAME} --restart='always' --env-file=${SCRIPT_DIR}/../../config.env -e "gID=${1}" --link ${DBNAME}:epdb endpoint
 	sudo docker exec -it ${EPNAME} /app/key_exchange.sh
 ) || echo "ERROR: Does "${EPNAME}" already exist?"
 
@@ -78,7 +83,7 @@ CHECK=`/bin/bash -c "${CHECK} | grep -v Mongo | grep -v connecting"`
 
 # Add to Hub, if not there
 #
-if [ $CHECK = "0" ]
+if [ ${CHECK} = "0" ]
 then
 	INSERT='{ "name" : "'${EPNAME}'", "base_url" : "http://localhost:'${EPPORT}'" }'
 	INSERT="--eval 'db.endpoints.insert( ${INSERT} )'"
@@ -93,7 +98,7 @@ fi
 # Auth - Add user to DACS,
 #
 (
-  /bin/bash -c "sudo docker exec data_auth_1 dacspasswd -uj ${JURISDICTION} -p ${PASSWORD} -a ${USERNAME}"
+  /bin/bash -c "sudo docker exec data_auth_1 /sbin/setuser app /usr/bin/dacspasswd -uj ${JURISDICTION} -p ${PASSWORD} -a ${USERNAME}"
 ) || echo "ERROR: Failed on Auth add."
 
 
@@ -120,13 +125,13 @@ CLINIC="sudo docker exec data_hubdb_1 mongo query_composer_development --eval '$
 CLINIC=`/bin/bash -c "${CLINIC}" | grep -o "(.*)" | grep -io "\w\+"`
 INJSON=`echo \'{ \"clinician\":\""${CLINICIAN}"\", \"clinic\":\""${CLINIC}"\" }\'`
 (
-	/bin/bash -c "sudo docker exec data_auth_1 /usr/bin/dacspasswd -uj TEST -pds ${INJSON} ${USERNAME}"
+	/bin/bash -c "sudo docker exec data_auth_1 /sbin/setuser app /usr/bin/dacspasswd -uj TEST -pds ${INJSON} ${USERNAME}"
 ) || echo "ERROR: Failed to add private data."
 
 
 # If using sample doctor (cpsid), add sample data
 #
-if [ $CLINICIAN="cpsid" ]
+if [ ${CLINICIAN}="cpsid" ]
 then
 	MNT=$( sudo docker inspect -f '{{.Id}}' ${DBNAME} )
 	sudo cp -r ${SCRIPT_DIR}/oscar.json /var/lib/docker/aufs/mnt/${MNT}/tmp/

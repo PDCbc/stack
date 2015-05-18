@@ -4,6 +4,8 @@ hapi:
     build: hapi/.
     hostname: hapi
     restart: always
+    env_file:
+        - ../config.env
     ports:
         - "3003:3003"
     external_links:
@@ -15,6 +17,8 @@ viz:
     build: viz/.
     hostname: viz
     restart: always
+    env_file:
+        - ../config.env
     ports:
         - "3004:3004"
         - "80:3004"

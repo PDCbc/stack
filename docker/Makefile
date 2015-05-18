@@ -1,19 +1,46 @@
-###############
+#################
+# Source Config #
+#################
+
+include config.env
+
+
+################
 # General Jobs #
 ################
-default: env build up
+default: environment build up queries
 
-all: env build up
+all: default
 
-up: up-data up-network up-app import
+up: up-data up-network up-app
 
 build: build-data build-network build-app
 
-rm: rm-app rm-network rm-data
+remove: rm-everything
 
-env: config-env
+environment: config-environment
 
-import: up-importer
+queries: config-queries
+
+endpoint: up-endpoint
+
+reset: remove build up queries up-endpoint
+
+noninteractive: environment build up config-queries-noninteractive
+
+
+############
+# Shotcuts #
+############
+u: up
+r: remove
+t: reset
+q: queries
+e: up-endpoint
+f: rm-endpoint
+d: rm-data build-data up-data
+n: rm-network build-network up-network
+a: rm-app build-app up-app
 
 
 ###########
@@ -31,13 +58,7 @@ up-network:
 up-app:
 	sudo docker-compose -f app/app.yml up -d
 
-up-importer:
-	sudo docker build -t importer extras/queryImporter/
-	sudo docker run -dt --name importer -h importer --link data_hubdb_1:hubdb importer
-	sudo docker exec -i importer /app/setup.sh
-	sudo docker rm -fv importer
-
-up-ep:
+up-endpoint:
 	( sudo docker exec network_hub_1 grep -q pdcadmin /etc/passwd )||( \
 		echo ""; \
 		echo "Please enter a password for pdcadmin on network_hub_1:"; \
@@ -49,14 +70,7 @@ up-ep:
 	@read gID; \
 	echo "Clinician ID (#####): "; \
 	read cID; \
-	./extras/endpoint/up-ep.sh $${gID} $${cID} ep$${gID}
-
-
-#################
-# Configuration #
-#################
-config-env:
-	extras/config-env.sh
+	./extras/endpoint/up-endpoint.sh $${gID} $${cID} ep$${gID}
 
 
 ##############
@@ -71,12 +85,9 @@ build-network:
 build-app:
 	sudo docker-compose -f app/app.yml build
 
-build-ep:
-	sudo docker build -t endpoint extras/endpoint
-
 
 ###############
-# rm Jobs #
+# Remove Jobs #
 ###############
 rm-data:
 	sudo docker-compose -f data/data.yml stop
@@ -90,8 +101,33 @@ rm-app:
 	sudo docker-compose -f app/app.yml stop
 	sudo docker-compose -f app/app.yml rm -f
 
-rm-ep:
+rm-endpoint:
 	@echo ""
 	@echo "Please enter a gatewayID (#) to rm: "
 	@read gID; \
-	./extras/endpoint/rm-ep.sh $${gID}
+	./extras/endpoint/rm-endpoint.sh $${gID}
+
+rm-everything:
+	( sudo docker rm -fv `sudo docker ps -a -q` )|| echo "No containers to delete"
+
+
+#################
+# Configuration #
+#################
+config-environment:
+	extras/config-env.sh
+
+config-queries:
+	sudo docker build -t importer extras/queryImporter/
+	sudo docker run -it --name importer -h importer --env-file=config.env --link data_hubdb_1:hubdb importer
+	sudo docker rm -fv importer
+
+
+############################
+# Non-Interactive, Vagrant #
+############################
+
+config-queries-noninteractive:
+	sudo docker build -t importer extras/queryImporter/
+	sudo docker run -i --name importer -h importer --env-file=config.env --link data_hubdb_1:hubdb importer
+	sudo docker rm -fv importer

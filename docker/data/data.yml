@@ -11,6 +11,8 @@ auth:
     build: auth/.
     hostname: auth
     restart: always
+    env_file:
+        - ../config.env
     ports:
         - "3005:3005"                               # -to-do- close one of these
         - "3006:3006"

@@ -2,47 +2,40 @@
 #
 # Base image
 #
-FROM node
+FROM phusion/passenger-nodejs
 
 
-# Configure Mongo URI, secret and enable Node to use self signed SSL certs
+# Install Python 2.7
 #
-ENV PORT 3003
-ENV MONGO_URI mongodb://hubdb:27017/query_composer_development
-ENV AUTH_CONTROL https://auth:3006
-ENV ROLES ./roles
-#ENV SECRET "Test Secret"
-#ENV NODE_TLS_REJECT_UNAUTHORIZED 0
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update; apt-get install -y python2.7
 
 
-# Expose ports listening for incoming traffic
+# Prepare /app/ folder
 #
-EXPOSE $PORT
+WORKDIR /app/
+COPY ./app.sh /app/
+RUN chown -R app:app /app/
 
 
-# Update
+# Create startup script and make it executable
 #
-RUN apt-get update
+RUN mkdir -p /etc/service/app/
+RUN ( \
+      echo "#!/bin/bash"; \
+      echo "#"; \
+      echo ""; \
+      echo "# Update system"; \
+      echo "#"; \
+      echo "DEBIAN_FRONTEND=noninteractive"; \
+      echo "apt-get update; apt-get dist-upgrade -y"; \
+      echo ""; \
+      echo "exec /sbin/setuser app /app/app.sh"; \
+    )  \
+    >> /etc/service/app/run
+RUN chmod +x /etc/service/app/run
 
 
-# Clone repo
+# Run Command
 #
-WORKDIR /app
-RUN git clone https://github.com/PhysiciansDataCollaborative/hapi .; \
-    git checkout -q pdc-0.1.0
-
-
-# Create and switch to app user
-#
-RUN  useradd app; \
-     chown -R app:app /app/
-USER app
-ENV HOME /app/
-
-
-# Prepare Node and start
-#
-WORKDIR /app
-RUN     rm -rf node-modules;\
-        npm install
-CMD     ["npm", "start"]
+CMD ["/sbin/my_init"]

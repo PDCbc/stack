@@ -46,4 +46,4 @@ apt-get update
 # Makefile installs packages, configures .bashrc and handles containers
 #
 cd /vagrant/docker
-make
+make noninteractive

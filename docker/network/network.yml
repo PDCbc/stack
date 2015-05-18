@@ -2,6 +2,8 @@ hub:
     build: hub/.
     hostname: hub
     restart: always
+    env_file:
+        - ../config.env
     ports:
         - "3002:3002"
         - "2774:22"
@@ -12,5 +14,7 @@ dclapi:
     build: dclapi/.
     hostname: dclapi
     restart: always
+    env_file:
+        - ../config.env
     ports:
         - "3007:3007"
