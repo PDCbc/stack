@@ -5,25 +5,26 @@
 
 # Exit on errors or unitialized variables
 #
-set -e
+set -e -o nounset
 
 
-# Service name
+# Environment variables
 #
-REPO=${REPO_DCLAPI}
-BRANCH=${BRANCH_DLAPI}
+export REPO=${DCLAPI_REPO}
+export BRANCH=${DCLAPI_BRANCH}
 
 
 # Clone and checkout branch or tag
 #
 ( rm -rf /tmp/app/ )|| true
 git clone -b ${BRANCH} --single-branch https://github.com/${REPO} /tmp/app/
-mv /tmp/app/* /app/
+mv --backup=numbered /tmp/app/* /app/
 rm -rf /tmp/app/
-cd /app/
 
 
 # Start service
 #
+cd /app/
+( rm -rf /app/node_modules/ )|| true
 npm install
-npm start
+exec npm start

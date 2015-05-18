@@ -5,7 +5,7 @@
 FROM phusion/passenger-ruby19
 
 
-# Update (non-interactive) and install packages
+# Install Lynx
 #
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update; apt-get install -y lynx
@@ -16,15 +16,19 @@ RUN apt-get update; apt-get install -y lynx
 RUN rm -f /etc/service/sshd/down
 #
 RUN adduser --quiet --disabled-password autossh 2>&1
-RUN /sbin/setuser autossh mkdir /home/autossh/.ssh
+RUN /sbin/setuser autossh mkdir -p /home/autossh/.ssh
 RUN /sbin/setuser autossh touch /home/autossh/.ssh/authorized_keys
 RUN /sbin/setuser autossh chmod -R go-rwx /home/autossh/.ssh
 
 
-# Copy and prepare startup script
+# Prepare /app/ folder
 #
+WORKDIR /app/
 COPY ./app.sh /app/
-RUN chown -R app:app /app
+RUN chown -R app:app /app/
+
+
+# Create startup script and make it executable
 #
 RUN mkdir -p /etc/service/app
 RUN ( \

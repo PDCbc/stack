@@ -5,22 +5,22 @@
 FROM phusion/passenger-nodejs
 
 
-# Install python2.7
+# Install Python 2.7
 #
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update; apt-get install -y python2.7
 
 
-# Copy startup script
+# Prepare /app/ folder
 #
-WORKDIR /app
+WORKDIR /app/
 COPY ./app.sh /app/
-RUN chown -R app:app /app
+RUN chown -R app:app /app/
 
 
 # Create startup script and make it executable
 #
-RUN mkdir -p /etc/service/app
+RUN mkdir -p /etc/service/app/
 RUN ( \
       echo "#!/bin/bash"; \
       echo "#"; \

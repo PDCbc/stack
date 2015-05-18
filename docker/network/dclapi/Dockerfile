@@ -5,17 +5,17 @@
 FROM phusion/passenger-nodejs
 
 
-# Copy DB and startup script
+# Prepare /app/ folder
 #
-WORKDIR /app
+WORKDIR /app/
 COPY ./dcl.sqlite /app/
 COPY ./app.sh /app/
-RUN chown -R app:app /app
+RUN chown -R app:app /app/
 
 
 # Create startup script and make it executable
 #
-RUN mkdir -p /etc/service/app
+RUN mkdir -p /etc/service/app/
 RUN ( \
       echo "#!/bin/bash"; \
       echo "#"; \

@@ -10,12 +10,13 @@ set -e -o nounset
 
 # Environment variables
 #
-export REPO=${REPO_VIZ}
-export BRANCH=${BRANCH_VIZ}
+export REPO=${VIZ_REPO}
+export BRANCH=${VIZ_BRANCH}
 export PORT=${VIZ_PORT}
-export AUTH_MAIN_URL=https://auth:${MAINPORT}
-export AUTH_CONTROL_URL=https://auth:${CONTROLPORT}
-export CALLBACK_URL=https://auth:${CONTROLPORT}/auth/callback
+export AUTH_MAIN_URL=https://auth:${AUTH_MAINPORT}
+export AUTH_CONTROL_URL=https://auth:${AUTH_CONTROLPORT}
+export CALLBACK_URL=https://auth:${AUTH_CONTROLPORT}/auth/callback
+export HUBAPI_URL=${HAPI_URL}
 
 
 # Clone and checkout branch or tag
@@ -24,11 +25,12 @@ export CALLBACK_URL=https://auth:${CONTROLPORT}/auth/callback
 git clone -b ${BRANCH} --single-branch https://github.com/${REPO} /tmp/app/
 mv --backup=numbered /tmp/app/* /app/
 rm -rf /tmp/app/
-cd /app/
 
 
 # Start service
 #
-npm config set python /usr/bin/python
+cd /app/
+( rm -rf /app/node_modules/ )|| true
+npm config set python /usr/bin/python2.7
 ( npm install )|| true
 exec npm start

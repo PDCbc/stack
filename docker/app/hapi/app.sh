@@ -5,18 +5,17 @@
 
 # Exit on errors or unitialized variables
 #
-set -e -o nounset -x
+set -e -o nounset
 
 
 # Environment variables
 #
-export REPO=${REPO_HAPI}
-export BRANCH=${BRANCH_HAPI}
+export REPO=${HAPI_REPO}
+export BRANCH=${HAPI_BRANCH}
 export PORT=${HAPI_PORT}
 export MONGO_URI=mongodb://hubdb:27017/query_composer_development
-export AUTH_CONTROL=https://auth:${CONTROLPORT}
-#export ROLES=./roles
-export ROLES=${ROLEFILE}
+export AUTH_CONTROL=https://auth:${AUTH_CONTROLPORT}
+export ROLES=${AUTH_ROLEFILE}
 
 
 # Clone and checkout branch or tag

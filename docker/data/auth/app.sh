@@ -5,13 +5,18 @@
 
 # Exit on errors or unitialized variables
 #
-set -e -o nounset -x
+set -e -o nounset
 
 
 # Environment variables
 #
-REPO=${REPO_AUTH}
-BRANCH=${BRANCH_AUTH}
+export REPO=${AUTH_REPO}
+export BRANCH=${AUTH_BRANCH}
+export CONTROLPORT=${AUTH_CONTROLPORT}
+export MAINPORT=${AUTH_MAINPORT}
+export FEDERATION=${AUTH_FEDERATION}
+export JURISDICTION=${AUTH_JURISDICTION}
+export ROLEFILE=${AUTH_ROLEFILE}
 
 
 # Clone and checkout branch or tag
@@ -23,9 +28,7 @@ mv --backup=numbered /tmp/app/* /app/
 ls -la /app/
 mv --backup=numbered /app/federations/* /etc/dacs/federations/
 rm -rf /tmp/app/ /app/federations/
-#chown app:app /app/ /etc/dacs/federations/
-#RUN mkdir -p /etc/dacs/federations/pdc.dev/
-#RUN touch /etc/dacs/federations/pdc.dev/federation_keyfile
+
 
 # DACS - create roles file load keyfile
 #
@@ -36,5 +39,6 @@ dacskey -uj TEST -v /etc/dacs/federations/pdc.dev/federation_keyfile
 # Start service
 #
 cd /app/
+( rm -rf /app/node_modules/ )|| true
 npm install
-npm start
+exec npm start

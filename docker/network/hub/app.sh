@@ -1,24 +1,24 @@
 #!/bin/bash
 #
-# Start script for the PDC's DCLAPI service
+# Start script for the PDC's Hub service
 
 
 # Exit on errors or unitialized variables
 #
-set -e
+set -e -o nounset
 
 
-# Service name
+# Environment variables
 #
-REPO=${REPO_HUB}
-BRANCH=${BRANCH_HUB}
+export REPO=${HUB_REPO}
+export BRANCH=${HUB_BRANCH}
 
 
 # Clone and checkout branch or tag
 #
 ( rm -rf /tmp/app/ )|| true
 git clone -b ${BRANCH} --single-branch https://github.com/${REPO} /tmp/app/
-mv /tmp/app/* /app/
+mv --backup=numbered /tmp/app/* /app/
 rm -rf /tmp/app/
 
 
@@ -31,7 +31,8 @@ sed -i -e "s/localhost:27017/hubdb:27017/" config/mongoid.yml
 
 # Start service
 #
+( rm -rf /app/node_modules/ )|| true
 bundle install
 bundle exec script/delayed_job start
-bundle exec rails server -p 3002
+exec bundle exec rails server -p 3002
 bundle exec script/delayed_job stop
