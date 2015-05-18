@@ -19,6 +19,12 @@ RUN mkdir -p /etc/service/app/
 RUN ( \
       echo "#!/bin/bash"; \
       echo "#"; \
+      echo ""; \
+      echo "# Update system"; \
+      echo "#"; \
+      echo "DEBIAN_FRONTEND=noninteractive"; \
+      echo "apt-get update; apt-get dist-upgrade -y"; \
+      echo ""; \
       echo "exec /sbin/setuser app /app/app.sh"; \
     )  \
     >> /etc/service/app/run
