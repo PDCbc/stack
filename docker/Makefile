@@ -117,9 +117,9 @@ config-environment:
 
 config-queries:
 	sudo docker build -t importer extras/queryImporter/
-	sudo docker run -dt --name importer -h importer --link data_hubdb_1:hubdb importer
-	sudo docker exec -it importer /app/setup.sh
+	sudo docker run -it --name importer -h importer --env-file=config.env --link data_hubdb_1:hubdb importer
 	sudo docker rm -fv importer
+#	sudo docker exec -it importer /app/setup.sh
 
 
 ############################
