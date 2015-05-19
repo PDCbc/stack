@@ -6,8 +6,6 @@ hapi:
     restart: always
     env_file:
         - ../config.env
-    ports:
-        - "3003:3003"
     external_links:
         - data_auth_1
         - data_hubdb_1
@@ -21,8 +19,6 @@ viz:
         - ../config.env
     ports:
         - "3004:3004"
-        - "80:3004"
-        - "443:3004"
     links:
         - hapi
     external_links:
