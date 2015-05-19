@@ -16,5 +16,3 @@ dclapi:
     restart: always
     env_file:
         - ../config.env
-    ports:
-        - "3007:3007"

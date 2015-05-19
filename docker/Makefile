@@ -119,7 +119,8 @@ config-environment:
 
 config-queries:
 	sudo docker build -t importer extras/queryImporter/
-	sudo docker run -it --name importer -h importer --env-file=config.env --link data_hubdb_1:hubdb importer
+	sudo docker run -dt --name importer -h importer --env-file=config.env --link data_hubdb_1:hubdb importer
+	sudo docker exec -it importer /app/app.sh pdcadmin
 	sudo docker rm -fv importer
 
 
@@ -129,5 +130,6 @@ config-queries:
 
 config-queries-noninteractive:
 	sudo docker build -t importer extras/queryImporter/
-	sudo docker run -i --name importer -h importer --env-file=config.env --link data_hubdb_1:hubdb importer
+	sudo docker run -dt --name importer -h importer --env-file=config.env --link data_hubdb_1:hubdb importer
+	sudo docker exec -i importer /app/app.sh pdcadmin
 	sudo docker rm -fv importer
