@@ -68,7 +68,7 @@ echo ""
 #
 (
 	sudo docker build -t endpoint ${SCRIPT_DIR}
-  sudo docker run -dt --name ${DBNAME} -h ${DBNAME} --restart='always' mongo --smallfiles
+  sudo docker run -dt --name ${DBNAME} -h ${DBNAME} --restart='always' -e "LC_ALL=C" mongo --smallfiles
   sudo docker run -dt --name ${EPNAME} -h ${EPNAME} --restart='always' --env-file=${SCRIPT_DIR}/../../config.env -e "gID=${1}" --link ${DBNAME}:epdb endpoint
 	sudo docker exec -it ${EPNAME} /app/key_exchange.sh
 ) || echo "ERROR: Does "${EPNAME}" already exist?"
@@ -76,19 +76,19 @@ echo ""
 
 # Check (by URL) if Endpoint is already in the Hub
 #
-CHECK='{ "base_url" : "http://localhost:'${EPPORT}'"}'
-CHECK="mongo --port 27019 query_composer_development --eval 'db.endpoints.count( ${CHECK} )'"
-CHECK=`/bin/bash -c "${CHECK} | grep -v Mongo | grep -v connecting"`
+SH_CMD='db.endpoints.count({ "base_url" : "http://localhost:'${EPPORT}'" })'
+D_EXEC="sudo docker exec data_hubdb_1 mongo query_composer_development --eval '${SH_CMD}'"
+RESULT=`/bin/bash -c "${D_EXEC}" | grep -v Mongo | grep -v connecting`
 
 
 # Add to Hub, if not there
 #
-if [ ${CHECK} = "0" ]
+if [ ${RESULT} = "0" ]
 then
-	INSERT='{ "name" : "'${EPNAME}'", "base_url" : "http://localhost:'${EPPORT}'" }'
-	INSERT="--eval 'db.endpoints.insert( ${INSERT} )'"
+	JSON='{ "name" : "'${EPNAME}'", "base_url" : "http://localhost:'${EPPORT}'" }'
+	EVAL="--eval 'db.endpoints.insert( ${JSON} )'"
 	(
-	  /bin/bash -c "sudo docker exec data_hubdb_1 mongo query_composer_development ${INSERT}"
+	  /bin/bash -c "sudo docker exec data_hubdb_1 mongo query_composer_development ${EVAL}"
 	) || echo "ERROR: "${EPNAME}" will not be pre-populated in the Hub."
 else
 	echo "Endpoint already added to Hub."
@@ -117,12 +117,16 @@ else
 fi
 
 
+# Obtain clinic number
+#
+TO_QRY='{ "base_url" : "http://localhost:'${EPPORT}'" }, { "_id": 1 }'
+SH_CMD="printjson( db.endpoints.findOne( ${TO_QRY} ))"
+D_EXEC="sudo docker exec data_hubdb_1 mongo query_composer_development --eval '${SH_CMD}'"
+CLINIC=`/bin/bash -c "${D_EXEC}" | grep -o "(.*)" | grep -io "\w\+"`
+
+
 # Set private data
 #
-CLINIC='{ "base_url" : "http://localhost:'${EPPORT}'" }, { "_id": 1 }'
-CLINIC="printjson( db.endpoints.findOne( ${CLINIC} ))"
-CLINIC="sudo docker exec data_hubdb_1 mongo query_composer_development --eval '${CLINIC}'"
-CLINIC=`/bin/bash -c "${CLINIC}" | grep -o "(.*)" | grep -io "\w\+"`
 INJSON=`echo \'{ \"clinician\":\""${CLINICIAN}"\", \"clinic\":\""${CLINIC}"\" }\'`
 (
 	/bin/bash -c "sudo docker exec data_auth_1 /sbin/setuser app /usr/bin/dacspasswd -uj TEST -pds ${INJSON} ${USERNAME}"
