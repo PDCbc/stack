@@ -11,5 +11,5 @@ auth:
     restart: always
     env_file:
         - ../config.env
-    volumes:
-        - $HOME/backups/dacs/:/etc/dacs/:rw
+#    volumes:
+#        - $HOME/env-data/dacs/:/etc/dacs/:rw

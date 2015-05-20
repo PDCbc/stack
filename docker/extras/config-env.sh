@@ -143,6 +143,14 @@ else
 fi
 
 
+## Create container backup folder
+#
+mkdir -p $HOME/env-data/
+mkdir -p $HOME/env-data/dacs/
+mkdir -p $HOME/env-data/hub/
+mkdir -p $HOME/env-data/mdr/
+
+
 # Reminder
 #
 echo ""

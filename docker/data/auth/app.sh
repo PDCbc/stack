@@ -32,10 +32,31 @@ mv --backup=numbered /app/federations/* /etc/dacs/federations/
 rm -rf /tmp/app/ /app/federations/
 
 
-# DACS - create roles file load keyfile
+# DACS - create roles file
 #
-touch /etc/dacs/federations/pdc.dev/roles
-dacskey -uj TEST -v /etc/dacs/federations/pdc.dev/federation_keyfile
+if [ ! -f /etc/dacs/federations/pdc.dev/roles ]
+then
+  (
+    mkdir -p /etc/dacs/federations/pdc.dev/
+    touch /etc/dacs/federations/pdc.dev/roles
+  )||(
+    echo "ERROR: Role file inaccessible" >&2
+  )
+fi
+
+
+# DACS - create keyfile
+#
+if [ ! -f /etc/dacs/federations/pdc.dev/federation_keyfile ]
+then
+  (
+    mkdir -p /etc/dacs/federations/pdc.dev/
+    touch /etc/dacs/federations/pdc.dev/federation_keyfile
+    dacskey -uj TEST -v /etc/dacs/federations/pdc.dev/federation_keyfile
+  )||(
+    echo "ERROR: Key file inaccessible" >&2
+  )
+fi
 
 
 # Start service

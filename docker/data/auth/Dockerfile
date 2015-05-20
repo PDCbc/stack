@@ -5,10 +5,24 @@
 FROM phusion/passenger-nodejs
 
 
-# Install DACS
+# Apt (w/ dpkg) - keep old files on conflicts
+#
+RUN mkdir -p /etc/apt/apt.conf.d/
+RUN ( \
+      echo 'Dpkg::Options {'; \
+      echo '   "--force-confdef";'; \
+      echo '   "--force-confold";'; \
+      echo '}'; \
+    )  \
+    >> /etc/apt/apt.conf.d/local
+
+
+# Update system, install DACS
 #
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update; apt-get install -y dacs
+RUN apt-get update; \
+    apt-get upgrade -y; \
+    apt-get install -y dacs
 
 
 # Prepare /app/ and /etc/dacs/federations/ folders
@@ -16,7 +30,7 @@ RUN apt-get update; apt-get install -y dacs
 WORKDIR /app/
 COPY ./app.sh /app/
 RUN chown -R app:app /app/
-VOLUME /etc/dacs/
+#VOLUME /etc/dacs/
 
 
 # Create startup script and make it executable

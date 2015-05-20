@@ -5,6 +5,25 @@
 FROM phusion/passenger-nodejs
 
 
+# Apt (w/ dpkg) - keep old files on conflicts
+#
+RUN mkdir -p /etc/apt/apt.conf.d/
+RUN ( \
+      echo 'Dpkg::Options {'; \
+      echo '   "--force-confdef";'; \
+      echo '   "--force-confold";'; \
+      echo '}'; \
+    )  \
+    >> /etc/apt/apt.conf.d/local
+
+
+# Update system
+#
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update; \
+    apt-get upgrade -y
+
+
 # Prepare /app/ folder
 #
 WORKDIR /app/

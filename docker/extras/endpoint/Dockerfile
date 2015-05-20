@@ -5,18 +5,32 @@
 FROM phusion/passenger-ruby19
 
 
-# Branch to use from GitHub
+# Apt (w/ dpkg) - keep old files on conflicts
 #
-ENV BRANCH pdc-0.1.0
+RUN mkdir -p /etc/apt/apt.conf.d/
+RUN ( \
+      echo 'Dpkg::Options {'; \
+      echo '   "--force-confdef";'; \
+      echo '   "--force-confold";'; \
+      echo '}'; \
+    )  \
+    >> /etc/apt/apt.conf.d/local
 
 
-# Update (non-interactive) and install packages
+# Update system, install AuthSSH, Lynx and UnZip
 #
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update; apt-get install -y \
+RUN apt-get update; \
+    apt-get upgrade -y;
+    apt-get install -y \
       autossh \
       lynx \
       unzip
+
+
+# Branch to use from GitHub
+#
+ENV BRANCH pdc-0.1.0
 
 
 # Clone repo, assign to app

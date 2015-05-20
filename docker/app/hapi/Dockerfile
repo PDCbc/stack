@@ -5,10 +5,24 @@
 FROM phusion/passenger-nodejs
 
 
-# Install Python 2.7
+# Apt (w/ dpkg) - keep old files on conflicts
+#
+RUN mkdir -p /etc/apt/apt.conf.d/
+RUN ( \
+      echo 'Dpkg::Options {'; \
+      echo '   "--force-confdef";'; \
+      echo '   "--force-confold";'; \
+      echo '}'; \
+    )  \
+    >> /etc/apt/apt.conf.d/local
+
+
+# Update system, install Python 2.7
 #
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update; apt-get install -y python2.7
+RUN apt-get update; \
+    apt-get upgrade -y;
+    apt-get install -y python2.7
 
 
 # Prepare /app/ folder

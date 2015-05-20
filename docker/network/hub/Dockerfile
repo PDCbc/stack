@@ -5,10 +5,24 @@
 FROM phusion/passenger-ruby19
 
 
-# Install Lynx
+# Apt (w/ dpkg) - keep old files on conflicts
+#
+RUN mkdir -p /etc/apt/apt.conf.d/
+RUN ( \
+      echo 'Dpkg::Options {'; \
+      echo '   "--force-confdef";'; \
+      echo '   "--force-confold";'; \
+      echo '}'; \
+    )  \
+    >> /etc/apt/apt.conf.d/local
+
+
+# Update system, install Lynx
 #
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update; apt-get install -y lynx
+RUN apt-get update; \
+    apt-get upgrade -y;
+    apt-get install -y lynx
 
 
 # Enable and configure SSH (for AutoSSH tunnel)
