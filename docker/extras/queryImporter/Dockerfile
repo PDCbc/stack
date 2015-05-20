@@ -22,7 +22,7 @@ RUN ( \
 RUN curl -sL https://deb.nodesource.com/setup_0.12 | sudo bash -
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update; \
-    apt-get upgrade -y;
+    apt-get upgrade -y; \
     apt-get install -y \
         nodejs \
         python2.7
