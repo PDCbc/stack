@@ -1,6 +1,9 @@
 #!/bin/bash
 #
 # Start script for the PDC's Auth service
+#
+# Note: unlike the PDC's other Docker startup scripts
+#       this one is intended to be run as root
 
 
 # Exit on errors or unitialized variables
@@ -23,9 +26,8 @@ export ROLEFILE=${AUTH_ROLEFILE}
 #
 ( rm -rf /tmp/app/ )|| true
 git clone -b ${BRANCH} --single-branch https://github.com/${REPO} /tmp/app/
-ls -la /tmp/app/
 mv --backup=numbered /tmp/app/* /app/
-ls -la /app/
+mkdir -p /etc/dacs/federations/
 mv --backup=numbered /app/federations/* /etc/dacs/federations/
 rm -rf /tmp/app/ /app/federations/
 
@@ -41,4 +43,4 @@ dacskey -uj TEST -v /etc/dacs/federations/pdc.dev/federation_keyfile
 cd /app/
 ( rm -rf /app/node_modules/ )|| true
 npm install
-exec npm start
+exec /sbin/setuser app npm start

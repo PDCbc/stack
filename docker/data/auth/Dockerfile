@@ -15,7 +15,8 @@ RUN apt-get update; apt-get install -y dacs
 #
 WORKDIR /app/
 COPY ./app.sh /app/
-RUN chown -R app:app /app/ /etc/dacs/federations/
+RUN chown -R app:app /app/
+VOLUME /etc/dacs/
 
 
 # Create startup script and make it executable
@@ -24,13 +25,9 @@ RUN mkdir -p /etc/service/app/
 RUN ( \
       echo "#!/bin/bash"; \
       echo "#"; \
+      echo "apt-get update; apt-get upgrade -y"; \
       echo ""; \
-      echo "# Update system"; \
-      echo "#"; \
-      echo "DEBIAN_FRONTEND=noninteractive"; \
-      echo "apt-get update; apt-get dist-upgrade -y"; \
-      echo ""; \
-      echo "exec /sbin/setuser app /app/app.sh"; \
+      echo "/app/app.sh"; \
     )  \
     >> /etc/service/app/run
 RUN chmod +x /etc/service/app/run
