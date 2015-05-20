@@ -56,14 +56,16 @@ up-network:
 	/bin/bash -c "sudo docker exec data_hubdb_1 mongo query_composer_development $${INSERT}"
 
 up-app:
+	mkdir -p $${HOME}/backups/dacs/
 	sudo docker-compose -f app/app.yml up -d
+	echo ""
 
 up-endpoint:
 	( sudo docker exec network_hub_1 grep -q pdcadmin /etc/passwd )||( \
 		echo ""; \
 		echo "Please enter a password for pdcadmin on network_hub_1:"; \
 		/bin/bash -c "sudo docker exec -dt network_hub_1 useradd pdcadmin -m -G sudo"; \
-		/bin/bash -c "sudo docker exec -it network_hub_1 passwd pdcadmin" \
+		/bin/bash -c "sudo docker exec -it network_hub_1 passwd pdcadmin"; \
 	)
 	@echo ""
 	@echo "Gateway ID (#): "
@@ -108,7 +110,7 @@ rm-endpoint:
 	./extras/endpoint/rm-endpoint.sh $${gID}
 
 rm-everything:
-	( sudo docker rm -fv `sudo docker ps -a -q` )|| echo "No containers to delete"
+	@( sudo docker rm -fv `sudo docker ps -a -q` )|| echo "No containers to delete"
 
 
 #################

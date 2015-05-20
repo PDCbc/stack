@@ -39,10 +39,8 @@ RUN sed -i -e "s/localhost:27017/epdb:27017/" config/mongoid.yml
 RUN mkdir -p /etc/service/app
 RUN ( \
       echo "#!/bin/bash"; \
-      echo "#"; \
-      echo "# Exit on errors or unitialized variables"; \
-      echo "#"; \
-      echo "set -e -o nounset"; \
+      echo ""; \
+      echo "apt-get update; apt-get upgrade -y"; \
       echo ""; \
       echo "# Wait until SSH keys are ready"; \
       echo "#"; \
