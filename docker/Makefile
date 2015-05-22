@@ -8,11 +8,13 @@ include config.env
 ################
 # General Jobs #
 ################
-default: environment build up queries
+default: build up queries
 
-all: default
+all: environment pull build up queries
 
 up: up-data up-network up-app
+
+pull: pull-phusion pull-mongo
 
 build: build-data build-network build-app
 
@@ -26,7 +28,7 @@ endpoint: up-endpoint
 
 reset: remove build up queries up-endpoint
 
-noninteractive: environment build up config-queries-noninteractive
+noninteractive: environment pull build up config-queries-noninteractive
 
 
 ############
@@ -48,17 +50,17 @@ a: rm-app build-app up-app
 ###########
 up-data:
 	sudo docker-compose -f data/data.yml up -d
+	SH_CMD="sudo docker exec data_hubdb_1 mongo query_composer_development"; \
+	JSON_1="printjson( db.users.ensureIndex({ username : 1 }, { unique : true }))"; \
+	JSON_2='db.users.insert({ "first_name" : "PDC", "last_name" : "Admin", "username" : "pdcadmin", "email" : "pdcadmin@pdc.io", "encrypted_password" : "$$2a$$10$$ZSuPxdODbumiMGOxtVSpRu0Rd0fQ2HhC7tMu2IobKTaAsPMmFlBD.", "agree_license" : true, "approved" : true, "admin" : true })'; \
+	/bin/bash -c "$${SH_CMD} --eval '$${JSON_1}'"; \
+	/bin/bash -c "$${SH_CMD} --eval '$${JSON_2}'"
 
 up-network:
 	sudo docker-compose -f network/network.yml up -d
-	INSERT='{ "first_name" : "PDC", "last_name" : "Admin", "username" : "pdcadmin", "email" : "pdcadmin@pdc.io", "encrypted_password" : "$$2a$$10$$ZSuPxdODbumiMGOxtVSpRu0Rd0fQ2HhC7tMu2IobKTaAsPMmFlBD.", "agree_license" : true, "approved" : true, "admin" : true }'; \
-	INSERT="--eval 'db.users.insert( $${INSERT} )'"; \
-	/bin/bash -c "sudo docker exec data_hubdb_1 mongo query_composer_development $${INSERT}"
 
 up-app:
-	mkdir -p $${HOME}/backups/dacs/
 	sudo docker-compose -f app/app.yml up -d
-	echo ""
 
 up-endpoint:
 	( sudo docker exec network_hub_1 grep -q pdcadmin /etc/passwd )||( \
@@ -124,6 +126,16 @@ config-queries:
 	sudo docker run -dt --name importer -h importer --env-file=config.env --link data_hubdb_1:hubdb importer
 	sudo docker exec -it importer /app/app.sh pdcadmin
 	sudo docker rm -fv importer
+
+
+#############
+# Pull Jobs #
+#############
+pull-mongo:
+	sudo docker pull mongo
+
+pull-phusion:
+	sudo docker pull phusion/baseimage
 
 
 ############################
