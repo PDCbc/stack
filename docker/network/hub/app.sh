@@ -10,16 +10,14 @@ set -e -o nounset
 
 # Environment variables
 #
-export REPO=${HUB_REPO}
 export BRANCH=${HUB_BRANCH}
 
 
 # Clone and checkout branch or tag
 #
-( rm -rf /tmp/app/ )|| true
-git clone -b ${BRANCH} --single-branch https://github.com/${REPO} /tmp/app/
-mv --backup=numbered /tmp/app/* /app/
-rm -rf /tmp/app/
+cd /app/
+git pull
+git checkout ${BRANCH}
 
 
 # Configure Hub (run bundler as non-root)
@@ -29,9 +27,9 @@ bundle install --path vendor/bundle
 sed -i -e "s/localhost:27017/hubdb:27017/" config/mongoid.yml
 
 
-# Start service
+# Configure Hub (run bundler as non-root)
 #
-( rm -rf /app/node_modules/ )|| true
+cd /app/
 bundle install
 bundle exec script/delayed_job start
 exec bundle exec rails server -p 3002

@@ -145,7 +145,7 @@ fi
 
 ## Create container backup folder
 #
-mkdir -p $HOME/env-data/
+mkdir -p /root/env-data/
 
 
 # Reminder

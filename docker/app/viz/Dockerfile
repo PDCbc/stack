@@ -5,21 +5,11 @@
 FROM phusion/passenger-nodejs
 
 
-# Apt (w/ dpkg) - keep old files on conflicts
-#
-RUN mkdir -p /etc/apt/apt.conf.d/
-RUN ( \
-      echo 'Dpkg::Options {'; \
-      echo '   "--force-confdef";'; \
-      echo '   "--force-confold";'; \
-      echo '}'; \
-    )  \
-    >> /etc/apt/apt.conf.d/local
-
-
 # Update system, install Python 2.7
 #
 ENV DEBIAN_FRONTEND noninteractive
+RUN echo 'Dpkg::Options{ "--force-confdef"; "--force-confold" }' \
+      >> /etc/apt/apt.conf.d/local
 RUN apt-get update; \
     apt-get upgrade -y; \
     apt-get install -y python2.7
@@ -28,6 +18,9 @@ RUN apt-get update; \
 # Prepare /app/ folder
 #
 WORKDIR /app/
+RUN git clone https://github.com/physiciansdatacollaborative/visualizer.git .
+RUN npm config set python /usr/bin/python2.7
+RUN npm install
 COPY ./app.sh /app/
 RUN chown -R app:app /app/
 

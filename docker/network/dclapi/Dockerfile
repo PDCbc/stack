@@ -5,21 +5,11 @@
 FROM phusion/passenger-nodejs
 
 
-# Apt (w/ dpkg) - keep old files on conflicts
-#
-RUN mkdir -p /etc/apt/apt.conf.d/
-RUN ( \
-      echo 'Dpkg::Options {'; \
-      echo '   "--force-confdef";'; \
-      echo '   "--force-confold";'; \
-      echo '}'; \
-    )  \
-    >> /etc/apt/apt.conf.d/local
-
-
 # Update system
 #
 ENV DEBIAN_FRONTEND noninteractive
+RUN echo 'Dpkg::Options{ "--force-confdef"; "--force-confold" }' \
+      >> /etc/apt/apt.conf.d/local
 RUN apt-get update; \
     apt-get upgrade -y
 
@@ -27,6 +17,8 @@ RUN apt-get update; \
 # Prepare /app/ folder
 #
 WORKDIR /app/
+RUN git clone https://github.com/physiciansdatacollaborative/dclapi.git .
+RUN npm install
 COPY ./dcl.sqlite /app/
 COPY ./app.sh /app/
 RUN chown -R app:app /app/

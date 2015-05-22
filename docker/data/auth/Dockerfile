@@ -5,21 +5,11 @@
 FROM phusion/passenger-nodejs
 
 
-# Apt (w/ dpkg) - keep old files on conflicts
-#
-RUN mkdir -p /etc/apt/apt.conf.d/
-RUN ( \
-      echo 'Dpkg::Options {'; \
-      echo '   "--force-confdef";'; \
-      echo '   "--force-confold";'; \
-      echo '}'; \
-    )  \
-    >> /etc/apt/apt.conf.d/local
-
-
 # Update system, install DACS
 #
 ENV DEBIAN_FRONTEND noninteractive
+RUN echo 'Dpkg::Options{ "--force-confdef"; "--force-confold" }' \
+      >> /etc/apt/apt.conf.d/local
 RUN apt-get update; \
     apt-get upgrade -y; \
     apt-get install -y dacs
@@ -28,9 +18,11 @@ RUN apt-get update; \
 # Prepare /app/ and /etc/dacs/federations/ folders
 #
 WORKDIR /app/
-COPY ./app.sh /app/
+RUN git clone https://github.com/physiciansdatacollaborative/auth.git .
+RUN npm install
 RUN mkdir -p /etc/dacs/
-RUN chown -R app:app /app/ /etc/dacs/
+COPY ./app.sh /app/
+RUN chown -R app:app /app/
 
 
 # Create startup script and make it executable
@@ -38,7 +30,7 @@ RUN chown -R app:app /app/ /etc/dacs/
 RUN mkdir -p /etc/service/app/
 RUN ( \
       echo "#!/bin/bash"; \
-      echo "#"; \
+      echo ""; \
       echo "chown -R app:app /etc/dacs/"; \
       echo "/sbin/setuser app /app/app.sh"; \
     )  \

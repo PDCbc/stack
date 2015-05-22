@@ -7,7 +7,7 @@ hub:
     external_links:
         - data_hubdb_1
     volumes:
-        - $HOME/env-data/hub/:/home/autossh/.ssh/
+        - $HOME/env-data/hub/:/home/autossh/.ssh/:rw
     ports:
         - "3002:3002"
         - "2774:22"
@@ -18,5 +18,3 @@ dclapi:
     restart: always
     env_file:
         - ../config.env
-    volumes:
-        - $HOME/env-data/dclapi/:/app/dcl/:rw

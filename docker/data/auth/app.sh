@@ -24,37 +24,24 @@ export ROLEFILE=${AUTH_ROLEFILE}
 
 # Clone and checkout branch or tag
 #
-( rm -rf /tmp/app/ )|| true
-git clone -b ${BRANCH} --single-branch https://github.com/${REPO} /tmp/app/
-mv --backup=numbered /tmp/app/* /app/
-mkdir -p /etc/dacs/federations/
-mv --backup=numbered /app/federations/* /etc/dacs/federations/
-rm -rf /tmp/app/ /app/federations/
+cd /app/
+git pull
+git checkout ${BRANCH}
 
 
-# DACS - create roles file
+# If jurisdiction folder doesn't exist, then initialize DACS
 #
-if [ ! -f /etc/dacs/federations/pdc.dev/roles ]
+if [ ! -d /etc/dacs/federations/pdc.dev/TEST/ ]
 then
   (
-    mkdir -p /etc/dacs/federations/pdc.dev/
+    mkdir -p /etc/dacs/federations/pdc.dev/TEST/
+    cp /app/federations/dacs.conf /etc/dacs/federations/
+    cp /app/federations/site.conf /etc/dacs/federations/
     touch /etc/dacs/federations/pdc.dev/roles
-  )||(
-    echo "ERROR: Role file inaccessible" >&2
-  )
-fi
-
-
-# DACS - create keyfile, unless it exists and has content
-#
-if [ ! -s /etc/dacs/federations/pdc.dev/federation_keyfile ]
-then
-  (
-    mkdir -p /etc/dacs/federations/pdc.dev/
     touch /etc/dacs/federations/pdc.dev/federation_keyfile
     dacskey -uj TEST -v /etc/dacs/federations/pdc.dev/federation_keyfile
   )||(
-    echo "ERROR: Key file inaccessible" >&2
+    echo "ERROR: DACS initialization unsuccessful" >&2
   )
 fi
 
@@ -62,6 +49,5 @@ fi
 # Start service
 #
 cd /app/
-( rm -rf /app/node_modules/ )|| true
 npm install
 npm start

@@ -5,21 +5,11 @@
 FROM phusion/passenger-ruby19
 
 
-# Apt (w/ dpkg) - keep old files on conflicts
-#
-RUN mkdir -p /etc/apt/apt.conf.d/
-RUN ( \
-      echo 'Dpkg::Options {'; \
-      echo '   "--force-confdef";'; \
-      echo '   "--force-confold";'; \
-      echo '}'; \
-    )  \
-    >> /etc/apt/apt.conf.d/local
-
-
 # Update system, install AuthSSH, Lynx and UnZip
 #
 ENV DEBIAN_FRONTEND noninteractive
+RUN echo 'Dpkg::Options{ "--force-confdef"; "--force-confold" }' \
+      >> /etc/apt/apt.conf.d/local
 RUN apt-get update; \
     apt-get upgrade -y; \
     apt-get install -y \

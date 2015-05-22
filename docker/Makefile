@@ -1,10 +1,3 @@
-#################
-# Source Config #
-#################
-
-include config.env
-
-
 ################
 # General Jobs #
 ################
@@ -146,4 +139,63 @@ config-queries-noninteractive:
 	sudo docker build -t importer extras/queryImporter/
 	sudo docker run -dt --name importer -h importer --env-file=config.env --link data_hubdb_1:hubdb importer
 	sudo docker exec -i importer /app/app.sh pdcadmin
+	sudo docker rm -fv importer
+
+
+###############
+# Development #
+###############
+auth:
+	sudo docker rm -fv auth || true
+	sudo docker build -t pdc.io/auth data/auth/
+	. ./config.env; \
+	CMD="$${AUTH_NAME} $${AUTH_OPEN} $${AUTH_RESTART} $${AUTH_VOLUMES}"; \
+	sudo docker run -d --env-file=config.env $${CMD} pdc.io/auth
+
+hubdb:
+	sudo docker rm -fv hubdb || true
+	. ./config.env; \
+	CMD="$${HUBDB_NAME} $${HUBDB_OPEN} $${HUBDB_RESTART} $${HUBDB_VOLUMES}"; \
+	sudo docker run -d -e "LC_ALL=C" $${CMD} mongo
+	SH_CMD="sudo docker exec hub mongo query_composer_development"; \
+	JSON_1="printjson( db.users.ensureIndex({ username : 1 }, { unique : true }))"; \
+	JSON_2='db.users.insert({ "first_name" : "PDC", "last_name" : "Admin", "username" : "pdcadmin", "email" : "pdcadmin@pdc.io", "encrypted_password" : "$$2a$$10$$ZSuPxdODbumiMGOxtVSpRu0Rd0fQ2HhC7tMu2IobKTaAsPMmFlBD.", "agree_license" : true, "approved" : true, "admin" : true })'; \
+	/bin/bash -c "$${SH_CMD} --eval '$${JSON_1}'"; \
+	/bin/bash -c "$${SH_CMD} --eval '$${JSON_2}'"
+
+dclapi:
+	sudo docker rm -fv dclapi || true
+	sudo docker build -t pdc.io/dclapi network/dclapi/
+	. ./config.env; \
+	CMD="$${DCLAPI_NAME} $${DCLAPI_OPEN} $${DCLAPI_RESTART} $${DCLAPI_VOLUMES}"; \
+	sudo docker run -d $${CMD} pdc.io/dclapi
+
+hub:
+	sudo docker rm -fv hub || true
+	sudo docker build -t pdc.io/hub network/hub/
+	. ./config.env; \
+	CMD="$${HUB_NAME} $${HUB_OPEN} $${HUB_RESTART} $${HUB_VOLUMES} $${HUB_LINK}"; \
+	sudo docker run -d --env-file=config.env $${CMD} pdc.io/hub
+
+hapi:
+	sudo docker rm -fv hapi || true; \
+	sudo docker build -t pdc.io/hapi app/hapi/; \
+	. ./config.env; \
+	CMD="$${HAPI_LINK} $${HAPI_NAME} $${HAPI_OPEN} $${HAPI_RESTART}"; \
+	sudo docker run -d --env-file=config.env $${CMD} pdc.io/hapi
+
+viz:
+	sudo docker rm -fv viz || true; \
+	sudo docker build -t pdc.io/viz app/viz/; \
+	. ./config.env; \
+	CMD="$${VIZ_LINK} $${VIZ_NAME} $${VIZ_OPEN} $${VIZ_RESTART}"; \
+	sudo docker run -d --env-file=config.env $${CMD} pdc.io/viz
+
+importer:
+	sudo docker rm -fv importer || true; \
+	sudo docker build -t pdc.io/importer extras/queryImporter/; \
+	. ./config.env; \
+	CMD="$${QI_LINK} $${QI_NAME} $${QI_OPEN} $${QI_RESTART}"; \
+	sudo docker run -d --env-file=config.env $${CMD} pdc.io/importer
+	sudo docker exec -it importer /app/app.sh pdcadmin
 	sudo docker rm -fv importer
