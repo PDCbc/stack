@@ -4,6 +4,8 @@ hubdb:
     restart: always
     environment:
         - LC_ALL=C # Addresses a mongo language bug
+    volumes:
+        - $HOME/env-data/hubdb/:/data/db/:rw
 
 auth:
     build: auth/.
@@ -11,5 +13,5 @@ auth:
     restart: always
     env_file:
         - ../config.env
-#    volumes:
-#        - $HOME/env-data/dacs/:/etc/dacs/:rw
+    volumes:
+        - $HOME/env-data/auth/:/etc/dacs/:rw

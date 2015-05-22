@@ -54,8 +54,6 @@ RUN mkdir -p /etc/service/app
 RUN ( \
       echo "#!/bin/bash"; \
       echo ""; \
-      echo "apt-get update; apt-get upgrade -y"; \
-      echo ""; \
       echo "# Wait until SSH keys are ready"; \
       echo "#"; \
       echo "while [ -f /app/wait ]"; \

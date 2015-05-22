@@ -38,8 +38,6 @@ RUN mkdir -p /etc/service/app/
 RUN ( \
       echo "#!/bin/bash"; \
       echo ""; \
-      echo "apt-get update; apt-get upgrade -y"; \
-      echo ""; \
       echo "exec /sbin/setuser app /app/app.sh"; \
     )  \
     >> /etc/service/app/run

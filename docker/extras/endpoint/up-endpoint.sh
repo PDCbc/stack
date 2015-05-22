@@ -98,7 +98,7 @@ fi
 # Auth - Add user to DACS,
 #
 (
-  /bin/bash -c "sudo docker exec data_auth_1 /usr/bin/dacspasswd -uj ${JURISDICTION} -p ${PASSWORD} -a ${USERNAME}"
+  /bin/bash -c "sudo docker exec data_auth_1 /sbin/setuser app /usr/bin/dacspasswd -uj ${JURISDICTION} -p ${PASSWORD} -a ${USERNAME}"
 ) || echo "ERROR: Failed on Auth add."
 
 
@@ -129,7 +129,7 @@ CLINIC=`/bin/bash -c "${D_EXEC}" | grep -o "(.*)" | grep -io "\w\+"`
 #
 INJSON=`echo \'{ \"clinician\":\""${CLINICIAN}"\", \"clinic\":\""${CLINIC}"\" }\'`
 (
-	/bin/bash -c "sudo docker exec data_auth_1 /usr/bin/dacspasswd -uj TEST -pds ${INJSON} ${USERNAME}"
+	/bin/bash -c "sudo docker exec data_auth_1 /sbin/setuser app /usr/bin/dacspasswd -uj TEST -pds ${INJSON} ${USERNAME}"
 ) || echo "ERROR: Failed to add private data."
 
 

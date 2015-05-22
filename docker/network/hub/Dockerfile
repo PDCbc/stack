@@ -7,14 +7,8 @@ FROM phusion/passenger-ruby19
 
 # Apt (w/ dpkg) - keep old files on conflicts
 #
-RUN mkdir -p /etc/apt/apt.conf.d/
-RUN ( \
-      echo 'Dpkg::Options {'; \
-      echo '   "--force-confdef";'; \
-      echo '   "--force-confold";'; \
-      echo '}'; \
-    )  \
-    >> /etc/apt/apt.conf.d/local
+RUN echo 'Dpkg::Options{ "--force-confdef"; "--force-confold" }' \
+      >> /etc/apt/apt.conf.d/local
 
 
 # Update system, install Lynx
@@ -30,8 +24,9 @@ RUN apt-get update; \
 RUN rm -f /etc/service/sshd/down
 #
 RUN adduser --quiet --disabled-password autossh 2>&1
-RUN /sbin/setuser autossh mkdir -p /home/autossh/.ssh
-RUN /sbin/setuser autossh touch /home/autossh/.ssh/authorized_keys
+RUN mkdir -p /home/autossh/.ssh
+RUN touch /home/autossh/.ssh/authorized_keys
+RUN chown -R autossh:autossh /home/autossh/.ssh/
 RUN /sbin/setuser autossh chmod -R go-rwx /home/autossh/.ssh
 
 
@@ -48,8 +43,7 @@ RUN mkdir -p /etc/service/app
 RUN ( \
       echo "#!/bin/bash"; \
       echo ""; \
-      echo "apt-get update; apt-get upgrade -y"; \
-      echo ""; \
+      echo "chown -R autossh:autossh /home/autossh/.ssh/"; \
       echo "exec /sbin/setuser app /app/app.sh"; \
     )  \
     >> /etc/service/app/run
