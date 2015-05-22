@@ -17,9 +17,9 @@ viz:
     restart: always
     env_file:
         - ../config.env
-    ports:
-        - "3004:3004"
     links:
         - hapi
     external_links:
         - data_auth_1
+    ports:
+        - "3004:3004"
