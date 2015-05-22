@@ -45,9 +45,9 @@ then
 fi
 
 
-# DACS - create keyfile
+# DACS - create keyfile, unless it exists and has content
 #
-if [ ! -f /etc/dacs/federations/pdc.dev/federation_keyfile ]
+if [ ! -s /etc/dacs/federations/pdc.dev/federation_keyfile ]
 then
   (
     mkdir -p /etc/dacs/federations/pdc.dev/
@@ -64,4 +64,4 @@ fi
 cd /app/
 ( rm -rf /app/node_modules/ )|| true
 npm install
-exec /sbin/setuser app npm start
+npm start
