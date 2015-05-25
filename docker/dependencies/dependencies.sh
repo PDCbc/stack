@@ -5,29 +5,6 @@
 set -e -o nounset
 
 
-# Vagrant VM case: provision uses root, but we access it as vagrant
-#
-if [ -d /vagrant/ ]&&[ -d /home/vagrant ]
-then
-  echo "Vagrant!"
-  export DEBIAN_FRONTEND=noninteractive
-  USER=vagrant
-  HOME=/home/vagrant
-fi
-
-
-## Vagrant VM starts in docker folder
-#
-if ([ "$HOME" == "/home/vagrant" ]&&(! grep --quiet 'cd /vagrant/docker/' $HOME/.bashrc ))
-then
-  (
-    echo ''
-    echo '# Start in docker directory'
-    echo 'cd /vagrant/docker/'
-  ) | tee -a $HOME/.bashrc
-fi
-
-
 # Configure $HOME/.bashrc
 #
 if(! grep --quiet 'function dockin()' $HOME/.bashrc )
@@ -46,21 +23,16 @@ then
     echo '		sudo docker exec -it $1 /bin/bash'
     echo '	fi'
     echo '}'
-  ) | tee -a $HOME/.bashrc
-fi
-
-if(! grep --quiet "alias c='dockin'" $HOME/.bashrc )
-then
-  (
     echo ''
     echo '# Aliases to frequently used functions and applications'
     echo '#'
     echo "alias c='dockin'"
     echo "alias d='sudo docker'"
+    echo "alias e='sudo docker exec'"
     echo "alias l='sudo docker logs -f'"
-    echo "alias drm='sudo docker rm -fv'"
-    echo "alias dless='sudo docker ps | less -S'"
-    echo "alias dc='sudo docker-compose'"
+    echo "alias p='sudo docker ps -a'"
+    echo "alias r='sudo docker rm -fv'"
+    echo "alias s='sudo docker ps -a | less -S'"
     echo "alias m='make'"
   ) | tee -a $HOME/.bashrc
 fi
@@ -99,48 +71,21 @@ sudo apt-get dist-upgrade -y
 #
 declare -a APPS=(
   linux-image-extra-`uname -r` \
-  curl \
-  lxc-docker \
-  lynx \
-  mongodb \
-  nodejs \
-  nodejs-legacy \
-  npm
-)
+  lxc-docker
+)                                  # curl lynx mongodb nodejs nodejs-legacy npm?
 for a in ${APPS[@]}
 do
-  # suppress stdout, show errors
+  # Suppress stdout, show errors
   (
     ( dpkg -l | grep -w $a )|| sudo apt-get install -y $a
   ) 2>&1 >/dev/null
 
   if(! dpkg -l | grep -w $a )
   then
-    # send output to stderr (red)
+    # Send output to stderr (red)
     echo "ERROR:" $a "install failed!" >&2
   fi
 done
-
-
-# Install docker-compose
-#
-if( type -p docker-compose )
-then
-  echo "Docker Compose is already installed"
-else
-  # suppress stdout, show errors
-  (
-    sudo curl -L https://github.com/docker/compose/releases/download/1.2.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
-    sudo chmod +x /usr/local/bin/docker-compose
-  ) 2>&1 >/dev/null
-  if( type -p docker-compose )
-  then
-    echo "Docker Compose successfully installed"
-  else
-    # send output to stderr (red)
-    echo "ERROR: Docker Compose install failed!" >&2
-  fi
-fi
 
 
 # Reminder

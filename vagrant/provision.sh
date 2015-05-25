@@ -5,14 +5,18 @@
 set -e -o nounset
 
 
-# Vagrant 4.3.?? Bug
-# https://github.com/mitchellh/vagrant/issues/3341
+# Vagrant VM starts in docker folder
 #
-if [ ! -L /usr/lib/VBoxGuestAdditions ]
+if (! grep --quiet 'cd /vagrant/docker/' /vagrant/.bashrc )
 then
-  ln -s /opt/VBoxGuestAdditions-4.3.10/lib/VBoxGuestAdditions /usr/lib/VBoxGuestAdditions
+  (
+    echo ''
+    echo '# Start in docker directory'
+    echo ''
+    echo 'cd /vagrant/docker/'
+  ) | tee -a /vagrant/.bashrc
 else
-  echo "Symbolic link already exists."
+  echo "~/.bashrc already configured"
 fi
 
 
@@ -38,12 +42,13 @@ apt-get update
 (
   apt-get upgrade -y
   apt-get dist-upgrade -y
-  apt-get autoremove
   apt-get install -f
+  apt-get autoremove
 ) 2>&1 >/dev/null
 
 
-# Makefile installs packages, configures .bashrc and handles containers
+# Provision uses root, but we want to configure Vagrant's settings
 #
+export HOME=/home/vagrant
 cd /vagrant/docker
-make noninteractive
+make

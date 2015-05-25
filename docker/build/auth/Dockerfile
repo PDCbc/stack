@@ -5,17 +5,24 @@
 FROM phusion/passenger-nodejs
 
 
-# Install DACS
+# Update system, install DACS
 #
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update; apt-get install -y dacs
+RUN echo 'Dpkg::Options{ "--force-confdef"; "--force-confold" }' \
+      >> /etc/apt/apt.conf.d/local
+RUN apt-get update; \
+    apt-get upgrade -y; \
+    apt-get install -y dacs
 
 
 # Prepare /app/ and /etc/dacs/federations/ folders
 #
 WORKDIR /app/
+RUN git clone https://github.com/physiciansdatacollaborative/auth.git .
+RUN npm install
+RUN mkdir -p /etc/dacs/
 COPY ./app.sh /app/
-RUN chown -R app:app /app/ /etc/dacs/federations/
+RUN chown -R app:app /app/
 
 
 # Create startup script and make it executable
@@ -23,14 +30,9 @@ RUN chown -R app:app /app/ /etc/dacs/federations/
 RUN mkdir -p /etc/service/app/
 RUN ( \
       echo "#!/bin/bash"; \
-      echo "#"; \
       echo ""; \
-      echo "# Update system"; \
-      echo "#"; \
-      echo "DEBIAN_FRONTEND=noninteractive"; \
-      echo "apt-get update; apt-get dist-upgrade -y"; \
-      echo ""; \
-      echo "exec /sbin/setuser app /app/app.sh"; \
+      echo "chown -R app:app /etc/dacs/"; \
+      echo "/sbin/setuser app /app/app.sh"; \
     )  \
     >> /etc/service/app/run
 RUN chmod +x /etc/service/app/run

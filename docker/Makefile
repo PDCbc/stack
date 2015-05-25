@@ -1,135 +1,142 @@
-#################
-# Source Config #
-#################
-
+#########################
+# Environment Variables #
+#########################
 include config.env
+
+ifeq ($(DEV_MODE), true)
+	AUTH_DOC += $(AUTH_DEV)
+	DCLAPI_DOC += $(DCLAPI_DEV)
+	EP_DOC += $(EP_DEV)
+	HAPI_DOC += $(HAPI_DEV)
+	HUB_DOC += $(HUB_DEV)
+	HUBDB_DOC += $(HUBDB_DEV)
+	QI_DOC += $(QI_DEV)
+	VIZ_DOC += $(VIZ_DEV)
+endif
+
+
+#############
+# Functions #
+#############
+define dockerize
+	sudo docker rm -fv $1 || true
+	sudo docker build -t pdc.io/$1 ./build/$1/
+	sudo docker run -d --name $1 -h $1 --env-file=config.env --restart='always' $2 pdc.io/$1
+endef
 
 
 ################
 # General Jobs #
 ################
-default: environment build up queries
+default: all
 
-all: default
+all: dependencies pull build up
 
-up: up-data up-network up-app
+dependencies: dep
 
-build: build-data build-network build-app
+up: auth hubdb dclapi hub hapi viz queries ep-sample
 
-remove: rm-everything
+import: queries
 
-environment: config-environment
+endpoint: ep
 
-queries: config-queries
+remove: rm-all
 
-endpoint: up-endpoint
 
-reset: remove build up queries up-endpoint
+############
+# Modes #
+############
+dev:
+	@sed -i -e "s/DEV_MODE=.*/DEV_MODE=true/" config.env
+	@cat config.env | grep DEV_MODE
 
-noninteractive: environment build up config-queries-noninteractive
+prod:
+	@sed -i -e "s/DEV_MODE=.*/DEV_MODE=false/" config.env
+	@cat config.env | grep DEV_MODE
 
 
 ############
 # Shotcuts #
 ############
-u: up
-r: remove
-t: reset
 q: queries
-e: up-endpoint
-f: rm-endpoint
-d: rm-data build-data up-data
-n: rm-network build-network up-network
-a: rm-app build-app up-app
-
-
-###########
-# Up Jobs #
-###########
-up-data:
-	sudo docker-compose -f data/data.yml up -d
-
-up-network:
-	sudo docker-compose -f network/network.yml up -d
-	INSERT='{ "first_name" : "PDC", "last_name" : "Admin", "username" : "pdcadmin", "email" : "pdcadmin@pdc.io", "encrypted_password" : "$$2a$$10$$ZSuPxdODbumiMGOxtVSpRu0Rd0fQ2HhC7tMu2IobKTaAsPMmFlBD.", "agree_license" : true, "approved" : true, "admin" : true }'; \
-	INSERT="--eval 'db.users.insert( $${INSERT} )'"; \
-	/bin/bash -c "sudo docker exec data_hubdb_1 mongo query_composer_development $${INSERT}"
-
-up-app:
-	sudo docker-compose -f app/app.yml up -d
-
-up-endpoint:
-	( sudo docker exec network_hub_1 grep -q pdcadmin /etc/passwd )||( \
-		echo ""; \
-		echo "Please enter a password for pdcadmin on network_hub_1:"; \
-		/bin/bash -c "sudo docker exec -dt network_hub_1 useradd pdcadmin -m -G sudo"; \
-		/bin/bash -c "sudo docker exec -it network_hub_1 passwd pdcadmin" \
-	)
-	@echo ""
-	@echo "Gateway ID (#): "
-	@read gID; \
-	echo "Clinician ID (#####): "; \
-	read cID; \
-	./extras/endpoint/up-endpoint.sh $${gID} $${cID} ep$${gID}
-
-
-##############
-# Build Jobs #
-##############
-build-data:
-	sudo docker-compose -f data/data.yml build
-
-build-network:
-	sudo docker-compose -f network/network.yml build
-
-build-app:
-	sudo docker-compose -f app/app.yml build
-
-
-###############
-# Remove Jobs #
-###############
-rm-data:
-	sudo docker-compose -f data/data.yml stop
-	sudo docker-compose -f data/data.yml rm -f
-
-rm-network:
-	sudo docker-compose -f network/network.yml stop
-	sudo docker-compose -f network/network.yml rm -f
-
-rm-app:
-	sudo docker-compose -f app/app.yml stop
-	sudo docker-compose -f app/app.yml rm -f
-
-rm-endpoint:
-	@echo ""
-	@echo "Please enter a gatewayID (#) to rm: "
-	@read gID; \
-	./extras/endpoint/rm-endpoint.sh $${gID}
-
-rm-everything:
-	( sudo docker rm -fv `sudo docker ps -a -q` )|| echo "No containers to delete"
+e: ep
+f: rm-ep
+r: remove
 
 
 #################
 # Configuration #
 #################
-config-environment:
-	extras/config-env.sh
-
-config-queries:
-	sudo docker build -t importer extras/queryImporter/
-	sudo docker run -dt --name importer -h importer --env-file=config.env --link data_hubdb_1:hubdb importer
-	sudo docker exec -it importer /app/app.sh pdcadmin
-	sudo docker rm -fv importer
+dep:
+		./dependencies/dependencies.sh
 
 
-############################
-# Non-Interactive, Vagrant #
-############################
+#############
+# Pull Jobs #
+#############
+pull:
+	sudo docker pull mongo
+	sudo docker pull phusion/baseimage
 
-config-queries-noninteractive:
-	sudo docker build -t importer extras/queryImporter/
-	sudo docker run -dt --name importer -h importer --env-file=config.env --link data_hubdb_1:hubdb importer
-	sudo docker exec -i importer /app/app.sh pdcadmin
-	sudo docker rm -fv importer
+
+##############
+# Containers #
+##############
+auth:
+	$(call dockerize,auth,$(AUTH_DOC))
+	sudo mkdir -p $(PATH_HOST)/dacs/
+
+hubdb:
+	$(call dockerize,hubdb,$(HUBDB_DOC))
+	sudo mkdir -p $(PATH_HOST)/mongo/
+	sudo docker exec hubdb /app/config.sh
+
+dclapi:
+	$(call dockerize,dclapi,$(DCLAPI_DOC))
+
+hub:
+	$(call dockerize,hub,$(HUB_DOC))
+	sudo mkdir -p $(PATH_HOST)/keys/
+	sudo touch $(PATH_HOST)/keys/authorized_keys
+
+hapi:
+	$(call dockerize,hapi,$(HAPI_DOC))
+
+viz:
+	$(call dockerize,viz,$(VIZ_DOC))
+
+queries:
+	$(call dockerize,queries,$(QI_DOC))
+	sudo docker exec queries /app/app.sh pdcadmin
+	sudo docker rm -fv queries
+
+ep-sample:
+	sudo docker rm -fv ep0db ep0 || true
+	export PATH_KEYS=$(PATH_KEYS); \
+	export HUB_URL=$(HUB_URL); \
+	./build/add-endpoint.sh 0 cpsid ep0 TEST sample
+
+ep:
+	@echo ""
+	@echo "Gateway ID (#): "
+	@read gID; \
+	echo "Clinician ID (#####): "; \
+	read cID; \
+	export PATH_KEYS=$(PATH_KEYS); \
+	export HUB_URL=$(HUB_URL); \
+	./build/add-endpoint.sh $${gID} $${cID} ep$${gID}
+
+
+###############
+# Remove Jobs #
+###############
+rm-ep:
+	@echo "";
+	@echo "Please enter a gatewayID (#) to rm: "
+	@read gID; \
+	echo sudo docker rm -fv ep$${gID} ep$${gID}db; \
+	EVAL="db.endpoints.remove({ \"base_url\" : \"http://localhost:$$((40000 + $$gID))\" })"; \
+	/bin/bash -c "sudo docker exec hubdb mongo query_composer_development --eval '$${EVAL}'"
+
+rm-all:
+	@( sudo docker rm -fv `sudo docker ps -a -q` )|| echo "No containers to delete"
