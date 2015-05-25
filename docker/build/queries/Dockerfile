@@ -5,8 +5,9 @@
 FROM phusion/passenger-nodejs
 
 
-# Update system, install Node.js and Python 2.7
+# Update system, install Node.js 0.12 and Python 2.7
 #
+RUN curl -sL https://deb.nodesource.com/setup_0.12 | sudo bash -
 ENV DEBIAN_FRONTEND noninteractive
 RUN echo 'Dpkg::Options{ "--force-confdef"; "--force-confold" }' \
       >> /etc/apt/apt.conf.d/local
@@ -15,11 +16,6 @@ RUN apt-get update; \
     apt-get install -y \
         nodejs \
         python2.7
-
-
-# Update to Node.js 0.12.x
-#
-RUN curl -sL https://deb.nodesource.com/setup_0.12 | sudo bash -
 
 
 # Prepare /app/ folder

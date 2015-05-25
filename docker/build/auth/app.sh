@@ -13,7 +13,6 @@ set -e -o nounset
 
 # Environment variables
 #
-export REPO=${AUTH_REPO}
 export BRANCH=${AUTH_BRANCH}
 export CONTROLPORT=${AUTH_CONTROLPORT}
 export MAINPORT=${AUTH_MAINPORT}
@@ -22,11 +21,11 @@ export JURISDICTION=${AUTH_JURISDICTION}
 export ROLEFILE=${AUTH_ROLEFILE}
 
 
-# Clone and checkout branch or tag
+# Clone and checkout branch or tag (default is master)
 #
 cd /app/
 git pull
-git checkout ${BRANCH}
+git checkout ${BRANCH:-master}
 
 
 # If jurisdiction folder doesn't exist, then initialize DACS

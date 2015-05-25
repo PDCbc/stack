@@ -19,21 +19,14 @@ RUN apt-get update; \
 #
 WORKDIR /app/
 RUN git clone https://github.com/physiciansdatacollaborative/hub.git .
-#RUN bundle install --path vendor/bundle
-#RUN sed -i -e "s/localhost:27017/hubdb:27017/" config/mongoid.yml
 COPY ./app.sh /app/
 RUN chown -R app:app /app/
 
 
-# Enable and configure SSH (for AutoSSH tunnel)
+# Enable and configure SSH (for AutoSSH user/tunnel)
 #
 RUN rm -f /etc/service/sshd/down
-#
-RUN adduser --quiet --disabled-password autossh 2>&1
-RUN mkdir -p /home/autossh/.ssh
-RUN touch /home/autossh/.ssh/authorized_keys
-RUN chown -R autossh:autossh /home/autossh/.ssh/
-RUN /sbin/setuser autossh chmod -R go-rwx /home/autossh/.ssh
+RUN adduser --quiet --disabled-password --home /home/autossh autossh 2>&1
 
 
 # Create startup script and make it executable
@@ -42,6 +35,8 @@ RUN mkdir -p /etc/service/app
 RUN ( \
       echo "#!/bin/bash"; \
       echo ""; \
+      echo "mkdir -p /home/autossh/.ssh/"; \
+      echo "touch /home/autossh/.ssh/authorized_keys"; \
       echo "chown -R autossh:autossh /home/autossh/.ssh/"; \
       echo "exec /sbin/setuser app /app/app.sh"; \
     )  \

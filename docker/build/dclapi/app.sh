@@ -1,16 +1,16 @@
 #!/bin/bash
 #
-# Start script for the PDC's Query Importer service
+# Start script for the PDC's DCLAPI service
 
 
 # Exit on errors or unitialized variables
 #
-set -e -o nounset -x
+set -e -o nounset
 
 
 # Environment variables
 #
-export BRANCH=${QI_BRANCH}
+export BRANCH=${DCLAPI_BRANCH}
 
 
 # Clone and checkout branch or tag
@@ -25,4 +25,4 @@ git checkout ${BRANCH}
 cd /app/
 npm config set python /usr/bin/python2.7
 npm install
-node index.js import --mongo-host=hubdb --mongo-db=query_composer_development --mongo-port=27017
+npm start
