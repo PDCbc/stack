@@ -7,14 +7,14 @@ set -e -o nounset
 
 # Vagrant VM starts in docker folder
 #
-if (! grep --quiet 'cd /vagrant/docker/' /vagrant/.bashrc )
+if (! grep --quiet 'cd /vagrant/docker/' /home/vagrant/.bashrc )
 then
   (
     echo ''
     echo '# Start in docker directory'
-    echo ''
+    echo '#'
     echo 'cd /vagrant/docker/'
-  ) | tee -a /vagrant/.bashrc
+  ) | tee -a /home/vagrant/.bashrc
 else
   echo "~/.bashrc already configured"
 fi
@@ -51,4 +51,4 @@ apt-get update
 #
 export HOME=/home/vagrant
 cd /vagrant/docker
-make
+make dependencies
