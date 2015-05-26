@@ -38,6 +38,11 @@ RUN /sbin/setuser app bundle install --path vendor/bundle
 RUN sed -i -e "s/localhost:27017/epdb:27017/" config/mongoid.yml
 
 
+# Add hub public key
+#
+COPY ./known_hosts /root/.ssh/
+
+
 # Create startup script and make it executable
 #
 RUN mkdir -p /etc/service/app
@@ -46,7 +51,7 @@ RUN ( \
       echo "#"; \
       echo "# Exit on errors or unitialized variables"; \
       echo "#"; \
-      echo "set -e -o nounset -x"; \
+      echo "set -e -o nounset"; \
       echo ""; \
       echo "# Wait until SSH keys are ready"; \
       echo "#"; \
@@ -60,9 +65,8 @@ RUN ( \
       echo "#"; \
       echo "export AUTOSSH_PIDFILE=/app/tmp/pids/autossh.pid"; \
       echo "export REMOTE_PORT=\`expr 40000 + \${gID}\`"; \
-      echo "echo /usr/bin/autossh -M0 -p2774 -N -R \${REMOTE_PORT}:localhost:3001 autossh@\${HUB_URL} -o StrictHostKeyChecking=no -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o Protocol=2 -o ExitOnForwardFailure=yes &"; \
       echo ""; \
-      echo "/usr/bin/autossh -M0 -p2774 -N -R \${REMOTE_PORT}:localhost:3001 autossh@\${HUB_URL} -o StrictHostKeyChecking=no -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o Protocol=2 -o ExitOnForwardFailure=yes &"; \
+      echo "/usr/bin/autossh -M0 -p2774 -N -R \${REMOTE_PORT}:localhost:3001 autossh@\${URL_HUB} -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o Protocol=2 -o ExitOnForwardFailure=yes &"; \
       echo "sleep 5"; \
       echo ""; \
       echo "# Start Endpoint"; \
