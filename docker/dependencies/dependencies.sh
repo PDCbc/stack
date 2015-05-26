@@ -29,6 +29,7 @@ then
     echo "alias c='dockin'"
     echo "alias d='sudo docker'"
     echo "alias e='sudo docker exec'"
+    echo "alias i='sudo docker inspect'"
     echo "alias l='sudo docker logs -f'"
     echo "alias p='sudo docker ps -a'"
     echo "alias r='sudo docker rm -fv'"
