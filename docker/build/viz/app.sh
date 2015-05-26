@@ -10,12 +10,14 @@ set -e -o nounset
 
 # Environment variables
 #
-export BRANCH=${VIZ_BRANCH}
-export PORT=${VIZ_PORT}
-export AUTH_MAIN_URL=https://auth:${AUTH_MAINPORT}
-export AUTH_CONTROL_URL=https://auth:${AUTH_CONTROLPORT}
-export CALLBACK_URL=https://auth:${AUTH_CONTROLPORT}/auth/callback
-export HUBAPI_URL=${HAPI_URL}
+export BRANCH=${BRANCH_VIZ}
+export PORT=${PORT_VIZ}
+export AUTH_MAIN_URL=https://auth:${PORT_AUTH_M}
+export AUTH_CONTROL_URL=https://auth:${PORT_AUTH_C}
+export CALLBACK_URL=https://auth:${PORT_AUTH_C}/auth/callback
+export HUBAPI_URL=${URL_HAPI}
+export SECRET=${NODE_SECRET}
+export DACS=${DACS_STOREDIR}
 
 
 # Clone and checkout branch or tag

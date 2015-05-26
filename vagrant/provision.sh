@@ -51,4 +51,4 @@ apt-get update
 #
 export HOME=/home/vagrant
 cd /vagrant/docker
-make dependencies
+make all

@@ -10,7 +10,7 @@ set -e -o nounset
 
 # Environment variables
 #
-export BRANCH=${QI_BRANCH}
+export BRANCH=${BRANCH_QI}
 
 
 # Clone and checkout branch or tag

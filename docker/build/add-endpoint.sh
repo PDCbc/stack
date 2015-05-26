@@ -74,8 +74,8 @@ fi
 #
 PUB_KEY=`sudo docker exec ${EPNAME} /app/key_exchange.sh | grep -v /app/wait`
 (
-	echo ${PUB_KEY} | sudo tee -a ${PATH_KEYS}/authorized_keys
-	sudo chown vagrant:vagrant ${PATH_KEYS}/authorized_keys
+	echo ${PUB_KEY} | sudo tee -a ${PATH_KEYS_ENDPOINTS}/authorized_keys
+	sudo chown vagrant:vagrant ${PATH_KEYS_ENDPOINTS}/authorized_keys
 	echo "SSH public key recorded"
 ) || echo "ERROR: SSH public key not recorded"
 

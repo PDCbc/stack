@@ -13,12 +13,14 @@ set -e -o nounset
 
 # Environment variables
 #
-export BRANCH=${AUTH_BRANCH}
-export CONTROLPORT=${AUTH_CONTROLPORT}
-export MAINPORT=${AUTH_MAINPORT}
-export FEDERATION=${AUTH_FEDERATION}
-export JURISDICTION=${AUTH_JURISDICTION}
-export ROLEFILE=${AUTH_ROLEFILE}
+export BRANCH=${BRANCH_AUTH}
+export CONTROLPORT=${PORT_AUTH_C}
+export MAINPORT=${PORT_AUTH_M}
+export FEDERATION=${DACS_FEDERATION}
+export JURISDICTION=${DACS_JURISDICTION}
+export ROLEFILE=${DACS_ROLEFILE}
+export SECRET=${NODE_SECRET}
+export DACS=${DACS_STOREDIR}
 
 
 # Clone and checkout branch or tag (default is master)

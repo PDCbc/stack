@@ -10,7 +10,7 @@ set -e -o nounset
 
 # Environment variables
 #
-export BRANCH=${HUB_BRANCH}
+export BRANCH=${BRANCH_HUB}
 
 
 # Clone and checkout branch or tag
