@@ -5,6 +5,12 @@
 set -e -o nounset
 
 
+# Disabled transparent huge packages (caused MongoDB grief)
+#
+echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled
+echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag
+
+
 # Configure $HOME/.bashrc
 #
 if(! grep --quiet 'function dockin()' $HOME/.bashrc )
