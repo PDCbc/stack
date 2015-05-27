@@ -10,11 +10,12 @@ set -e -o nounset
 
 # Environment variables
 #
-export BRANCH=${HAPI_BRANCH}
-export PORT=${HAPI_PORT}
+export BRANCH=${BRANCH_HAPI}
+export PORT=${PORT_HAPI}
 export MONGO_URI=mongodb://hubdb:27017/query_composer_development
-export AUTH_CONTROL=https://auth:${AUTH_CONTROLPORT}
-export ROLES=${AUTH_ROLEFILE}
+export AUTH_CONTROL=https://auth:${PORT_AUTH_C}
+export ROLES=${DACS_ROLEFILE}
+export SECRET=${NODE_SECRET}
 
 
 # Clone and checkout branch or tag

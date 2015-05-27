@@ -4,43 +4,29 @@
 include config.env
 
 ifeq ($(DEV_MODE), true)
-	AUTH_DOC += $(AUTH_DEV)
-	DCLAPI_DOC += $(DCLAPI_DEV)
-	EP_DOC += $(EP_DEV)
-	HAPI_DOC += $(HAPI_DEV)
-	HUB_DOC += $(HUB_DEV)
-	HUBDB_DOC += $(HUBDB_DEV)
-	QI_DOC += $(QI_DEV)
-	VIZ_DOC += $(VIZ_DEV)
+	DOCKER_AUTH_PRODUCTION += $(DOCKER_AUTH_DEV_APPEND)
+	DOCKER_DCLAPI_PRODUCTION += $(DOCKER_DCLAPI_DEV_APPEND)
+	DOCKER_ENDPOINT_PRODUCTION += $(DOCKER_ENDPOINT_DEV_APPEND)
+	DOCKER_HAPI_PRODUCTION += $(DOCKER_HAPI_DEV_APPEND)
+	DOCKER_HUB_PRODUCTION += $(DOCKER_HUB_DEV_APPEND)
+	DOCKER_HUBDB_PRODUCTION += $(DOCKER_HUBDB_DEV_APPEND)
+	DOCKER_QI_PRODUCTION += $(DOCKER_QI_DEV_APPEND)
+	DOCKER_VIZ_PRODUCTION += $(DOCKER_VIZ_DEV_APPEND)
 endif
-
-
-#############
-# Functions #
-#############
-define dockerize
-	sudo docker rm -fv $1 || true
-	sudo docker build -t pdc.io/$1 ./build/$1/
-	sudo docker run -d --name $1 -h $1 --env-file=config.env --restart='always' $2 pdc.io/$1
-endef
 
 
 ################
 # General Jobs #
 ################
-default: all
+default: set
 
-all: dependencies pull build up
-
-dependencies: dep
-
-up: auth hubdb dclapi hub hapi viz queries ep-sample
+all: dep pull set queries ep-sample
 
 import: queries
 
 endpoint: ep
 
-remove: rm-all
+remove-all: say-goodbye
 
 
 ############
@@ -55,65 +41,87 @@ prod:
 	@cat config.env | grep DEV_MODE
 
 
-############
-# Shotcuts #
-############
-q: queries
-e: ep
-f: rm-ep
-r: remove
-
-
 #################
 # Configuration #
 #################
 dep:
 		./dependencies/dependencies.sh
 
-
-#############
-# Pull Jobs #
-#############
 pull:
 	sudo docker pull mongo
 	sudo docker pull phusion/baseimage
 
+say-goodbye:
+	@echo ""
+	@echo "Are you sure you want to delete all your hard work?"
+	@echo ""
+	@echo "Please type 'goodbye' to confirm"
+	@read CONFIRM; \
+	[ "$${CONFIRM}" != "goodbye" ] || ( \
+			sudo docker rm -f cadvisor || true; \
+			( sudo docker stop `sudo docker ps -q`) && \
+			( sudo docker rm `sudo docker ps -a -q` )|| \
+			echo "No containers to delete" \
+		)
 
-##############
-# Containers #
-##############
+
+#########################
+# Default container set #
+#########################
 auth:
-	$(call dockerize,auth,$(AUTH_DOC))
+	$(call dockerize,auth,$(DOCKER_AUTH_PRODUCTION))
 	sudo mkdir -p $(PATH_HOST)/dacs/
 
 hubdb:
-	$(call dockerize,hubdb,$(HUBDB_DOC))
+	$(call dockerize,hubdb,$(DOCKER_HUBDB_PRODUCTION))
 	sudo mkdir -p $(PATH_HOST)/mongo/
-	sudo docker exec hubdb /app/config.sh
+	( sleep 2; sudo docker exec hubdb /app/config.sh )|| \
+		( sleep 10; sudo docker exec hubdb /app/config.sh )
 
 dclapi:
-	$(call dockerize,dclapi,$(DCLAPI_DOC))
+	$(call dockerize,dclapi,$(DOCKER_DCLAPI_PRODUCTION))
 
-hub:
-	$(call dockerize,hub,$(HUB_DOC))
-	sudo mkdir -p $(PATH_HOST)/keys/
+hub: hubdb
+	$(call dockerize,hub,$(DOCKER_HUB_PRODUCTION))
+	sudo mkdir -p $(PATH_HOST)/ssh/hub/
+	sudo mkdir -p $(PATH_HOST)/ssh/endpoints/
 	sudo touch $(PATH_HOST)/keys/authorized_keys
+	$(DEV_MODE) && $(MAKE) queries && $(MAKE) ep-sample
 
-hapi:
-	$(call dockerize,hapi,$(HAPI_DOC))
+hapi: auth hubdb dclapi
+	$(call dockerize,hapi,$(DOCKER_HAPI_PRODUCTION))
 
-viz:
-	$(call dockerize,viz,$(VIZ_DOC))
+viz: auth hapi
+	$(call dockerize,viz,$(DOCKER_VIZ_PRODUCTION))
+
+set: auth hubdb dclapi hub hapi viz
+
+
+################################
+# Tools and testing containers #
+################################
+cadvisor:
+	sudo docker rm -f cadvisor || true
+	sudo docker run \
+  --volume=/:/rootfs:ro \
+  --volume=/var/run:/var/run:rw \
+  --volume=/sys:/sys:ro \
+  --volume=/var/lib/docker/:/var/lib/docker:ro \
+  --publish=8080:8080 \
+  --detach=true \
+  --name=cadvisor \
+  google/cadvisor:latest
 
 queries:
-	$(call dockerize,queries,$(QI_DOC))
+	$(call dockerize,queries,$(DOCKER_QI_PRODUCTION))
 	sudo docker exec queries /app/app.sh pdcadmin
-	sudo docker rm -fv queries
+	$(call docker_remove,queries)
 
 ep-sample:
-	sudo docker rm -fv ep0db ep0 || true
-	export PATH_KEYS=$(PATH_KEYS); \
-	export HUB_URL=$(HUB_URL); \
+	$(call docker_remove, ep0db); \
+	$(call docker_remove, ep0); \
+	export PATH_KEYS_ENDPOINTS=$(PATH_KEYS_ENDPOINTS); \
+	export URL_HUB=$(URL_HUB); \
 	./build/add-endpoint.sh 0 cpsid ep0 TEST sample
 
 ep:
@@ -122,21 +130,42 @@ ep:
 	@read gID; \
 	echo "Clinician ID (#####): "; \
 	read cID; \
-	export PATH_KEYS=$(PATH_KEYS); \
-	export HUB_URL=$(HUB_URL); \
+	export PATH_KEYS_ENDPOINTS=$(PATH_KEYS_ENDPOINTS); \
+	export URL_HUB=$(URL_HUB); \
 	./build/add-endpoint.sh $${gID} $${cID} ep$${gID}
 
-
-###############
-# Remove Jobs #
-###############
 rm-ep:
 	@echo "";
 	@echo "Please enter a gatewayID (#) to rm: "
 	@read gID; \
-	echo sudo docker rm -fv ep$${gID} ep$${gID}db; \
+	$(call docker_remove,ep$${gID}db); \
+	$(call docker_remove,ep$${gID}); \
+	echo EVAL="db.endpoints.remove({ \"base_url\" : \"http://localhost:$$((40000 + $$gID))\" })"; \
 	EVAL="db.endpoints.remove({ \"base_url\" : \"http://localhost:$$((40000 + $$gID))\" })"; \
-	/bin/bash -c "sudo docker exec hubdb mongo query_composer_development --eval '$${EVAL}'"
+	/bin/bash -c "sudo docker exec hubdb mongo query_composer_development --eval '$${EVAL}'"; \
+	/bin/bash -c "sudo docker exec auth /sbin/setuser app /usr/bin/dacspasswd -uj $(DACS_JURISDICTION) -d ep$${gID}"; \
+	/bin/bash -c "sudo docker exec auth /sbin/setuser app sed -i\".bak\" '/ep$${gID}/d' /etc/dacs/federations/pdc.dev/roles"
 
-rm-all:
-	@( sudo docker rm -fv `sudo docker ps -a -q` )|| echo "No containers to delete"
+
+#############
+# Functions #
+#############
+define docker_build
+	sudo docker build -t pdc.io/$1 ./build/$1/
+endef
+
+define docker_remove
+	sudo docker rm -f cadvisor || true; \
+	sudo docker stop $1 || true; \
+	sudo docker rm -v $1 || true
+endef
+
+define docker_run
+	sudo docker run -d --name $1 -h $1 --env-file=config.env --restart='always' $2 pdc.io/$1
+endef
+
+define dockerize
+	$(call docker_build,$1)
+	$(call docker_remove,$1)
+	$(call docker_run,$1,$2)
+endef

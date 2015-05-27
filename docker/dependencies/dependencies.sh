@@ -5,6 +5,12 @@
 set -e -o nounset
 
 
+# Disabled transparent huge packages (caused MongoDB grief)
+#
+echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled
+echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag
+
+
 # Configure $HOME/.bashrc
 #
 if(! grep --quiet 'function dockin()' $HOME/.bashrc )
@@ -29,6 +35,7 @@ then
     echo "alias c='dockin'"
     echo "alias d='sudo docker'"
     echo "alias e='sudo docker exec'"
+    echo "alias i='sudo docker inspect'"
     echo "alias l='sudo docker logs -f'"
     echo "alias p='sudo docker ps -a'"
     echo "alias r='sudo docker rm -fv'"

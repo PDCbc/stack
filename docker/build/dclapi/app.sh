@@ -10,7 +10,7 @@ set -e -o nounset
 
 # Environment variables
 #
-export BRANCH=${DCLAPI_BRANCH}
+export BRANCH=${BRANCH_DCLAPI}
 
 
 # Clone and checkout branch or tag
