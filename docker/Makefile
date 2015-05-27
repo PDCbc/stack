@@ -58,6 +58,7 @@ say-goodbye:
 	@echo "Please type 'goodbye' to confirm"
 	@read CONFIRM; \
 	[ "$${CONFIRM}" != "goodbye" ] || ( \
+			sudo docker rm -f cadvisor || true; \
 			( sudo docker stop `sudo docker ps -q`) && \
 			( sudo docker rm `sudo docker ps -a -q` )|| \
 			echo "No containers to delete" \
@@ -96,9 +97,21 @@ viz: auth hapi
 set: auth hubdb dclapi hub hapi viz
 
 
-##############################
-# Dev and testing containers #
-##############################
+################################
+# Tools and testing containers #
+################################
+cadvisor:
+	sudo docker rm -f cadvisor || true
+	sudo docker run \
+  --volume=/:/rootfs:ro \
+  --volume=/var/run:/var/run:rw \
+  --volume=/sys:/sys:ro \
+  --volume=/var/lib/docker/:/var/lib/docker:ro \
+  --publish=8080:8080 \
+  --detach=true \
+  --name=cadvisor \
+  google/cadvisor:latest
+
 queries:
 	$(call dockerize,queries,$(DOCKER_QI_PRODUCTION))
 	sudo docker exec queries /app/app.sh pdcadmin
@@ -142,6 +155,7 @@ define docker_build
 endef
 
 define docker_remove
+	sudo docker rm -f cadvisor || true; \
 	sudo docker stop $1 || true; \
 	sudo docker rm -v $1 || true
 endef
