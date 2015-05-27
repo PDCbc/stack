@@ -20,7 +20,7 @@ endif
 ################
 default: set
 
-all: dependencies pull set queries ep-sample
+all: dep pull set queries ep-sample
 
 import: queries
 
@@ -44,7 +44,7 @@ prod:
 #################
 # Configuration #
 #################
-dependencies:
+dep:
 		./dependencies/dependencies.sh
 
 pull:
@@ -57,7 +57,7 @@ say-goodbye:
 	@echo ""
 	@echo "Please type 'goodbye' to confirm"
 	@read CONFIRM; \
-	@[ "$${CONFIRM}" != "goodbye" ] || ( \
+	[ "$${CONFIRM}" != "goodbye" ] || ( \
 			( sudo docker stop `sudo docker ps -q`) && \
 			( sudo docker rm `sudo docker ps -a -q` )|| \
 			echo "No containers to delete" \
@@ -125,10 +125,13 @@ rm-ep:
 	@echo "";
 	@echo "Please enter a gatewayID (#) to rm: "
 	@read gID; \
-	$(call docker_remove, ep$${gID}db); \
-	$(call docker_remove, ep$${gID}); \
+	$(call docker_remove,ep$${gID}db); \
+	$(call docker_remove,ep$${gID}); \
+	echo EVAL="db.endpoints.remove({ \"base_url\" : \"http://localhost:$$((40000 + $$gID))\" })"; \
 	EVAL="db.endpoints.remove({ \"base_url\" : \"http://localhost:$$((40000 + $$gID))\" })"; \
-	/bin/bash -c "sudo docker exec hubdb mongo query_composer_development --eval '$${EVAL}'"
+	/bin/bash -c "sudo docker exec hubdb mongo query_composer_development --eval '$${EVAL}'"; \
+	/bin/bash -c "sudo docker exec auth /sbin/setuser app /usr/bin/dacspasswd -uj $(DACS_JURISDICTION) -d ep$${gID}"; \
+	/bin/bash -c "sudo docker exec auth /sbin/setuser app sed -i\".bak\" '/ep$${gID}/d' /etc/dacs/federations/pdc.dev/roles"
 
 
 #############
@@ -139,7 +142,7 @@ define docker_build
 endef
 
 define docker_remove
-	sudo docker stop $1 || true
+	sudo docker stop $1 || true; \
 	sudo docker rm -v $1 || true
 endef
 
