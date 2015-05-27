@@ -14,26 +14,30 @@ RUN apt-get update; \
     apt-get upgrade -y
 
 
-# Prepare /app/ folder
-#
-WORKDIR /app/
-RUN git clone https://github.com/physiciansdatacollaborative/dclapi.git .
-RUN npm install
-COPY ./dcl.sqlite /app/
-COPY ./app.sh /app/
-RUN chown -R app:app /app/
-
-
 # Create startup script and make it executable
 #
 RUN mkdir -p /etc/service/app/
 RUN ( \
       echo "#!/bin/bash"; \
+      echo "#"; \
+      echo "set -e -o nounset -x"; \
       echo ""; \
-      echo "exec /sbin/setuser app /app/app.sh"; \
+      echo ""; \
+      echo "# Start service"; \
+      echo "#"; \
+      echo "cd /app/"; \
+      echo "/sbin/setuser app npm start"; \
     )  \
-    >> /etc/service/app/run
+      >> /etc/service/app/run
 RUN chmod +x /etc/service/app/run
+
+
+# Prepare /app/ folder
+#
+WORKDIR /app/
+COPY . .
+RUN npm install
+RUN chown -R app:app /app/
 
 
 # Run Command
