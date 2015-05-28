@@ -65,16 +65,38 @@ say-goodbye:
 		)
 
 
+
+##################
+# GitHub cloning #
+##################
+clone-auth:
+	$(call clone,auth,$(GITHUB_AUTH),$(BRANCH_AUTH))
+
+clone-dclapi:
+	$(call clone,dclapi,$(GITHUB_DCLAPI),$(BRANCH_DCLAPI))
+
+clone-hub:
+	$(call clone,hub,$(GITHUB_HUB),$(BRANCH_HUB))
+
+clone-hapi:
+	$(call clone,hapi,$(GITHUB_HAPI),$(BRANCH_HAPI))
+
+clone-viz:
+	$(call clone,viz,$(GITHUB_VIZ),$(BRANCH_VIZ))
+
+clone-set: clone-auth clone-dclapi clone-hub clone-hapi clone-viz
+
+
 #########################
 # Default container set #
 #########################
 auth:
-	$(call dockerize,auth,$(DOCKER_AUTH_PRODUCTION))
 	sudo mkdir -p $(PATH_HOST)/dacs/
+	$(call dockerize,auth,$(DOCKER_AUTH_PRODUCTION))
 
 hubdb:
-	$(call dockerize,hubdb,$(DOCKER_HUBDB_PRODUCTION))
 	sudo mkdir -p $(PATH_HOST)/mongo/
+	$(call dockerize,hubdb,$(DOCKER_HUBDB_PRODUCTION))
 	( sleep 2; sudo docker exec hubdb /app/config.sh )|| \
 		( sleep 10; sudo docker exec hubdb /app/config.sh )
 
@@ -82,10 +104,10 @@ dclapi:
 	$(call dockerize,dclapi,$(DOCKER_DCLAPI_PRODUCTION))
 
 hub: hubdb
-	$(call dockerize,hub,$(DOCKER_HUB_PRODUCTION))
 	sudo mkdir -p $(PATH_HOST)/ssh/hub/
 	sudo mkdir -p $(PATH_HOST)/ssh/endpoints/
-	sudo touch $(PATH_HOST)/keys/authorized_keys
+	$(call dockerize,hub,$(DOCKER_HUB_PRODUCTION))
+	sudo cp $(PATH_HOST)/keys/hub/known_hosts ./build/endpoint
 	$(DEV_MODE) && $(MAKE) queries && $(MAKE) ep-sample
 
 hapi: auth hubdb dclapi
@@ -150,6 +172,10 @@ rm-ep:
 #############
 # Functions #
 #############
+define clone
+	if test ! -d build/$1; then git clone -b $3 $2 build/$1; else echo "Exists!"; fi
+endef
+
 define docker_build
 	sudo docker build -t pdc.io/$1 ./build/$1/
 endef
