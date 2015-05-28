@@ -4,6 +4,7 @@
 *.json
 !sample10.json
 .vagrant/
+known_hosts
 
 
 ########################
