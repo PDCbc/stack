@@ -20,7 +20,7 @@ RUN mkdir -p /etc/service/app/
 RUN ( \
       echo "#!/bin/bash"; \
       echo "#"; \
-      echo "set -e -o nounset -x"; \
+      echo "set -e -o nounset"; \
       echo ""; \
       echo ""; \
       echo "# Start service"; \

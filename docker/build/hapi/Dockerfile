@@ -21,12 +21,11 @@ RUN mkdir -p /etc/service/app/
 RUN ( \
       echo "#!/bin/bash"; \
       echo "#"; \
-      echo "set -e -o nounset -x"; \
+      echo "set -e -o nounset"; \
       echo ""; \
       echo ""; \
       echo "# Environment variables"; \
       echo "#"; \
-      echo "export BRANCH=\${BRANCH_HAPI}"; \
       echo "export PORT=\${PORT_HAPI}"; \
       echo "export MONGO_URI=mongodb://hubdb:27017/query_composer_development"; \
       echo "export AUTH_CONTROL=https://auth:\${PORT_AUTH_C}"; \
