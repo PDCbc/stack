@@ -21,13 +21,7 @@ RUN apt-get update; \
 # Prepare /app/ folder
 #
 WORKDIR /app/
-RUN git clone https://github.com/physiciansdatacollaborative/queryImporter.git .
+COPY . .
 RUN npm config set python /usr/bin/python2.7
 RUN npm install
-COPY ./app.sh /app/
-RUN chown -R app:app /app/
-
-
-# Run Command
-#
-CMD ["/sbin/my_init"]
+CMD node index.js import --mongo-host=hubdb --mongo-db=query_composer_development --mongo-port=27017
