@@ -4,6 +4,13 @@
 *.json
 !sample10.json
 .vagrant/
+known_hosts
+build/auth/
+build/dclapi
+build/hapi
+build/hub
+build/viz
+build/queries
 
 
 ########################

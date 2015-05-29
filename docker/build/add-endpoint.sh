@@ -144,6 +144,6 @@ INJSON=`echo \'{ \"clinician\":\""${CLINICIAN}"\", \"clinic\":\""${CLINIC}"\" }\
 if [ ${CLINICIAN}="cpsid" ]
 then
 	MNT=$( sudo docker inspect -f '{{.Id}}' ${DBNAME} )
-	sudo cp -r ${SCRIPT_DIR}/endpoint/oscar.json /var/lib/docker/aufs/mnt/${MNT}/tmp/
-	sudo docker exec ${DBNAME} mongoimport --db query_gateway_development --collection records /tmp/oscar.json
+	sudo cp -r ${SCRIPT_DIR}/endpoint/sample.json /var/lib/docker/aufs/mnt/${MNT}/tmp/
+	sudo docker exec ${DBNAME} mongoimport --db query_gateway_development --collection records /tmp/sample.json
 fi
