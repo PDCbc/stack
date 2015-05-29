@@ -54,14 +54,17 @@ prod:
 # Default Container Set #
 #########################
 auth:
-	sudo mkdir -p $(PATH_HOST)/dacs/
 	$(call dockerize,auth,$(DOCKER_AUTH_PRODUCTION))
+	sudo mkdir -p $(PATH_HOST)/dacs/
 
 hubdb: config-mongo
+	$(call dockerize_img,hubdb,$(DOCKER_HUBDB_PRODUCTION),mongo)
 	sudo mkdir -p $(PATH_HOST)/mongo/
-	$(call dockerize,hubdb,$(DOCKER_HUBDB_PRODUCTION))
-	( sleep 2; sudo docker exec hubdb /app/config.sh )|| \
-		( sleep 10; sudo docker exec hubdb /app/config.sh )
+	sleep 2
+	sudo docker exec hubdb mongo query_composer_development --eval \
+		'printjson( db.users.ensureIndex({ username : 1 }, { unique : true }))'
+	sudo docker exec hubdb mongo query_composer_development --eval \
+		'db.users.insert({ "first_name" : "PDC", "last_name" : "Admin", "username" : "pdcadmin", "email" : "pdcadmin@pdc.io", "encrypted_password" : "\$2a\$10\$ZSuPxdODbumiMGOxtVSpRu0Rd0fQ2HhC7tMu2IobKTaAsPMmFlBD.", "agree_license" : true, "approved" : true, "admin" : true })'
 
 dclapi:
 	$(call dockerize,dclapi,$(DOCKER_DCLAPI_PRODUCTION))
@@ -258,24 +261,21 @@ define clone
 	fi
 endef
 
-define docker_build
-	sudo docker build -t pdc.io/$1 ./build/$1/
-endef
-
 define docker_remove
 	sudo docker rm -f cadvisor|| true
 	sudo docker stop $1 || true
 	sudo docker rm -v $1 || true
 endef
 
-define docker_run
+define dockerize
+	$(call docker_remove,$1)
+	sudo docker build -t pdc.io/$1 ./build/$1/
 	sudo docker run -d --name $1 -h $1 --env-file=config.env --restart='always' $2 pdc.io/$1
 endef
 
-define dockerize
-	$(call docker_build,$1)
+define dockerize_img
 	$(call docker_remove,$1)
-	$(call docker_run,$1,$2)
+	sudo docker run -d --name $1 -h $1 --env-file=config.env --restart='always' $2 $3
 endef
 
 say-goodbye:
