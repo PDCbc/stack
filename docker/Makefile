@@ -28,7 +28,7 @@ clone: clone-auth clone-dclapi clone-hub clone-hapi clone-viz clone-queries
 
 clone-update: say-goodbye clone-remove clone
 
-containers: clone auth hubdb dclapi hub hapi viz mode-inform
+containers: clone auth hubdb dclapi hub hapi viz ep-sample mode-inform
 
 containers-update: say-goodbye containers-remove containers
 
