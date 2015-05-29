@@ -12,42 +12,114 @@ ifeq ($(DEV_MODE), true)
 	DOCKER_HUBDB_PRODUCTION += $(DOCKER_HUBDB_DEV_APPEND)
 	DOCKER_QI_PRODUCTION += $(DOCKER_QI_DEV_APPEND)
 	DOCKER_VIZ_PRODUCTION += $(DOCKER_VIZ_DEV_APPEND)
+	BRANCH_DEFAULT = dev
+else
+	BRANCH_DEFAULT = master
 endif
+
+BRANCH_AUTH = $(BRANCH_DEFAULT)
+BRANCH_DCLAPI = $(BRANCH_DEFAULT)
+BRANCH_ENDPOINT = $(BRANCH_DEFAULT)
+BRANCH_HAPI = $(BRANCH_DEFAULT)
+BRANCH_HUB = $(BRANCH_DEFAULT)
+BRANCH_HUBDB = $(BRANCH_DEFAULT)
+BRANCH_QI = $(BRANCH_DEFAULT)
+BRANCH_VIZ = $(BRANCH_DEFAULT)
 
 
 ################
 # General Jobs #
 ################
-default: all
+default:
+	$(MAKE) -s all
 
-all: configure containers
+all:
+	$(MAKE) -s configure
+	$(MAKE) -s containers
 
-configure: config-packages config-mongo config-vim config-bash config-img-pull
+configure:
+	$(MAKE) -s config-packages
+	$(MAKE) -s config-mongo
+	$(MAKE) -s config-vim
+	$(MAKE) -s config-bash
+	$(MAKE) -s config-img-pull
 
-clone: clone-auth clone-dclapi clone-hub clone-hapi clone-viz clone-queries
+clone:
+	$(MAKE) -s clone-auth
+	$(MAKE) -s clone-dclapi
+	$(MAKE) -s clone-hub
+	$(MAKE) -s clone-hapi
+	$(MAKE) -s clone-viz
+	$(MAKE) -s clone-queries
+	$(MAKE) -s clone-endpoint
 
-clone-update: say-goodbye clone-remove clone
+clone-update:
+	$(MAKE) -s say-goodbye
+	$(MAKE) -s clone-remove
+	$(MAKE) -s clone
 
-containers: clone auth hubdb dclapi hub hapi viz ep-sample mode-inform
+containers:
+	$(MAKE) -s clone
+	$(MAKE) -s auth
+	$(MAKE) -s hubdb
+	$(MAKE) -s dclapi
+	$(MAKE) -s hub
+	$(MAKE) -s hapi
+	$(MAKE) -s viz
+	$(MAKE) -s ep-sample
+	$(MAKE) -s mode-inform
 
-containers-update: say-goodbye containers-remove containers
+containers-update:
+	$(MAKE) -s say-goodbye
+	$(MAKE) -s containers-remove
+	$(MAKE) -s containers
 
-remove-all: say-goodbye clone-remove containers-remove
+remove-all:
+	$(MAKE) -s say-goodbye
+	$(MAKE) -s clone-remove
+	$(MAKE) -s containers-remove
 
-reset: remove-all clone containers
+reset:
+	$(MAKE) -s remove-all
+	$(MAKE) -s containers
 
 
 #############
 # Run Modes #
 #############
+test:
+	echo $(BRANCH_DEFAULT)
+	echo $(BRANCH_AUTH)
+
+mode:
+	@echo; cat config.env | grep DEV_MODE=
+	@echo; echo "Set: make [ dev | prod ]"; echo
 
 dev:
-	@sed -i -e "s/DEV_MODE=.*/DEV_MODE=true/" config.env
-	@cat config.env | grep DEV_MODE
+	@if $(DEV_MODE); \
+	then \
+		echo; echo "Mode unchanged"; echo; \
+	else \
+		sed -i -e "s/DEV_MODE=.*/DEV_MODE=true/" config.env; \
+		cat config.env | grep DEV_MODE=; \
+		echo; echo "All repositories will be replaced"; \
+		echo "Please backup any changes before continuing"; \
+		echo; \
+		$(MAKE) clone-update; \
+	fi
 
 prod:
-	@sed -i -e "s/DEV_MODE=.*/DEV_MODE=false/" config.env
-	@cat config.env | grep DEV_MODE
+	@if ! $(DEV_MODE); \
+	then \
+		echo; echo "Mode unchanged"; echo; \
+	else \
+		sed -i -e "s/DEV_MODE=.*/DEV_MODE=false/" config.env; \
+		cat config.env | grep DEV_MODE=; \
+		echo; echo "All repositories will be replaced"; \
+		echo "Please backup any changes before continuing"; \
+		echo; \
+		$(MAKE) clone-update; \
+	fi
 
 
 #########################
@@ -287,7 +359,7 @@ say-goodbye:
 	@echo ""
 	@echo "Please type 'goodbye' to confirm"
 	@read CONFIRM; \
-	[ "$${CONFIRM}" = "goodbye" ] || ( echo "Not confirmed"; false )
+	[ "$${CONFIRM}" = "goodbye" ] || ( echo "Not confirmed"; exit )
 
 mode-inform:
 	@sudo docker ps
