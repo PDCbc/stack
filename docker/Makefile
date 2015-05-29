@@ -244,9 +244,12 @@ clone-viz:
 clone-queries:
 	$(call clone,queries,$(GITHUB_QI),$(BRANCH_QI))
 
+clone-endpoint:
+	$(call clone,endpoint,$(GITHUB_ENDPOINT),$(BRANCH_ENDPOINT))
+
 clone-remove:
 	@cd build; \
-	rm -rf auth/ dclapi/ hapi/ hub/ viz/ queries/
+	rm -rf auth/ dclapi/ hapi/ hub/ viz/ queries/ endpoint/
 
 
 #############
