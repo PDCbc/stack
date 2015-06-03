@@ -53,58 +53,23 @@ endif
 ################
 # General Jobs #
 ################
-default:
-	$(MAKE) -s all
+default: all
 
-all:
-	$(MAKE) -s configure
-	$(MAKE) -s containers
+all: configure clone containers
 
-configure:
-	$(MAKE) -s config-packages
-	$(MAKE) -s config-mongodb
-	$(MAKE) -s config-vim
-	$(MAKE) -s config-bash
-	$(MAKE) -s config-img-pull
+configure: config-packages config-mongodb config-vim config-bash config-img-pull
 
-clone:
-	$(MAKE) -s clone-auth
-	$(MAKE) -s clone-dclapi
-	$(MAKE) -s clone-hub
-	$(MAKE) -s clone-hapi
-	$(MAKE) -s clone-viz
-	$(MAKE) -s clone-queries
-	$(MAKE) -s clone-endpoint
+clone: clone-auth clone-dclapi clone-hubdb clone-hub clone-hapi clone-viz clone-queries clone-endpoint
 
-clone-update:
-	$(MAKE) -s say-goodbye
-	$(MAKE) -s clone-remove
-	$(MAKE) -s clone
+clone-update: say-goodbye clone-remove clone
 
-containers:
-	$(MAKE) -s clone
-	$(MAKE) -s auth
-	$(MAKE) -s hubdb
-	$(MAKE) -s dclapi
-	$(MAKE) -s hub
-	$(MAKE) -s hapi
-	$(MAKE) -s viz
-	#$(MAKE) -s ep-sample
-	$(MAKE) -s mode-inform
+containers: hubdb hub auth dclapi hapi viz mode-inform
 
-containers-update:
-	$(MAKE) -s say-goodbye
-	$(MAKE) -s containers-remove
-	$(MAKE) -s containers
+containers-update: say-goodbye containers-remove containers
 
-remove-all:
-	$(MAKE) -s say-goodbye
-	$(MAKE) -s clone-remove
-	$(MAKE) -s containers-remove
+remove-all: say-goodbye clone-remove containers-remove
 
-reset:
-	$(MAKE) -s remove-all
-	$(MAKE) -s containers
+reset: remove-all containers
 
 
 #############
@@ -145,26 +110,26 @@ prod:
 #########################
 # Default Container Set #
 #########################
-auth:
-	@sudo mkdir -p $(PATH_HOST)/dacs/
-	$(call dockerize,auth,$(DOCKER_AUTH_PRODUCTION))
-
 hubdb: config-mongodb
 	@sudo mkdir -p $(PATH_HOST)/mongo/
 	$(call dockerize,hubdb,$(DOCKER_HUBDB_PRODUCTION))
 	@sudo docker exec hubdb /app/init_db.sh
+
+hub: hubdb
+	@sudo mkdir -p $(PATH_HOST)/keys/hub_authorized/
+	@sudo mkdir -p $(PATH_HOST)/keys/hub_ssh/
+	$(call dockerize,hub,$(DOCKER_HUB_PRODUCTION))
+	@( $(DEV_MODE) && $(MAKE) queries && $(MAKE) ep-sample )|| true
+
+auth:
+	@sudo mkdir -p $(PATH_HOST)/dacs/
+	$(call dockerize,auth,$(DOCKER_AUTH_PRODUCTION))
 
 dclapi:
 	@sudo mkdir -p $(PATH_HOST)/drugref/
 	@( sudo test -s $(PATH_HOST)/drugref/dcl.sqlite ) || \
 		sudo cp build/dclapi/drugref/dcl.sqlite $(PATH_HOST)/drugref/
 	$(call dockerize,dclapi,$(DOCKER_DCLAPI_PRODUCTION))
-
-hub: hubdb
-	@sudo mkdir -p $(PATH_HOST)/keys/hub/
-	@sudo mkdir -p $(PATH_HOST)/keys/endpoints/
-	$(call dockerize,hub,$(DOCKER_HUB_PRODUCTION))
-	@( $(DEV_MODE) && $(MAKE) queries && $(MAKE) ep-sample )|| true
 
 hapi: auth hubdb dclapi
 	$(call dockerize,hapi,$(DOCKER_HAPI_PRODUCTION))
@@ -190,8 +155,12 @@ ep-sample:
 	SSH_KEY=$$(sudo docker exec -ti ep0 /app/key_exchange.sh); \
 	echo $${SSH_KEY} | sudo tee -a $(PATH_KEYS_HUB_AUTH)/authorized_keys; \
 	sudo cat $(PATH_KEYS_HUB_AUTH)/authorized_keys; \
-	echo authorized_keys file is $(PATH_KEYS_HUB_AUTH)/authorized_keys
-	sudo docker exec ep0 mongoimport --db query_gateway_development --collection records /app/sample.json
+	@CLINIC=$$(sudo docker exec hubdb mongo query_composer_development --eval \
+		'printjson( db.endpoints.findOne({ base_url : "http://localhost:40000" }))' \
+		| grep ObjectId | grep -o "(.*)" | grep -io "\w\+" ); \
+	echo CLINIC is $${CLINIC}; \
+	sudo docker exec -ti auth /sbin/setuser app /app/dacs_add.sh cpsid $${CLINIC} admin cpsid TEST sample
+	sudo docker exec ep0 mongoimport --host epdb:27017 --db query_gateway_development --collection records /app/sample.json
 
 ep:
 	@echo ""
@@ -199,15 +168,18 @@ ep:
 	@read gID; \
 	@echo "Clinician ID (#####): "; \
 	read cID; \
-	$(call dockerize_ep,endpoint,$(DOCKER_ENDPOINT_PRODUCTION),$(gID))
-	sudo docker exec hubdb /app/endpoint_add.sh $(gID)
-	sudo docker exec ep$(gID) ssh -p $(PORT_AUTOSSH) -o StrictHostKeyChecking=no autossh@$(URL_HUB) || true
+	$(call dockerize_ep,endpoint,$(DOCKER_ENDPOINT_PRODUCTION),$(gID)); \
+	sudo docker exec hubdb /app/endpoint_add.sh $(gID); \
+	sudo docker exec ep$(gID) ssh -p $(PORT_AUTOSSH) -o StrictHostKeyChecking=no autossh@$(URL_HUB) || true; \
 	SSH_KEY=$$(sudo docker exec -ti ep$(gID) /app/key_exchange.sh); \
 	echo $${SSH_KEY} | sudo tee -a $(PATH_KEYS_HUB_AUTH)/authorized_keys; \
 	sudo cat $(PATH_KEYS_HUB_AUTH)/authorized_keys; \
-	echo authorized_keys file is $(PATH_KEYS_HUB_AUTH)/authorized_keys
-	#
-	# To Do --- Auth Adds
+	@CLINIC=$$(sudo docker exec hubdb mongo query_composer_development --eval \
+		"'printjson( db.endpoints.findOne({ base_url : \"http://localhost:"`expr 40000 + $(gID)"\" }))'" \
+		| grep ObjectId | grep -o "(.*)" | grep -io "\w\+" ); \
+	echo CLINIC is $${CLINIC}; \
+	sudo docker exec -it auth /app/dacs_add.sh $${cID} $${CLINIC} admin $${cID} TEST sample; \
+	sudo docker exec ep$(gID) mongoimport --host epdb:27017 --db query_gateway_development --collection records /app/sample.json
 
 rm-all:
 	( sudo docker rm -f cadvisor )|| true; \
@@ -225,6 +197,8 @@ rm-all:
 	#/bin/bash -c "sudo docker exec hubdb mongo query_composer_development --eval '$${EVAL}'"; \
 #	/bin/bash -c "sudo docker exec auth /sbin/setuser app /usr/bin/dacspasswd -uj $(DACS_JURISDICTION) -d ep$${gID}"; \
 #	/bin/bash -c "sudo docker exec auth /sbin/setuser app sed -i\".bak\" '/ep$${gID}/d' /etc/dacs/federations/pdc.dev/roles"
+#
+# To Do --- Auth DACS removals
 
 cadvisor:
 	sudo docker rm -f cadvisor || true
@@ -248,6 +222,12 @@ clone-auth:
 clone-dclapi:
 	$(call clone,dclapi,$(GITHUB_DCLAPI),$(BRANCH_DCLAPI))
 
+clone-endpoint:
+	$(call clone,endpoint,$(GITHUB_ENDPOINT),$(BRANCH_ENDPOINT))
+
+clone-hubdb:
+	$(call clone,hubdb,$(GITHUB_HUBDB),$(BRANCH_HUBDB))
+
 clone-hub:
 	$(call clone,hub,$(GITHUB_HUB),$(BRANCH_HUB))
 
@@ -259,9 +239,6 @@ clone-viz:
 
 clone-queries:
 	$(call clone,queries,$(GITHUB_QI),$(BRANCH_QI))
-
-clone-endpoint:
-	$(call clone,endpoint,$(GITHUB_ENDPOINT),$(BRANCH_ENDPOINT))
 
 clone-remove:
 	@cd build; \
@@ -371,11 +348,11 @@ define dockerize
 	@echo; echo
 	@echo "*** Building $1 *** sudo docker build -t pdc.io/$1 ./build/$1/ ***"
 	@echo; echo
-	sudo docker build -t pdc.io/$1 ./build/$1/
+	@sudo docker build -t pdc.io/$1 ./build/$1/
 	@echo; echo
 	@echo "*** Running $1 *** sudo docker run -d --name $1 -h $1 --env-file=config.env --restart='always' $2 pdc.io/$1 ***"
 	@echo; echo
-	sudo docker run -d --name $1 -h $1 --env-file=config.env --restart='always' $2 pdc.io/$1
+	@sudo docker run -d --name $1 -h $1 --env-file=config.env --restart='always' $2 pdc.io/$1
 	@echo; echo
 	@echo "*** End Dockerize $1 ***"
 	@echo; echo
@@ -386,14 +363,19 @@ define dockerize_ep
 	@echo "*** Start Dockerize $1 ***"
 	@echo; echo
 	$(call docker_remove,ep$3)
-	@echo; echo;
-	@echo "*** Building ep$3 *** sudo docker build -t pdc.io/$1 ./build/$1/ ***";
+	$(call docker_remove,ep$3db)
 	@echo; echo
-	sudo docker build -t pdc.io/$1 ./build/$1/
-	@echo; echo;
-	@echo "*** Running ep$3 *** sudo docker run -d --name ep$3 -h ep$3 --env-file=config.env --restart='always' $2 pdc.io/$1 ***";
+	@echo "*** Building ep$3 *** sudo docker build -t pdc.io/$1 ./build/$1/ ***"
 	@echo; echo
-	echo gID=$3; sudo docker run -d --name ep$3 -h ep$3 --env-file=config.env -e 'gID=$3' --restart='always' $2 pdc.io/$1
+	@sudo docker build -t pdc.io/$1 ./build/$1/
+	@echo; echo
+	@echo "*** Running ep$3db *** sudo docker run -d --name ep$3db -h ep$3db --restart='always' mongo --smallfiles ***"
+	@echo; echo
+	@sudo docker run -d --name ep$3db -h ep$3db --restart='always' mongo --smallfiles
+	@echo; echo
+	@EPDB=ep$3db; echo "*** Running ep$3 *** sudo docker run -d --name ep$3 -h ep$3 --env-file=config.env --restart='always' $2 pdc.io/$1 ***"
+	@echo; echo
+	@EPDB=ep$3db; sudo docker run -d --name ep$3 -h ep$3 --env-file=config.env -e 'gID=$3' --restart='always' $2 pdc.io/$1
 	@echo; echo
 	@echo "*** End Dockerize $1 ***"
 	@echo; echo
