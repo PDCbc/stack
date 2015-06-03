@@ -5,10 +5,12 @@
 !sample10.json
 .vagrant/
 known_hosts
+docker/build/
 docker/build/auth/
 docker/build/dclapi
 docker/build/hapi
 docker/build/hub
+docker/build/hubdb
 docker/build/viz
 docker/build/queries
 docker/build/endpoint
