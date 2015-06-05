@@ -279,6 +279,7 @@ config-packages:
 			done; \
 		fi
 	@	( which docker )||( wget -qO- https://get.docker.com/ | sh )
+	mkdir -p build/
 
 
 config-mongodb:
@@ -325,12 +326,6 @@ config-bash:
 		    echo "alias r='sudo docker rm -fv'"; \
 		    echo "alias s='sudo docker ps -a | less -S'"; \
 		    echo "alias m='make'"; \
-				echo ""; \
-				echo ""; \
-				echo "# Fix for Vagrant clock skew"; \
-				echo "#"; \
-				echo "sudo ntpdate us.pool.ntp.org"; \
-
 		  ) | tee -a $${HOME}/.bashrc; \
 			echo ""; \
 			echo ""; \
@@ -409,11 +404,18 @@ define dockerize_ep
 	$(call docker_build,$1)
 	$(call docker_run,$1,$2,$3)
 
-	sudo docker exec     ep$3  ssh -p $(PORT_AUTOSSH) -o StrictHostKeyChecking=no autossh@$(URL_HUB) 2> /dev/null || true
-	sudo docker exec -ti ep$3  /app/key_exchange.sh | sudo tee -a $(PATH_KEYS_HUB_AUTH)/authorized_keys > /dev/null
+	# Add Hub to known_hosts and receive Endpoint's public key
+	#
+	sudo docker exec    ep$3  ssh -p $(PORT_AUTOSSH) -o StrictHostKeyChecking=no autossh@$(URL_HUB) 2> /dev/null || true
+	sudo docker exec -i ep$3  /app/key_exchange.sh | sudo tee -a $(PATH_KEYS_HUB_AUTH)/authorized_keys > /dev/null
 
-	sudo docker exec     hubdb /app/endpoint_add.sh $3 | grep WriteResult
-	sudo docker exec -it auth /sbin/setuser app /app/dacs_add.sh \
+	# Add Endpoint to Auth
+	#
+	sudo docker exec    hubdb /app/endpoint_add.sh $3 | grep WriteResult
+
+	# Get ClinicID (Endpoint's MongoDB ObjectID) and provide it to Auth
+	#
+	sudo docker exec -t auth /sbin/setuser app /app/dacs_add.sh \
 		$4 $5 $4 \
 		$$(sudo docker exec hubdb /app/endpoint_getClinicID.sh $3) \
 		TEST sample

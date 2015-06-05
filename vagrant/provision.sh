@@ -11,6 +11,12 @@ if (! grep --quiet 'cd /vagrant/docker/' /home/vagrant/.bashrc )
 then
   (
     echo ''
+    echo ''
+    echo '# Fix for Vagrant clock skew'
+    echo '#'
+    echo "sudo ntpdate ca.pool.ntp.org"
+    echo ''
+    echo ''
     echo '# Start in docker directory'
     echo '#'
     echo 'cd /vagrant/docker/'
