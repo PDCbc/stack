@@ -7,9 +7,20 @@
 include config.env
 
 
-# Set branch defaults and adjust Docker run commands
+# Set branch defaults
 #
-ifeq ($(DEV_MODE), true)
+ifeq ($(BUILD_MODE), dev)
+	BRANCH_DEFAULT = dev
+else ifeq ($(BUILD_MODE), master)
+	BRANCH_DEFAULT = master
+else
+	BRANCH_DEFAULT = $(RELEASE_VERSION)
+endif
+
+
+# Append Docker run commands for non-production modes
+#
+ifneq ($(BUILD_MODE), prod)
 	DOCKER_AUTH_PRODUCTION += $(DOCKER_AUTH_DEV_APPEND)
 	DOCKER_DCLAPI_PRODUCTION += $(DOCKER_DCLAPI_DEV_APPEND)
 	DOCKER_ENDPOINT_PRODUCTION += $(DOCKER_ENDPOINT_DEV_APPEND)
@@ -18,9 +29,6 @@ ifeq ($(DEV_MODE), true)
 	DOCKER_HUBDB_PRODUCTION += $(DOCKER_HUBDB_DEV_APPEND)
 	DOCKER_QI_PRODUCTION += $(DOCKER_QI_DEV_APPEND)
 	DOCKER_VIZ_PRODUCTION += $(DOCKER_VIZ_DEV_APPEND)
-	BRANCH_DEFAULT = dev
-else
-	BRANCH_DEFAULT = $(RELEASE_VERSION)
 endif
 
 
@@ -63,38 +71,52 @@ reset: remove-all clone containers
 #
 mode:
 	@	echo
-	@	cat config.env | grep DEV_MODE=
+	@	cat config.env | grep BUILD_MODE=
 	@	echo
-	@	echo "Set: make [ dev | prod ]"
+	@	echo "Set: make [ dev | master | prod ]"
 	@	echo
 
 
-# Switch to development mode (dev branches)
+# Switch to dev mode and replace clones
 #
 dev:
-	@	if $(DEV_MODE); \
+	@	if [ $(BUILD_MODE) = dev ]; \
 		then \
 			echo; \
 			echo "Mode unchanged"; \
 			echo; \
 		else \
-			sed -i -e "s/DEV_MODE=.*/DEV_MODE=true/" config.env; \
-			cat config.env | grep DEV_MODE=; \
+			sed -i -e "s/BUILD_MODE=.*/BUILD_MODE=dev/" config.env; \
+			cat config.env | grep BUILD_MODE=; \
 			$(MAKE) clone-update; \
 		fi
 
 
-# Switch to production mode (master branches)
+# Switch to master mode and replace clones
 #
-prod:
-	@	if ! $(DEV_MODE); \
+master:
+	@	if [ $(BUILD_MODE) = master ]; \
 		then \
 			echo; \
 			echo "Mode unchanged"; \
 			echo; \
 		else \
-			sed -i -e "s/DEV_MODE=.*/DEV_MODE=false/" config.env; \
-			cat config.env | grep DEV_MODE=; \
+			sed -i -e "s/BUILD_MODE=.*/BUILD_MODE=master/" config.env; \
+			cat config.env | grep BUILD_MODE=; \
+			$(MAKE) clone-update; \
+		fi
+
+# Switch to prod mode and replace clones
+#
+prod:
+	@	if [ $(BUILD_MODE) = prod ]; \
+		then \
+			echo; \
+			echo "Mode unchanged"; \
+			echo; \
+		else \
+			sed -i -e "s/BUILD_MODE=.*/BUILD_MODE=prod/" config.env; \
+			cat config.env | grep BUILD_MODE=; \
 			$(MAKE) clone-update; \
 		fi
 
@@ -113,7 +135,7 @@ hub:
 	@	sudo mkdir -p $(PATH_HOST)/keys/hub_authorized/
 	@	sudo mkdir -p $(PATH_HOST)/keys/hub_ssh/
 	@	$(call dockerize,hub,$(DOCKER_HUB_PRODUCTION))
-	@	( $(DEV_MODE) && $(MAKE) queries )|| true
+	@	( $(BUILD_MODE) && $(MAKE) queries )|| true
 
 
 auth:
@@ -203,7 +225,7 @@ mode-inform:
 	@	echo
 	@	echo "..."
 	@	echo
-	@	if( $${DEV_MODE} ); \
+	@	if( $${BUILD_MODE} ); \
 		then \
 			echo "Development environment complete"; \
 			else \
@@ -265,7 +287,7 @@ config-packages:
 	@ sudo apt-get update
 	@	sudo apt-get install -y linux-image-extra-$$(uname -r) 2> /dev/null
 	@	sudo modprobe aufs
-	@	if( $${DEV_MODE} ) \
+	@	if( $${BUILD_MODE} ) \
 		then \
 			for a in \
 				curl \
