@@ -42,6 +42,7 @@ apt-get update
 (
   apt-get upgrade -y
   apt-get dist-upgrade -y
+  apt-get install -y ntp
   apt-get install -f
   apt-get autoremove
 ) 2>&1 >/dev/null
@@ -52,4 +53,4 @@ apt-get update
 export HOME=/home/vagrant
 cd /vagrant/docker
 make dev
-make all
+make
