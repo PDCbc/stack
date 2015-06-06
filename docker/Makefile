@@ -160,7 +160,7 @@ viz:
 
 ep-sample:
 	@	$(call dockerize_ep,endpoint,$(DOCKER_ENDPOINT_PRODUCTION),0,cpsid,sample)
-	@	sudo docker exec ep0 mongoimport --db query_gateway_development --collection records /app/sample.json > /dev/null
+	@ sudo docker exec ep0 mongoimport --db query_gateway_development --collection records /app/sample.json > /dev/null
 
 
 queries:
@@ -225,12 +225,9 @@ mode-inform:
 	@	echo
 	@	echo "..."
 	@	echo
-	@	if( $${BUILD_MODE} ); \
-		then \
-			echo "Development environment complete"; \
-			else \
-			echo "Production environment complete"; \
-		fi
+	@	echo "Environment complete"
+	@ echo " - mode: $(BUILD_MODE)"
+	@ echo
 	@	echo
 	@	echo "Enjoy!"
 	@	echo
@@ -428,8 +425,8 @@ define dockerize_ep
 
 	# Add Hub to known_hosts and receive Endpoint's public key
 	#
-	sudo docker exec    ep$3  ssh -p $(PORT_AUTOSSH) -o StrictHostKeyChecking=no autossh@$(URL_HUB) 2> /dev/null || true
-	sudo docker exec -i ep$3  /app/key_exchange.sh | sudo tee -a $(PATH_KEYS_HUB_AUTH)/authorized_keys > /dev/null
+	sudo docker exec ep$3 ssh -p $(PORT_AUTOSSH) -o StrictHostKeyChecking=no autossh@$(URL_HUB) 2> /dev/null || true
+	sudo docker exec ep$3 /app/key_exchange.sh | sudo tee -a $(PATH_KEYS_HUB_AUTH)/authorized_keys > /dev/null
 
 	# Add Endpoint to Auth
 	#
