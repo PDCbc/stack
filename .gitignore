@@ -5,6 +5,8 @@
 !sample10.json
 .vagrant/
 docker/build/
+docker/ssh/*
+!docker/ssh/README.md
 
 
 ########################

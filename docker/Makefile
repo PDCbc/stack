@@ -54,13 +54,13 @@ configure: config-packages config-mongodb config-vim config-bash config-img-pull
 
 clone: clone-auth clone-dclapi clone-hubdb clone-hub clone-hapi clone-viz clone-queries clone-endpoint
 
-containers: hubdb hub auth ep-sample dclapi hapi viz mode-inform
+containers: clone hubdb hub auth ep-sample dclapi hapi viz mode-inform
 
 clone-update: say-goodbye clone-remove clone
 
-remove-all: say-goodbye clone-remove containers-remove
+destroy: say-goodbye clone-remove containers-remove
 
-reset: remove-all clone containers
+reset: destroy clone containers
 
 
 #############
@@ -135,8 +135,11 @@ hub:
 	@	sudo mkdir -p $(PATH_HOST)/keys/hub_authorized/
 	@	sudo mkdir -p $(PATH_HOST)/keys/hub_ssh/
 	@	$(call dockerize,hub,$(DOCKER_HUB_PRODUCTION))
-	@	( $(BUILD_MODE) && $(MAKE) queries )|| true
-
+	@	if [ $(BUILD_MODE) != prod ]; \
+		then \
+			$(MAKE) ep-sample; \
+			$(MAKE) queries; \
+		fi
 
 auth:
 	@	sudo mkdir -p $(PATH_HOST)/dacs/
@@ -168,6 +171,7 @@ queries:
 	@	sudo docker logs -f queries
 	@	$(call docker_remove,queries)
 
+
 containers-remove:
 	@	( sudo docker stop `sudo docker ps -q` )&&( sudo docker rm `sudo docker ps -a -q` )|| \
 			echo "No containers to delete"
@@ -183,7 +187,7 @@ ep:
 	@	read gID; \
 		echo "Clinician ID (#####): "; \
 		read DOCTOR; \
-		$(call dockerize_ep,endpoint,$(DOCKER_ENDPOINT_PRODUCTION),$(gID),$${DOCTOR},sample); \
+		$(call dockerize_ep,endpoint,$(DOCKER_ENDPOINT_PRODUCTION),$(gID),$${DOCTOR},sample)
 
 
 ep-rm:
@@ -194,11 +198,35 @@ ep-rm:
 		read DOCTOR; \
 		sudo docker exec hubdb /app/endpoint_remove.sh $${gID}; \
 		sudo docker exec auth /sbin/setuser app /app/dacs_remove.sh $${DOCTOR} TEST; \
-		sudo docker rm -fv ep$${gID} || true 2> /dev/null
+		$(call docker_remove,ep$${gID})
+
+
+ep-cloud:
+	@	sudo mkdir -p $(PATH_KEYS_EP_CLOUD)
+	@	if [ ! -e $(PATH_KEYS_EP_CLOUD) ]; \
+		then \
+			sudo cp id_rsa.pub id_rsa known_hosts $(PATH_KEYS_EP_CLOUD); \
+			sudo chown root $(PATH_KEYS_EP_CLOUD)/*; \
+			fi
+	@	echo
+	@	echo "Please enter a gatewayID (####) to run: "; \
+		read gID; \
+		NAME=pdc-$${gID}; \
+		PORT=`expr 40000 + $${gID}`; \
+		sudo docker run -dt --name $${NAME} -h $${NAME} -e gID=$${gID} --env-file=config.env --restart='always' -p $${PORT}:3001 -v $(PATH_KEYS_EP_CLOUD):/root/.ssh/:ro pdc.io/endpoint; \
+		sudo docker exec $${NAME} /app/key_exchange.sh
+
+
+ep-cloud-rm:
+	@	echo
+	@	echo "Please enter a gatewayID (####) to remove: "; \
+		read gID; \
+		NAME=pdc-$${gID}; \
+		$(call docker_remove,$${NAME})
 
 
 cadvisor:
-	@	sudo docker rm -f cadvisor || true
+	@	$(call docker_remove,cadvisor)
 	@	sudo docker run -ti \
 	  --volume=/:/rootfs:ro \
 	  --volume=/var/run:/var/run:rw \
@@ -273,7 +301,7 @@ clone-queries:
 
 clone-remove:
 	@	cd build; \
-		rm -rf auth/ dclapi/ hapi/ hub/ hubdb/ viz/ queries/ endpoint/ || true
+		sudo rm -rf auth/ dclapi/ hapi/ hub/ hubdb/ viz/ queries/ endpoint/ || true
 
 
 #################
@@ -370,7 +398,7 @@ config-img-pull:
 define clone
 	if test ! -d build/$1; \
 	then \
-		git clone -b $3 $2 build/$1; \
+		sudo git clone -b $3 $2 build/$1; \
 	else \
 		echo "Repo already exists - $1"; \
 	fi
@@ -378,7 +406,7 @@ endef
 
 
 define docker_remove
-	( sudo docker stop $1 2> /dev/null )|| true
+	( sudo docker stop $1 2> /dev/null )|| true; \
 	( sudo docker rm -v $1 2> /dev/null )|| true
 	echo
 endef
@@ -409,6 +437,8 @@ endef
 
 
 define dockerize
+	# 1=folder, 2=docker cmd
+	#
 	$(call docker_remove,$1)
 	$(call docker_build,$1)
 	$(call docker_run,$1,$2)
@@ -419,6 +449,8 @@ endef
 
 
 define dockerize_ep
+	# 1=folder, 2=docker cmd, 3=gID, 4=doctorID, 5=password
+	#
 	$(call docker_remove,ep$3)
 	$(call docker_build,$1)
 	$(call docker_run,$1,$2,$3)
@@ -430,7 +462,7 @@ define dockerize_ep
 
 	# Add Endpoint to Auth
 	#
-	sudo docker exec    hubdb /app/endpoint_add.sh $3 | grep WriteResult
+	sudo docker exec hubdb /app/endpoint_add.sh $3 | grep WriteResult
 
 	# Get ClinicID (Endpoint's MongoDB ObjectID) and provide it to Auth
 	#
@@ -443,4 +475,21 @@ define dockerize_ep
 	echo
 	echo "*** End Dockerize $1 ***"
 	echo
+endef
+
+
+define user_add
+	# 1=epNumber, 2=doctorID, 3=loginName, 4=jurisdiction, 5=password
+	#
+
+	# Add Endpoint to Auth
+	#
+	sudo docker exec hubdb /app/endpoint_add.sh $1 pdc-$1 | grep WriteResult
+
+	# Get ClinicID (Endpoint's MongoDB ObjectID) and provide it to Auth
+	#
+	sudo docker exec -t auth /sbin/setuser app /app/dacs_add.sh \
+		$1 $2 $3 \
+		$$(sudo docker exec hubdb /app/endpoint_getClinicID.sh $3) \
+		$4 $5
 endef
