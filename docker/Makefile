@@ -86,7 +86,7 @@ dev:
 			echo "Mode unchanged"; \
 			echo; \
 		else \
-			sed -i -e "s/BUILD_MODE=.*/BUILD_MODE=dev/" config.env; \
+			sudo sed -i -e "s/BUILD_MODE=.*/BUILD_MODE=dev/" config.env; \
 			cat config.env | grep BUILD_MODE=; \
 			$(MAKE) clone-update; \
 		fi
@@ -101,7 +101,7 @@ master:
 			echo "Mode unchanged"; \
 			echo; \
 		else \
-			sed -i -e "s/BUILD_MODE=.*/BUILD_MODE=master/" config.env; \
+			sudo sed -i -e "s/BUILD_MODE=.*/BUILD_MODE=master/" config.env; \
 			cat config.env | grep BUILD_MODE=; \
 			$(MAKE) clone-update; \
 		fi
@@ -115,7 +115,7 @@ prod:
 			echo "Mode unchanged"; \
 			echo; \
 		else \
-			sed -i -e "s/BUILD_MODE=.*/BUILD_MODE=prod/" config.env; \
+			sudo sed -i -e "s/BUILD_MODE=.*/BUILD_MODE=prod/" config.env; \
 			cat config.env | grep BUILD_MODE=; \
 			$(MAKE) clone-update; \
 		fi
@@ -326,7 +326,7 @@ config-packages:
 			done; \
 		fi
 	@	( which docker )||( wget -qO- https://get.docker.com/ | sh )
-	mkdir -p build/
+	@	mkdir -p build/
 
 
 config-mongodb:
@@ -475,21 +475,4 @@ define dockerize_ep
 	echo
 	echo "*** End Dockerize $1 ***"
 	echo
-endef
-
-
-define user_add
-	# 1=epNumber, 2=doctorID, 3=loginName, 4=jurisdiction, 5=password
-	#
-
-	# Add Endpoint to Auth
-	#
-	sudo docker exec hubdb /app/endpoint_add.sh $1 pdc-$1 | grep WriteResult
-
-	# Get ClinicID (Endpoint's MongoDB ObjectID) and provide it to Auth
-	#
-	sudo docker exec -t auth /sbin/setuser app /app/dacs_add.sh \
-		$1 $2 $3 \
-		$$(sudo docker exec hubdb /app/endpoint_getClinicID.sh $3) \
-		$4 $5
 endef
