@@ -158,12 +158,19 @@ hapi:
 
 
 viz:
+	@	sudo mkdir -p $(PATH_HOST)/cert/
+		[ -f ./cert/server.crt -a ! -f $(PATH_HOST)/cert/server.crt ]&& \
+			sudo cp ./cert/server.crt $(PATH_HOST)/cert/ || \
+			true
+	@	[ -f ./cert/server.key -a ! -f $(PATH_HOST)/cert/server.crt ]|| \
+			sudo cp ./cert/server.key $(PATH_HOST)/cert/ || \
+			true
 	@	$(call dockerize,viz,$(DOCKER_VIZ_PRODUCTION))
 
 
 ep-sample:
 	@	$(call dockerize_ep,endpoint,$(DOCKER_ENDPOINT_PRODUCTION),0,cpsid,sample)
-	@ sudo docker exec ep0 mongoimport --db query_gateway_development --collection records /app/sample.json > /dev/null
+	@	sudo docker exec ep0 mongoimport --db query_gateway_development --collection records /app/sample.json > /dev/null
 
 
 queries:
