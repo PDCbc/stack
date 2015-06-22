@@ -67,7 +67,7 @@ reset: destroy clone containers
 # Run Modes #
 #############
 
-# Show mode - development or production
+# Show mode - development, master or production
 #
 mode:
 	@	echo
@@ -77,48 +77,16 @@ mode:
 	@	echo
 
 
-# Switch to dev mode and replace clones
+# Switch to mode and replace clones
 #
 dev:
-	@	if [ $(BUILD_MODE) = dev ]; \
-		then \
-			echo; \
-			echo "Mode unchanged"; \
-			echo; \
-		else \
-			sudo sed -i -e "s/BUILD_MODE=.*/BUILD_MODE=dev/" config.env; \
-			cat config.env | grep BUILD_MODE=; \
-			$(MAKE) clone-update; \
-		fi
-
-
-# Switch to master mode and replace clones
+	@ $(call mode_change,dev)
 #
 master:
-	@	if [ $(BUILD_MODE) = master ]; \
-		then \
-			echo; \
-			echo "Mode unchanged"; \
-			echo; \
-		else \
-			sudo sed -i -e "s/BUILD_MODE=.*/BUILD_MODE=master/" config.env; \
-			cat config.env | grep BUILD_MODE=; \
-			$(MAKE) clone-update; \
-		fi
-
-# Switch to prod mode and replace clones
+	@ $(call mode_change,master)
 #
 prod:
-	@	if [ $(BUILD_MODE) = prod ]; \
-		then \
-			echo; \
-			echo "Mode unchanged"; \
-			echo; \
-		else \
-			sudo sed -i -e "s/BUILD_MODE=.*/BUILD_MODE=prod/" config.env; \
-			cat config.env | grep BUILD_MODE=; \
-			$(MAKE) clone-update; \
-		fi
+	@ $(call mode_change,prod)
 
 
 #########################
@@ -159,7 +127,7 @@ hapi:
 
 viz:
 	@	sudo mkdir -p $(PATH_HOST)/cert/
-		[ -f ./cert/server.crt -a ! -f $(PATH_HOST)/cert/server.crt ]&& \
+	@	[ -f ./cert/server.crt -a ! -f $(PATH_HOST)/cert/server.crt ]&& \
 			sudo cp ./cert/server.crt $(PATH_HOST)/cert/ || \
 			true
 	@	[ -f ./cert/server.key -a ! -f $(PATH_HOST)/cert/server.crt ]|| \
@@ -169,8 +137,8 @@ viz:
 
 
 ep-sample:
-	@	$(call dockerize_ep,endpoint,$(DOCKER_ENDPOINT_PRODUCTION),0,cpsid,sample)
-	@	sudo docker exec ep0 mongoimport --db query_gateway_development --collection records /app/sample.json > /dev/null
+	@ $(call dockerize,endpoint,$(DOCKER_ENDPOINT_PRODUCTION),ep0)
+	@	$(call config_ep,0,cpsid,cpsid,admin,TEST,sample)
 
 
 queries:
@@ -189,23 +157,31 @@ containers-remove:
 ################################
 
 ep:
-	@	echo ""
-	@	echo "Gateway ID (#): "
-	@	read gID; \
-		echo "Clinician ID (#####): "; \
-		read DOCTOR; \
-		$(call dockerize_ep,endpoint,$(DOCKER_ENDPOINT_PRODUCTION),$(gID),$${DOCTOR},sample)
+	@	if [ -z "$(gID)" ] || [ -z "$(DOCTOR)" ]; \
+		then \
+			echo; \
+			echo "Create an Endpoint and Auth ID"; \
+			echo "Usage: make ep [gID=#] [DOCTOR=#####] [op:JURISDUCTION] [op:ROLE] [op:PASSWORD]"; \
+			echo; \
+		else \
+			$(call dockerize_ep,endpoint,$(DOCKER_ENDPOINT_PRODUCTION),$(gID)); \
+			$(call config_ep,$(gID),$(DOCTOR),$(ROLE),$(JURISDICTION),$(PASSWORD)); \
+		fi
 
 
 ep-rm:
-	@	echo ""
-	@	echo "Gateway ID (#): "
-	@	read gID; \
-		echo "Clinician ID (#####): "; \
-		read DOCTOR; \
-		sudo docker exec hubdb /app/endpoint_remove.sh $${gID}; \
-		sudo docker exec auth /sbin/setuser app /app/dacs_remove.sh $${DOCTOR} TEST; \
-		$(call docker_remove,ep$${gID})
+	@	if [ -z "$(gID)" ] || [ -z "$(DOCTOR)" ]; \
+		then \
+			echo; \
+			echo "Remove an Endpoint and Auth ID"; \
+			echo "Usage: make ep [gID=#] [DOCTOR=#####] [op:JURISDUCTION]"; \
+			echo; \
+		else \
+			sudo docker exec hubdb /app/endpoint_remove.sh $(gID); \
+			sudo docker exec auth /sbin/setuser app /app/dacs_remove.sh $(DOCTOR) $(JURISDICTION); \
+			sudo docker rm -fv ep$(gID); \
+		fi
+
 
 
 ep-cloud:
@@ -413,13 +389,21 @@ endef
 
 
 define docker_remove
-	( sudo docker stop $1 2> /dev/null )|| true; \
-	( sudo docker rm -v $1 2> /dev/null )|| true
+	# 1=folder, 2=op:container
+	#
+	if [ -z $2 ]; \
+	then \
+		( sudo docker stop $1 && sudo docker rm -v $1 ) 2> /dev/null || true; \
+	else \
+		( sudo docker stop $2 && sudo docker rm -v $2 ) 2> /dev/null || true; \
+	fi
 	echo
 endef
 
 
 define docker_build
+	# 1=folder
+	#
 	echo
 	echo "*** Building $1 *** sudo docker build -t pdc.io/$1 ./build/$1/ ***"
 	echo
@@ -429,11 +413,13 @@ endef
 
 
 define docker_run
+	# 1=folder, 2=docker cmd, 3=op:container
+	#
 	if [ -z $3 ]; \
 	then \
 		RUN="--name $1 -h $1"; \
 	else \
-		RUN="--name ep$3 -h ep$3 -e gID=$3"; \
+		RUN="--name $3 -h $3 -e gID=$3"; \
 	fi; \
 	echo; \
 	echo "*** Running $1 *** sudo docker run -d $${RUN} --env-file=config.env --restart='always' $2 pdc.io/$1 ***"; \
@@ -444,42 +430,52 @@ endef
 
 
 define dockerize
-	# 1=folder, 2=docker cmd
+	# 1=folder, 2=docker cmd, 3=op:container
 	#
-	$(call docker_remove,$1)
+	$(call docker_remove,$1,$3)
 	$(call docker_build,$1)
-	$(call docker_run,$1,$2)
+	$(call docker_run,$1,$2,$3)
 	echo
 	echo "*** End Dockerize $1 ***"
 	echo
 endef
 
 
-define dockerize_ep
-	# 1=folder, 2=docker cmd, 3=gID, 4=doctorID, 5=password
+define config_ep
+	# 1=gID, 2=doctorID, 3=op:userID, 4=op:role, 5=op:jurisdiction, 6=op:password
 	#
-	$(call docker_remove,ep$3)
-	$(call docker_build,$1)
-	$(call docker_run,$1,$2,$3)
-
 	# Add Hub to known_hosts and receive Endpoint's public key
 	#
-	sudo docker exec ep$3 ssh -p $(PORT_AUTOSSH) -o StrictHostKeyChecking=no autossh@$(URL_HUB) 2> /dev/null || true
-	sudo docker exec ep$3 /app/key_exchange.sh | sudo tee -a $(PATH_KEYS_HUB_AUTH)/authorized_keys > /dev/null
+	sudo docker exec ep$1 ssh -p $(PORT_AUTOSSH) -o StrictHostKeyChecking=no autossh@$(URL_HUB) 2> /dev/null || true
+	sudo docker exec ep$1 /app/key_exchange.sh | sudo tee -a $(PATH_KEYS_HUB_AUTH)/authorized_keys > /dev/null
 
-	# Add Endpoint to Auth
+	# Add Endpoint to the HubDB
 	#
-	sudo docker exec hubdb /app/endpoint_add.sh $3 | grep WriteResult
+	sudo docker exec hubdb /app/endpoint_add.sh $1 | grep WriteResult
 
 	# Get ClinicID (Endpoint's MongoDB ObjectID) and provide it to Auth
 	#
 	sudo docker exec -t auth /sbin/setuser app /app/dacs_add.sh \
-		$4 $5 $4 \
-		$$(sudo docker exec hubdb /app/endpoint_getClinicID.sh $3) \
-		TEST sample
+		$2 $$(sudo docker exec hubdb /app/endpoint_getClinicID.sh $1) \
+		$3 $4 $5 $6
 
-	echo
-	echo
-	echo "*** End Dockerize $1 ***"
-	echo
+	# If doctorID is cpsid, then import sample 10 (cpsid) data
+	#
+	[ "$2" != "cpsid" ] || sudo docker exec ep$1 /app/sample10/import.sh
+endef
+
+
+define mode_change
+	# 1=mode
+	#
+	if [ $(BUILD_MODE) = $1 ]; \
+	then \
+		echo; \
+		echo "Mode unchanged"; \
+		echo; \
+	else \
+		sudo sed -i -e "s/BUILD_MODE=.*/BUILD_MODE=$1/" config.env; \
+		cat config.env | grep BUILD_MODE=; \
+		$(MAKE) clone-update; \
+	fi
 endef
