@@ -1,1 +1,0 @@
-read input; echo $input

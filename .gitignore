@@ -2,13 +2,18 @@
 ##################
 
 *.json
-!sample10.json
+*.xml
+*.tar
+*.gzip
+*.tar.gzip
+*.zip
+*.rar
 .vagrant/
-docker/build/
-docker/ssh/*
-!docker/ssh/README.md
-docker/cert/*
-!docker/cert/README.md
+build/
+ssh/*
+!ssh/README.md
+cert/*
+!cert/README.md
 
 ########################
 ### GitHub Suggested ###
