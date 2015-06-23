@@ -50,7 +50,7 @@ BRANCH_VIZ ?= $(BRANCH_DEFAULT)
 
 default: configure clone containers
 
-configure: config-packages config-mongodb config-vim config-bash config-img-pull
+configure: config-packages config-mongodb config-bash config-img-pull
 
 clone: clone-auth clone-dclapi clone-hubdb clone-hub clone-hapi clone-viz clone-queries clone-endpoint
 
@@ -293,38 +293,22 @@ clone-remove:
 
 config-packages:
 	@ sudo apt-get update
-	@	sudo apt-get install -y linux-image-extra-$$(uname -r) 2> /dev/null
-	@	sudo modprobe aufs
-	@	if( $${BUILD_MODE} ) \
-		then \
-			for a in \
-				curl \
-				lynx \
-				mongodb \
-				nodejs \
-				nodejs-legacy \
-				npm; \
-			do \
-				( dpkg -l | grep -w $${a} )|| sudo apt-get install -y $${a}; \
-			done; \
-		fi
-	@	( which docker )||( wget -qO- https://get.docker.com/ | sh )
-	@	mkdir -p build/
+	@	( which docker )||( \
+			sudo apt-get install -y linux-image-extra-$$(uname -r); \
+			sudo modprobe aufs; \
+			wget -qO- https://get.docker.com/ | sh; \
+		 )
+	@	for a in \
+			curl \
+			lynx; \
+		do \
+			( dpkg -l | grep -w $${a} )|| sudo apt-get install -y $${a}; \
+		done; \
 
 
 config-mongodb:
 	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled )> /dev/null
 	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag )> /dev/null
-
-
-config-vim:
-	@	if([ ! -e $${HOME}/.vimrc ]||(! grep --quiet 'colorscheme delek' $${HOME}/.vimrc )); \
-		then \
-		  ( \
-		    echo 'set number'; \
-		    echo 'colorscheme delek'; \
-		  ) | tee -a $${HOME}/.vimrc; \
-		fi
 
 
 config-bash:
@@ -379,6 +363,7 @@ config-img-pull:
 #############
 
 define clone
+	sudo mkdir -p build/; \
 	if test ! -d build/$1; \
 	then \
 		sudo git clone -b $3 $2 build/$1; \
