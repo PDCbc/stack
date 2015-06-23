@@ -80,13 +80,13 @@ mode:
 # Switch to mode and replace clones
 #
 dev:
-	@ $(call mode_change,dev)
+	@	$(call mode_change,dev)
 #
 master:
-	@ $(call mode_change,master)
+	@	$(call mode_change,master)
 #
 prod:
-	@ $(call mode_change,prod)
+	@	$(call mode_change,prod)
 
 
 #########################
@@ -137,7 +137,7 @@ viz:
 
 
 ep-sample:
-	@ $(call dockerize,endpoint,$(DOCKER_ENDPOINT_PRODUCTION),ep0)
+	@	$(call dockerize,endpoint,$(DOCKER_ENDPOINT_PRODUCTION),0)
 	@	$(call config_ep,0,cpsid,cpsid,admin,TEST,sample)
 
 
@@ -211,14 +211,14 @@ ep-cloud-rm:
 cadvisor:
 	@	$(call docker_remove,cadvisor)
 	@	sudo docker run -ti \
-	  --volume=/:/rootfs:ro \
-	  --volume=/var/run:/var/run:rw \
-	  --volume=/sys:/sys:ro \
-	  --volume=/var/lib/docker/:/var/lib/docker:ro \
-	  --publish=8080:8080 \
-	  --detach=true \
-	  --name=cadvisor \
-	  google/cadvisor:latest
+		--volume=/:/rootfs:ro \
+		--volume=/var/run:/var/run:rw \
+		--volume=/sys:/sys:ro \
+		--volume=/var/lib/docker/:/var/lib/docker:ro \
+		--publish=8080:8080 \
+		--detach=true \
+		--name=cadvisor \
+		google/cadvisor:latest
 	@	$(call docker_remove,cadvisor)
 
 
@@ -237,8 +237,8 @@ mode-inform:
 	@	echo "..."
 	@	echo
 	@	echo "Environment complete"
-	@ echo " - mode: $(BUILD_MODE)"
-	@ echo
+	@	echo " - mode: $(BUILD_MODE)"
+	@	echo
 	@	echo
 	@	echo "Enjoy!"
 	@	echo
@@ -292,7 +292,7 @@ clone-remove:
 #################
 
 config-packages:
-	@ sudo apt-get update
+	@	sudo apt-get update
 	@	( which docker )||( \
 			sudo apt-get install -y linux-image-extra-$$(uname -r); \
 			sudo modprobe aufs; \
@@ -374,13 +374,13 @@ endef
 
 
 define docker_remove
-	# 1=folder, 2=op:container
+	# 1=folder, 2=op:gID
 	#
 	if [ -z $2 ]; \
 	then \
 		( sudo docker stop $1 && sudo docker rm -v $1 ) 2> /dev/null || true; \
 	else \
-		( sudo docker stop $2 && sudo docker rm -v $2 ) 2> /dev/null || true; \
+		( sudo docker stop ep$2 && sudo docker rm -v ep$2 ) 2> /dev/null || true; \
 	fi
 	echo
 endef
@@ -398,13 +398,13 @@ endef
 
 
 define docker_run
-	# 1=folder, 2=docker cmd, 3=op:container
+	# 1=folder, 2=docker cmd, 3=op:gID
 	#
 	if [ -z $3 ]; \
 	then \
 		RUN="--name $1 -h $1"; \
 	else \
-		RUN="--name $3 -h $3 -e gID=$3"; \
+		RUN="--name ep$3 -h ep$3 -e gID=$3"; \
 	fi; \
 	echo; \
 	echo "*** Running $1 *** sudo docker run -d $${RUN} --env-file=config.env --restart='always' $2 pdc.io/$1 ***"; \
@@ -415,7 +415,7 @@ endef
 
 
 define dockerize
-	# 1=folder, 2=docker cmd, 3=op:container
+	# 1=folder, 2=docker cmd, 3=op:gID
 	#
 	$(call docker_remove,$1,$3)
 	$(call docker_build,$1)
