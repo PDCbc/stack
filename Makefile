@@ -80,13 +80,13 @@ mode:
 # Switch to mode and replace clones
 #
 dev:
-	@ $(call mode_change,dev)
+	@	$(call mode_change,dev)
 #
 master:
-	@ $(call mode_change,master)
+	@	$(call mode_change,master)
 #
 prod:
-	@ $(call mode_change,prod)
+	@	$(call mode_change,prod)
 
 
 #########################
@@ -137,7 +137,7 @@ viz:
 
 
 ep-sample:
-	@ $(call dockerize,endpoint,$(DOCKER_ENDPOINT_PRODUCTION),ep0)
+	@	$(call dockerize,endpoint,$(DOCKER_ENDPOINT_PRODUCTION),ep0)
 	@	$(call config_ep,0,cpsid,cpsid,admin,TEST,sample)
 
 
@@ -211,14 +211,14 @@ ep-cloud-rm:
 cadvisor:
 	@	$(call docker_remove,cadvisor)
 	@	sudo docker run -ti \
-	  --volume=/:/rootfs:ro \
-	  --volume=/var/run:/var/run:rw \
-	  --volume=/sys:/sys:ro \
-	  --volume=/var/lib/docker/:/var/lib/docker:ro \
-	  --publish=8080:8080 \
-	  --detach=true \
-	  --name=cadvisor \
-	  google/cadvisor:latest
+		--volume=/:/rootfs:ro \
+		--volume=/var/run:/var/run:rw \
+		--volume=/sys:/sys:ro \
+		--volume=/var/lib/docker/:/var/lib/docker:ro \
+		--publish=8080:8080 \
+		--detach=true \
+		--name=cadvisor \
+		google/cadvisor:latest
 	@	$(call docker_remove,cadvisor)
 
 
@@ -237,8 +237,8 @@ mode-inform:
 	@	echo "..."
 	@	echo
 	@	echo "Environment complete"
-	@ echo " - mode: $(BUILD_MODE)"
-	@ echo
+	@	echo " - mode: $(BUILD_MODE)"
+	@	echo
 	@	echo
 	@	echo "Enjoy!"
 	@	echo
@@ -292,7 +292,7 @@ clone-remove:
 #################
 
 config-packages:
-	@ sudo apt-get update
+	@	sudo apt-get update
 	@	sudo apt-get install -y linux-image-extra-$$(uname -r) 2> /dev/null
 	@	sudo modprobe aufs
 	@	if( $${BUILD_MODE} ) \
