@@ -95,8 +95,9 @@ prod:
 
 hubdb:
 	@	sudo mkdir -p $(PATH_HOST)/mongo/
+	@	sudo mkdir -p ${PATH_HOST}/mongo_dump/
 	@	$(call dockerize,hubdb,$(DOCKER_HUBDB_PRODUCTION))
-	@	sudo docker exec hubdb /app/init_db.sh > /dev/null
+	@	sudo docker exec hubdb /app/mongodb_init.sh > /dev/null
 
 
 hub:
@@ -181,7 +182,6 @@ ep-rm:
 			sudo docker exec auth /sbin/setuser app /app/dacs_remove.sh $(DOCTOR) $(JURISDICTION); \
 			sudo docker rm -fv ep$(gID); \
 		fi
-
 
 
 ep-cloud:
@@ -309,42 +309,127 @@ config-packages:
 config-mongodb:
 	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled )> /dev/null
 	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag )> /dev/null
+	@	if(! grep --quiet 'mongodb_dump.sh' /var/spool/cron/crontabs/root ); \
+		then \
+			( \
+				echo ''; \
+				echo '# Dump MongoDB for backup'; \
+				echo '#'; \
+				echo '15 3 * * * docker exec hubdb /app/mongodb_dump.sh'; \
+				echo '15 11 * * * docker exec hubdb /app/mongodb_dump.sh'; \
+				echo '15 19 * * * docker exec hubdb /app/mongodb_dump.sh'; \
+			) | tee -a /var/spool/crontabs/root; \
+		fi
 
 
 config-bash:
 	@	if(! grep --quiet 'function dockin()' $${HOME}/.bashrc ); \
 		then \
-		  ( \
-		    echo ''; \
-		    echo '# Function to quickly enter containers'; \
-		    echo '#'; \
-		    echo 'function dockin()'; \
-		    echo '{'; \
-		    echo '  if [ $$# -eq 0 ]'; \
-		    echo '  then'; \
-		    echo '		echo "Please pass a docker container to enter"'; \
-		    echo '		echo "Usage: dockin [containerToEnter]"'; \
-		    echo '	else'; \
-		    echo '		sudo docker exec -it $$1 /bin/bash'; \
-		    echo '	fi'; \
-		    echo '}'; \
-		    echo ''; \
-		    echo '# Aliases to frequently used functions and applications'; \
-		    echo '#'; \
-		    echo "alias c='dockin'"; \
-		    echo "alias d='sudo docker'"; \
-		    echo "alias e='sudo docker exec'"; \
-		    echo "alias i='sudo docker inspect'"; \
-		    echo "alias l='sudo docker logs -f'"; \
-		    echo "alias p='sudo docker ps -a'"; \
-		    echo "alias r='sudo docker rm -fv'"; \
-		    echo "alias s='sudo docker ps -a | less -S'"; \
-		    echo "alias m='make'"; \
-		  ) | tee -a $${HOME}/.bashrc; \
+			( \
+				echo ''; \
+				echo '# Function to quickly enter containers'; \
+				echo '#'; \
+				echo 'function dockin()'; \
+				echo '{'; \
+				echo '  if [ $$# -eq 0 ]'; \
+				echo '  then'; \
+				echo '		echo "Please pass a docker container to enter"'; \
+				echo '		echo "Usage: dockin [containerToEnter]"'; \
+				echo '	else'; \
+				echo '		sudo docker exec -it $$1 /bin/bash'; \
+				echo '	fi'; \
+				echo '}'; \
+				echo ''; \
+				echo '# Aliases to frequently used functions and applications'; \
+				echo '#'; \
+				echo "alias c='dockin'"; \
+				echo "alias d='sudo docker'"; \
+				echo "alias e='sudo docker exec'"; \
+				echo "alias i='sudo docker inspect'"; \
+				echo "alias l='sudo docker logs -f'"; \
+				echo "alias p='sudo docker ps -a'"; \
+				echo "alias r='sudo docker rm -fv'"; \
+				echo "alias s='sudo docker ps -a | less -S'"; \
+				echo "alias m='make'"; \
+			) | tee -a $${HOME}/.bashrc; \
 			echo ""; \
 			echo ""; \
 			echo "Please log in/out for changes to take effect!"; \
 			echo ""; \
+		fi
+
+
+config-oc:
+	# Add repository and install owncloud cmd client
+	#
+	@	echo 'deb http://download.opensuse.org/repositories/isv:/ownCloud:/desktop/xUbuntu_14.10/ /' \
+			| sudo tee /etc/apt/sources.list.d/owncloud-client.list
+	@	wget -qO- http://download.opensuse.org/repositories/isv:ownCloud:desktop/xUbuntu_14.10/Release.key \
+			| sudo apt-key add -
+	@	sudo apt-get update
+	@	sudo apt-get install -y owncloud-client
+
+	@	# Create backup script
+	@	#
+	@	if [ ! -e ${PATH_HOST}/oc_backup.sh ]; \
+		then \
+			( \
+				echo '#!/bin/bash'; \
+				echo '#'; \
+				echo '# Backup script for ownCloud - run from the data dir!'; \
+				echo '#'; \
+				echo '# Exit on errors or unitialized variables'; \
+				echo 'set -e -o nounset'; \
+				echo ''; \
+				echo ''; \
+				echo '# Change to script directory'; \
+				echo '#'; \
+				echo 'SCRIPT_DIR=$$( cd $$( dirname $${BASH_SOURCE[0]} ) && pwd )'; \
+				echo 'cd $${SCRIPT_DIR}'; \
+				echo ''; \
+				echo ''; \
+				echo '# Copy non-sensitive MongoDB dumps to ./mongo_partial/'; \
+				echo '#'; \
+				echo 'sudo mkdir -p mongo_partial/'; \
+				echo 'FROM=$\${PATH_HOST}'; \
+				echo 'sudo cp mongo_dump/query_composer_development/delayed*   mongo_partial/'; \
+				echo 'sudo cp mongo_dump/query_composer_development/endpoints* mongo_partial/'; \
+				echo 'sudo cp mongo_dump/query_composer_development/system*    mongo_partial/'; \
+				echo 'sudo cp mongo_dump/query_composer_development/users*     mongo_partial/'; \
+				echo ''; \
+				echo ''; \
+				echo '# Backup cert, dacs, drugref, keys and mongo_partial folders to ownCloud'; \
+				echo '#'; \
+				echo 'USERNAME=$\${OWNCLOUD_ID}'; \
+				echo 'PASSWORD=$\${OWNCLOUD_PW}'; \
+				echo 'OWNCLOUD=$\${OWNCLOUD_URL}'; \
+				echo '#'; \
+				echo 'OC_PATH=$${OWNCLOUD}/remote.php/webdav'; \
+				echo '#'; \
+				echo 'for DIR in \\'; \
+				echo '	cert \\'; \
+				echo '	dacs \\'; \
+				echo '	drugref \\'; \
+				echo '	keys \\'; \
+				echo '	mongo_partial \\'; \
+				echo '	recovery;'; \
+				echo 'do'; \
+				echo '	sudo owncloudcmd -u $${USERNAME} -p $${PASSWORD} $${DIR} $${OC_PATH}/$${DIR};'; \
+				echo 'done'; \
+			) | sudo tee -a \${PATH_HOST}/oc_backup.sh; \
+			sudo chmod 700 \${PATH_HOST}/oc_backup.sh; \
+		fi
+
+	@	# Add script to cron
+	@	#
+	@	if((! sudo test -e /var/spool/cron/crontabs/root )||(! sudo grep --quiet 'oc_backup.sh' /var/spool/cron/crontabs/root )); \
+		then \
+		  ( \
+		    echo ''; \
+		    echo '# Backup to ownCloud every 30 minutes'; \
+		    echo '#'; \
+		    echo '0,30 * * * * $\${PATH_HOST}/oc_backup.sh'; \
+		  ) | sudo tee -a /var/spool/cron/crontabs/root; \
 		fi
 
 
