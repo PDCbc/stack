@@ -94,15 +94,13 @@ prod:
 #########################
 
 hubdb:
-	@	sudo mkdir -p $(PATH_HOST)/mongo/
-	@	sudo mkdir -p ${PATH_HOST}/mongo_dump/
+	@	sudo mkdir -p $(PATH_MONGO)
 	@	$(call dockerize,hubdb,$(DOCKER_HUBDB_PRODUCTION))
 	@	sudo docker exec hubdb /app/mongodb_init.sh > /dev/null
 
 
 hub:
-	@	sudo mkdir -p $(PATH_HOST)/keys/hub_authorized/
-	@	sudo mkdir -p $(PATH_HOST)/keys/hub_ssh/
+	@	sudo mkdir -p $(PATH_HUB_SSH_HOST) $(PATH_HUB_SSH_AUTOSSH)
 	@	$(call dockerize,hub,$(DOCKER_HUB_PRODUCTION))
 	@	if [ $(BUILD_MODE) != prod ]; \
 		then \
@@ -110,15 +108,16 @@ hub:
 			$(MAKE) queries; \
 		fi
 
+
 auth:
-	@	sudo mkdir -p $(PATH_HOST)/dacs/
+	@	sudo mkdir -p $(PATH_DACS)
 	@	$(call dockerize,auth,$(DOCKER_AUTH_PRODUCTION))
 
 
 dclapi:
-	@	sudo mkdir -p $(PATH_HOST)/drugref/
-	@	sudo test -s $(PATH_HOST)/drugref/dcl.sqlite || \
-		sudo cp build/dclapi/drugref/dcl.sqlite $(PATH_HOST)/drugref/
+	@	sudo mkdir -p $(PATH_DRUGREF)
+	@	sudo test -s $(PATH_DRUGREF)/dcl.sqlite || \
+		sudo cp build/dclapi/drugref/dcl.sqlite $(PATH_DRUGREF)
 	@	$(call dockerize,dclapi,$(DOCKER_DCLAPI_PRODUCTION))
 
 
@@ -127,12 +126,12 @@ hapi:
 
 
 viz:
-	@	sudo mkdir -p $(PATH_HOST)/cert/
-	@	[ -f ./cert/server.crt -a ! -f $(PATH_HOST)/cert/server.crt ]&& \
-			sudo cp ./cert/server.crt $(PATH_HOST)/cert/ || \
+	@	sudo mkdir -p $(PATH_CERT)
+	@	[ -f ./cert/server.crt -a ! -f $(PATH_CERT)/server.crt ]&& \
+			sudo cp ./cert/server.crt $(PATH_CERT) || \
 			true
-	@	[ -f ./cert/server.key -a ! -f $(PATH_HOST)/cert/server.crt ]|| \
-			sudo cp ./cert/server.key $(PATH_HOST)/cert/ || \
+	@	[ -f ./cert/server.key -a ! -f $(PATH_CERT)/server.crt ]|| \
+			sudo cp ./cert/server.key $(PATH_CERT) || \
 			true
 	@	$(call dockerize,viz,$(DOCKER_VIZ_PRODUCTION))
 
@@ -185,18 +184,18 @@ ep-rm:
 
 
 ep-cloud:
-	@	sudo mkdir -p $(PATH_KEYS_EP_CLOUD)
-	@	if [ ! -e $(PATH_KEYS_EP_CLOUD) ]; \
+	@	sudo mkdir -p $(PATH_HUB_SSH_AUTOSSH)
+	@	if [ ! -e $(PATH_HUB_SSH_AUTOSSH) ]; \
 		then \
-			sudo cp id_rsa.pub id_rsa known_hosts $(PATH_KEYS_EP_CLOUD); \
-			sudo chown root $(PATH_KEYS_EP_CLOUD)/*; \
+			sudo cp id_rsa.pub id_rsa known_hosts $(PATH_HUB_SSH_AUTOSSH); \
+			sudo chown root $(PATH_HUB_SSH_AUTOSSH)/*; \
 			fi
 	@	echo
 	@	echo "Please enter a gatewayID (####) to run: "; \
 		read gID; \
 		NAME=pdc-$${gID}; \
 		PORT=`expr 40000 + $${gID}`; \
-		sudo docker run -dt --name $${NAME} -h $${NAME} -e gID=$${gID} --env-file=config.env --restart='always' -p $${PORT}:3001 -v $(PATH_KEYS_EP_CLOUD):/root/.ssh/:ro pdc.io/endpoint; \
+		sudo docker run -dt --name $${NAME} -h $${NAME} -e gID=$${gID} --env-file=config.env --restart='always' -p $${PORT}:3001 -v $(PATH_HUB_SSH_AUTOSSH):/root/.ssh/:ro pdc.io/endpoint; \
 		sudo docker exec $${NAME} /app/key_exchange.sh
 
 
@@ -238,7 +237,6 @@ mode-inform:
 	@	echo
 	@	echo "Environment complete"
 	@	echo " - mode: $(BUILD_MODE)"
-	@	echo
 	@	echo
 	@	echo "Enjoy!"
 	@	echo
@@ -298,28 +296,11 @@ config-packages:
 			sudo modprobe aufs; \
 			wget -qO- https://get.docker.com/ | sh; \
 		 )
-	@	for a in \
-			curl \
-			lynx; \
-		do \
-			( dpkg -l | grep -w $${a} )|| sudo apt-get install -y $${a}; \
-		done; \
 
 
 config-mongodb:
 	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled )> /dev/null
 	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag )> /dev/null
-	@	if(! grep --quiet 'mongodb_dump.sh' /var/spool/cron/crontabs/root ); \
-		then \
-			( \
-				echo ''; \
-				echo '# Dump MongoDB for backup'; \
-				echo '#'; \
-				echo '15 3 * * * docker exec hubdb /app/mongodb_dump.sh'; \
-				echo '15 11 * * * docker exec hubdb /app/mongodb_dump.sh'; \
-				echo '15 19 * * * docker exec hubdb /app/mongodb_dump.sh'; \
-			) | tee -a /var/spool/crontabs/root; \
-		fi
 
 
 config-bash:
@@ -362,9 +343,9 @@ config-bash:
 config-oc:
 	# Add repository and install owncloud cmd client
 	#
-	@	echo 'deb http://download.opensuse.org/repositories/isv:/ownCloud:/desktop/xUbuntu_14.10/ /' \
+	@	echo 'deb http://download.opensuse.org/repositories/isv:/ownCloud:/desktop/xUbuntu_14.04/ /' \
 			| sudo tee /etc/apt/sources.list.d/owncloud-client.list
-	@	wget -qO- http://download.opensuse.org/repositories/isv:ownCloud:desktop/xUbuntu_14.10/Release.key \
+	@	wget -qO- http://download.opensuse.org/repositories/isv:ownCloud:desktop/xUbuntu_14.04/Release.key \
 			| sudo apt-key add -
 	@	sudo apt-get update
 	@	sudo apt-get install -y owncloud-client
@@ -392,10 +373,10 @@ config-oc:
 				echo '#'; \
 				echo 'sudo mkdir -p mongo_partial/'; \
 				echo 'FROM=$\${PATH_HOST}'; \
-				echo 'sudo cp mongo_dump/query_composer_development/delayed*   mongo_partial/'; \
-				echo 'sudo cp mongo_dump/query_composer_development/endpoints* mongo_partial/'; \
-				echo 'sudo cp mongo_dump/query_composer_development/system*    mongo_partial/'; \
-				echo 'sudo cp mongo_dump/query_composer_development/users*     mongo_partial/'; \
+				echo 'sudo cp mongo/dump/query_composer_development/delayed*   mongo_partial/'; \
+				echo 'sudo cp mongo/dump/query_composer_development/endpoints* mongo_partial/'; \
+				echo 'sudo cp mongo/dump/query_composer_development/system*    mongo_partial/'; \
+				echo 'sudo cp mongo/dump/query_composer_development/users*     mongo_partial/'; \
 				echo ''; \
 				echo ''; \
 				echo '# Backup cert, dacs, drugref, keys and mongo_partial folders to ownCloud'; \
@@ -410,7 +391,8 @@ config-oc:
 				echo '	cert \\'; \
 				echo '	dacs \\'; \
 				echo '	drugref \\'; \
-				echo '	keys \\'; \
+				echo '	epx \\'; \
+				echo '	hub \\'; \
 				echo '	mongo_partial \\'; \
 				echo '	recovery;'; \
 				echo 'do'; \
@@ -419,6 +401,11 @@ config-oc:
 			) | sudo tee -a \${PATH_HOST}/oc_backup.sh; \
 			sudo chmod 700 \${PATH_HOST}/oc_backup.sh; \
 		fi
+
+
+		PATH_EPX_SSH_AUTOSSH=${PATH_HOST}/epx/cloud_shared
+
+
 
 	@	# Add script to cron
 	@	#
@@ -517,7 +504,7 @@ define config_ep
 	# Add Hub to known_hosts and receive Endpoint's public key
 	#
 	sudo docker exec ep$1 ssh -p $(PORT_AUTOSSH) -o StrictHostKeyChecking=no autossh@$(URL_HUB) 2> /dev/null || true
-	sudo docker exec ep$1 /app/key_exchange.sh | sudo tee -a $(PATH_KEYS_HUB_AUTH)/authorized_keys > /dev/null
+	sudo docker exec ep$1 /app/key_exchange.sh | sudo tee -a $(PATH_HUB_SSH_AUTOSSH)/authorized_keys > /dev/null
 
 	# Add Endpoint to the HubDB
 	#
