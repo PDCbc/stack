@@ -1,49 +1,3 @@
-#########################
-# Environment Variables #
-#########################
-
-# Source configuration file
-#
-include config.env
-
-
-# Set branch defaults
-#
-ifeq ($(BUILD_MODE), dev)
-	BRANCH_DEFAULT = dev
-else ifeq ($(BUILD_MODE), master)
-	BRANCH_DEFAULT = master
-else
-	BRANCH_DEFAULT = $(RELEASE_VERSION)
-endif
-
-
-# Append Docker run commands for non-production modes
-#
-ifneq ($(BUILD_MODE), prod)
-	DOCKER_AUTH_PRODUCTION += $(DOCKER_AUTH_DEV_APPEND)
-	DOCKER_DCLAPI_PRODUCTION += $(DOCKER_DCLAPI_DEV_APPEND)
-	DOCKER_ENDPOINT_PRODUCTION += $(DOCKER_ENDPOINT_DEV_APPEND)
-	DOCKER_HAPI_PRODUCTION += $(DOCKER_HAPI_DEV_APPEND)
-	DOCKER_HUB_PRODUCTION += $(DOCKER_HUB_DEV_APPEND)
-	DOCKER_HUBDB_PRODUCTION += $(DOCKER_HUBDB_DEV_APPEND)
-	DOCKER_QI_PRODUCTION += $(DOCKER_QI_DEV_APPEND)
-	DOCKER_VIZ_PRODUCTION += $(DOCKER_VIZ_DEV_APPEND)
-endif
-
-
-# Use branch defaults where overrides are not provided
-#
-BRANCH_AUTH ?= $(BRANCH_DEFAULT)
-BRANCH_DCLAPI ?= $(BRANCH_DEFAULT)
-BRANCH_ENDPOINT ?= $(BRANCH_DEFAULT)
-BRANCH_HAPI ?= $(BRANCH_DEFAULT)
-BRANCH_HUB ?= $(BRANCH_DEFAULT)
-BRANCH_HUBDB ?= $(BRANCH_DEFAULT)
-BRANCH_QI ?= $(BRANCH_DEFAULT)
-BRANCH_VIZ ?= $(BRANCH_DEFAULT)
-
-
 ################
 # General Jobs #
 ################
@@ -54,7 +8,7 @@ configure: config-packages config-mongodb config-bash config-img-pull
 
 clone: clone-auth clone-dclapi clone-hubdb clone-hub clone-hapi clone-viz clone-queries clone-endpoint
 
-containers: clone hubdb hub auth ep-sample dclapi hapi viz mode-inform
+containers: clone hubdb hub auth dclapi hapi viz queries ep-sample mode-inform
 
 clone-update: say-goodbye clone-remove clone
 
@@ -102,11 +56,6 @@ hubdb:
 hub:
 	@	sudo mkdir -p $(PATH_HUB_SSH_HOST) $(PATH_HUB_SSH_AUTOSSH)
 	@	$(call dockerize,hub,$(DOCKER_HUB_PRODUCTION))
-	@	if [ $(BUILD_MODE) != prod ]; \
-		then \
-			$(MAKE) ep-sample; \
-			$(MAKE) queries; \
-		fi
 
 
 auth:
@@ -116,8 +65,6 @@ auth:
 
 dclapi:
 	@	sudo mkdir -p $(PATH_DRUGREF)
-	@	sudo test -s $(PATH_DRUGREF)/dcl.sqlite || \
-		sudo cp build/dclapi/drugref/dcl.sqlite $(PATH_DRUGREF)
 	@	$(call dockerize,dclapi,$(DOCKER_DCLAPI_PRODUCTION))
 
 
@@ -127,16 +74,11 @@ hapi:
 
 viz:
 	@	sudo mkdir -p $(PATH_CERT)
-	@	[ -f ./cert/server.crt -a ! -f $(PATH_CERT)/server.crt ]&& \
-			sudo cp ./cert/server.crt $(PATH_CERT) || \
-			true
-	@	[ -f ./cert/server.key -a ! -f $(PATH_CERT)/server.crt ]|| \
-			sudo cp ./cert/server.key $(PATH_CERT) || \
-			true
 	@	$(call dockerize,viz,$(DOCKER_VIZ_PRODUCTION))
 
 
 ep-sample:
+	@	sudo mkdir -p $(PATH_EPX_AUTOSSH)
 	@	$(call dockerize,endpoint,$(DOCKER_ENDPOINT_PRODUCTION),0)
 	@	$(call config_ep,0,cpsid,cpsid,admin,TEST,sample)
 
@@ -157,6 +99,7 @@ containers-remove:
 ################################
 
 ep:
+	@	sudo mkdir -p $(PATH_EPX_AUTOSSH)
 	@	if [ -z "$(gID)" ] || [ -z "$(DOCTOR)" ]; \
 		then \
 			echo; \
@@ -184,19 +127,12 @@ ep-rm:
 
 
 ep-cloud:
-	@	sudo mkdir -p $(PATH_HUB_SSH_AUTOSSH)
-	@	if [ ! -e $(PATH_HUB_SSH_AUTOSSH) ]; \
-		then \
-			sudo cp id_rsa.pub id_rsa known_hosts $(PATH_HUB_SSH_AUTOSSH); \
-			sudo chown root $(PATH_HUB_SSH_AUTOSSH)/*; \
-			fi
 	@	echo
-	@	echo "Please enter a gatewayID (####) to run: "; \
-		read gID; \
+	@	echo "Please enter a gatewayID (####) to run: "
+	@	read gID; \
 		NAME=pdc-$${gID}; \
 		PORT=`expr 40000 + $${gID}`; \
-		sudo docker run -dt --name $${NAME} -h $${NAME} -e gID=$${gID} --env-file=config.env --restart='always' -p $${PORT}:3001 -v $(PATH_HUB_SSH_AUTOSSH):/root/.ssh/:ro pdc.io/endpoint; \
-		sudo docker exec $${NAME} /app/key_exchange.sh
+		sudo docker run -dt --name $${NAME} -h $${NAME} -e gID=$${gID} --env-file=config.env --restart='always' -p $${PORT}:3001 -v $(PATH_EPX_AUTOSSH):/root/.ssh/:ro pdc.io/endpoint; \
 
 
 ep-cloud-rm:
@@ -224,7 +160,7 @@ cadvisor:
 say-goodbye:
 	@	echo
 	@	echo "DESTROY WARNING: Backup any changes before continuing!"
-	@	echo
+	@	sudo -k echo
 	@	echo "Please type 'goodbye' to confirm"
 	@	read CONFIRM; \
 		[ "$${CONFIRM}" = "goodbye" ] || ( echo "Not confirmed"; exit )
@@ -291,11 +227,12 @@ clone-remove:
 
 config-packages:
 	@	sudo apt-get update
-	@	( which docker )||( \
-			sudo apt-get install -y linux-image-extra-$$(uname -r); \
-			sudo modprobe aufs; \
-			wget -qO- https://get.docker.com/ | sh; \
-		 )
+	@	( which docker )|| \
+			( \
+				sudo apt-get install -y linux-image-extra-$$(uname -r); \
+				sudo modprobe aufs; \
+				wget -qO- https://get.docker.com/ | sh; \
+			)
 
 
 config-mongodb:
@@ -385,7 +322,7 @@ config-oc:
 				echo 'PASSWORD=$\${OWNCLOUD_PW}'; \
 				echo 'OWNCLOUD=$\${OWNCLOUD_URL}'; \
 				echo '#'; \
-				echo 'OC_PATH=$${OWNCLOUD}/remote.php/webdav'; \
+				echo 'OC_PATH=$${OWNCLOUD}/owncloud/remote.php/webdav/stack'; \
 				echo '#'; \
 				echo 'for DIR in \\'; \
 				echo '	cert \\'; \
@@ -401,10 +338,6 @@ config-oc:
 			) | sudo tee -a \${PATH_HOST}/oc_backup.sh; \
 			sudo chmod 700 \${PATH_HOST}/oc_backup.sh; \
 		fi
-
-
-		PATH_EPX_SSH_AUTOSSH=${PATH_HOST}/epx/cloud_shared
-
 
 
 	@	# Add script to cron
@@ -536,3 +469,51 @@ define mode_change
 		$(MAKE) clone-update; \
 	fi
 endef
+
+
+#########################
+# Environment Variables #
+#########################
+
+# Source configuration file
+#
+include config.env
+
+
+# Set branch defaults
+#
+ifeq ($(BUILD_MODE), dev)
+	BRANCH_DEFAULT = dev
+else ifeq ($(BUILD_MODE), master)
+	BRANCH_DEFAULT = master
+else
+	BRANCH_DEFAULT = $(RELEASE_VERSION)
+endif
+
+
+# Append Docker run commands for non-production modes
+#
+ifneq ($(BUILD_MODE), prod)
+	DOCKER_AUTH_PRODUCTION += $(DOCKER_AUTH_DEV_APPEND)
+	DOCKER_DCLAPI_PRODUCTION += $(DOCKER_DCLAPI_DEV_APPEND)
+	DOCKER_ENDPOINT_PRODUCTION += $(DOCKER_ENDPOINT_DEV_APPEND)
+	DOCKER_EPXCLOUD_PRODUCTION += $(DOCKER_ENDPOINT_DEV_APPEND)
+	DOCKER_HAPI_PRODUCTION += $(DOCKER_HAPI_DEV_APPEND)
+	DOCKER_HUB_PRODUCTION += $(DOCKER_HUB_DEV_APPEND)
+	DOCKER_HUBDB_PRODUCTION += $(DOCKER_HUBDB_DEV_APPEND)
+	DOCKER_QI_PRODUCTION += $(DOCKER_QI_DEV_APPEND)
+	DOCKER_VIZ_PRODUCTION += $(DOCKER_VIZ_DEV_APPEND)
+endif
+
+
+# Use branch defaults where overrides are not provided
+#
+BRANCH_AUTH ?= $(BRANCH_DEFAULT)
+BRANCH_DCLAPI ?= $(BRANCH_DEFAULT)
+BRANCH_ENDPOINT ?= $(BRANCH_DEFAULT)
+BRANCH_EPXCLOUD ?= $(BRANCH_DEFAULT)
+BRANCH_HAPI ?= $(BRANCH_DEFAULT)
+BRANCH_HUB ?= $(BRANCH_DEFAULT)
+BRANCH_HUBDB ?= $(BRANCH_DEFAULT)
+BRANCH_QI ?= $(BRANCH_DEFAULT)
+BRANCH_VIZ ?= $(BRANCH_DEFAULT)
