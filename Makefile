@@ -54,7 +54,7 @@ hubdb:
 
 
 hub:
-	@	sudo mkdir -p $(PATH_HUB_SSH_HOST) $(PATH_HUB_SSH_AUTOSSH)
+	@	sudo mkdir -p $(PATH_HUB_AUTHKEYS) $(PATH_HUB_AUTOSSH)
 	@	$(call dockerize,hub,$(DOCKER_HUB_PRODUCTION))
 
 
@@ -304,6 +304,11 @@ config-oc:
 				echo '#'; \
 				echo 'SCRIPT_DIR=$$( cd $$( dirname $${BASH_SOURCE[0]} ) && pwd )'; \
 				echo 'cd $${SCRIPT_DIR}'; \
+				echo ''; \
+				echo ''; \
+				echo '# Create a MongoDB dump'; \
+				echo '#'; \
+				echo 'sudo docker exec hubdb /app/mongodb_dump.sh';\
 				echo ''; \
 				echo ''; \
 				echo '# Copy non-sensitive MongoDB dumps to ./mongo_partial/'; \
