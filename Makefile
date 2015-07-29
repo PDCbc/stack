@@ -269,6 +269,7 @@ config-bash:
 				echo "alias r='sudo docker rm -fv'"; \
 				echo "alias s='sudo docker ps -a | less -S'"; \
 				echo "alias m='make'"; \
+				echo "alias gitsubdiffs='find . -maxdepth 1 -mindepth 1 -type d -exec git -C {} status \;'"; \
 			) | tee -a $${HOME}/.bashrc; \
 			echo ""; \
 			echo ""; \
