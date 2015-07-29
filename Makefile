@@ -278,8 +278,8 @@ config-bash:
 		fi
 
 
-config-oc:
-	# Add repository and install owncloud cmd client
+config-backups:
+	# Add repository, install owncloud cmd client and run cronjobs for infrastructure and MongoDB data
 	#
 	@	echo 'deb http://download.opensuse.org/repositories/isv:/ownCloud:/desktop/xUbuntu_14.04/ /' \
 			| sudo tee /etc/apt/sources.list.d/owncloud-client.list
@@ -352,9 +352,16 @@ config-oc:
 		then \
 		  ( \
 		    echo ''; \
+		    echo ''; \
 		    echo '# Backup to ownCloud every 30 minutes'; \
 		    echo '#'; \
 		    echo '0,30 * * * * $\${PATH_HOST}/oc_backup.sh'; \
+		    echo ''; \
+		    echo ''; \
+		    echo '# Dump MongoDB nightly for UVic backup'; \
+		    echo '#'; \
+		    echo '15 1 * * * sudo docker exec hubdb /app/mongodb_dump.sh'; \
+		    echo ''; \
 		  ) | sudo tee -a /var/spool/cron/crontabs/root; \
 		fi
 
