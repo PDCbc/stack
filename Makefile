@@ -48,13 +48,13 @@ prod:
 #########################
 
 hubdb:
-	@	sudo mkdir -p $(PATH_MONGO)
+	@	sudo mkdir -p $(PATH_MONGO_DB) $(PATH_MONGO_DUMP)
 	@	$(call dockerize,hubdb,$(DOCKER_HUBDB_PRODUCTION))
 	@	sudo docker exec hubdb /app/mongodb_init.sh > /dev/null
 
 
 hub:
-	@	sudo mkdir -p $(PATH_HUB_SSH_HOST) $(PATH_HUB_SSH_AUTOSSH)
+	@	sudo mkdir -p $(PATH_HUB_AUTHKEYS) $(PATH_HUB_AUTOSSH)
 	@	$(call dockerize,hub,$(DOCKER_HUB_PRODUCTION))
 
 
@@ -269,6 +269,7 @@ config-bash:
 				echo "alias r='sudo docker rm -fv'"; \
 				echo "alias s='sudo docker ps -a | less -S'"; \
 				echo "alias m='make'"; \
+				echo "alias gitsubdiffs='find . -maxdepth 1 -mindepth 1 -type d -exec git -C {} status \;'"; \
 			) | tee -a $${HOME}/.bashrc; \
 			echo ""; \
 			echo ""; \
@@ -277,8 +278,8 @@ config-bash:
 		fi
 
 
-config-oc:
-	# Add repository and install owncloud cmd client
+config-backups:
+	# Add repository, install owncloud cmd client and run cronjobs for infrastructure and MongoDB data
 	#
 	@	echo 'deb http://download.opensuse.org/repositories/isv:/ownCloud:/desktop/xUbuntu_14.04/ /' \
 			| sudo tee /etc/apt/sources.list.d/owncloud-client.list
@@ -304,6 +305,11 @@ config-oc:
 				echo '#'; \
 				echo 'SCRIPT_DIR=$$( cd $$( dirname $${BASH_SOURCE[0]} ) && pwd )'; \
 				echo 'cd $${SCRIPT_DIR}'; \
+				echo ''; \
+				echo ''; \
+				echo '# Create a MongoDB dump'; \
+				echo '#'; \
+				echo 'sudo docker exec hubdb /app/mongodb_dump.sh';\
 				echo ''; \
 				echo ''; \
 				echo '# Copy non-sensitive MongoDB dumps to ./mongo_partial/'; \
@@ -346,9 +352,16 @@ config-oc:
 		then \
 		  ( \
 		    echo ''; \
+		    echo ''; \
 		    echo '# Backup to ownCloud every 30 minutes'; \
 		    echo '#'; \
 		    echo '0,30 * * * * $\${PATH_HOST}/oc_backup.sh'; \
+		    echo ''; \
+		    echo ''; \
+		    echo '# Dump MongoDB nightly for UVic backup'; \
+		    echo '#'; \
+		    echo '15 1 * * * sudo docker exec hubdb /app/mongodb_dump.sh'; \
+		    echo ''; \
 		  ) | sudo tee -a /var/spool/cron/crontabs/root; \
 		fi
 
@@ -437,7 +450,7 @@ define config_ep
 	# Add Hub to known_hosts and receive Endpoint's public key
 	#
 	sudo docker exec ep$1 ssh -p $(PORT_AUTOSSH) -o StrictHostKeyChecking=no autossh@$(URL_HUB) 2> /dev/null || true
-	sudo docker exec ep$1 /app/key_exchange.sh | sudo tee -a $(PATH_HUB_SSH_AUTOSSH)/authorized_keys > /dev/null
+	sudo docker exec ep$1 /app/key_exchange.sh | sudo tee -a $(PATH_HUB_AUTOSSH)/authorized_keys > /dev/null
 
 	# Add Endpoint to the HubDB
 	#
