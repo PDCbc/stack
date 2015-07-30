@@ -48,43 +48,43 @@ prod:
 #########################
 
 hubdb:
-	@	sudo mkdir -p $(PATH_MONGO)
-	@	$(call dockerize,hubdb,$(DOCKER_HUBDB_PRODUCTION))
+	@	sudo mkdir -p $(PATH_MONGO_DB) $(PATH_MONGO_DUMP)
+	@	$(call dockerize,hubdb,$(DOCKER_HUBDB_PROD))
 	@	sudo docker exec hubdb /app/mongodb_init.sh > /dev/null
 
 
 hub:
-	@	sudo mkdir -p $(PATH_HUB_SSH_HOST) $(PATH_HUB_SSH_AUTOSSH)
-	@	$(call dockerize,hub,$(DOCKER_HUB_PRODUCTION))
+	@	sudo mkdir -p $(PATH_HUB_AUTHKEYS) $(PATH_HUB_AUTOSSH)
+	@	$(call dockerize,hub,$(DOCKER_HUB_PROD))
 
 
 auth:
 	@	sudo mkdir -p $(PATH_DACS)
-	@	$(call dockerize,auth,$(DOCKER_AUTH_PRODUCTION))
+	@	$(call dockerize,auth,$(DOCKER_AUTH_PROD))
 
 
 dclapi:
 	@	sudo mkdir -p $(PATH_DRUGREF)
-	@	$(call dockerize,dclapi,$(DOCKER_DCLAPI_PRODUCTION))
+	@	$(call dockerize,dclapi,$(DOCKER_DCLAPI_PROD))
 
 
 hapi:
-	@	$(call dockerize,hapi,$(DOCKER_HAPI_PRODUCTION))
+	@	$(call dockerize,hapi,$(DOCKER_HAPI_PROD))
 
 
 viz:
 	@	sudo mkdir -p $(PATH_CERT)
-	@	$(call dockerize,viz,$(DOCKER_VIZ_PRODUCTION))
+	@	$(call dockerize,viz,$(DOCKER_VIZ_PROD))
 
 
 ep-sample:
 	@	sudo mkdir -p $(PATH_EPX_AUTOSSH)
-	@	$(call dockerize,endpoint,$(DOCKER_ENDPOINT_PRODUCTION),0)
+	@	$(call dockerize,endpoint,$(DOCKER_ENDPOINT_PROD),0)
 	@	$(call config_ep,0,cpsid,cpsid,admin,TEST,sample)
 
 
 queries:
-	@	$(call dockerize,queries,$(DOCKER_QI_PRODUCTION))
+	@	$(call dockerize,queries,$(DOCKER_QI_PROD))
 	@	sudo docker logs -f queries
 	@	$(call docker_remove,queries)
 
@@ -107,7 +107,7 @@ ep:
 			echo "Usage: make ep [gID=#] [DOCTOR=#####] [op:JURISDUCTION] [op:ROLE] [op:PASSWORD]"; \
 			echo; \
 		else \
-			$(call dockerize_ep,endpoint,$(DOCKER_ENDPOINT_PRODUCTION),$(gID)); \
+			$(call dockerize_ep,endpoint,$(DOCKER_ENDPOINT_PROD),$(gID)); \
 			$(call config_ep,$(gID),$(DOCTOR),$(ROLE),$(JURISDICTION),$(PASSWORD)); \
 		fi
 
@@ -269,6 +269,7 @@ config-bash:
 				echo "alias r='sudo docker rm -fv'"; \
 				echo "alias s='sudo docker ps -a | less -S'"; \
 				echo "alias m='make'"; \
+				echo "alias gitsubdiffs='find . -maxdepth 1 -mindepth 1 -type d -exec git -C {} status \;'"; \
 			) | tee -a $${HOME}/.bashrc; \
 			echo ""; \
 			echo ""; \
@@ -277,8 +278,8 @@ config-bash:
 		fi
 
 
-config-oc:
-	# Add repository and install owncloud cmd client
+config-backups:
+	# Add repository, install owncloud cmd client and run cronjobs for infrastructure and MongoDB data
 	#
 	@	echo 'deb http://download.opensuse.org/repositories/isv:/ownCloud:/desktop/xUbuntu_14.04/ /' \
 			| sudo tee /etc/apt/sources.list.d/owncloud-client.list
@@ -304,6 +305,11 @@ config-oc:
 				echo '#'; \
 				echo 'SCRIPT_DIR=$$( cd $$( dirname $${BASH_SOURCE[0]} ) && pwd )'; \
 				echo 'cd $${SCRIPT_DIR}'; \
+				echo ''; \
+				echo ''; \
+				echo '# Create a MongoDB dump'; \
+				echo '#'; \
+				echo 'sudo docker exec hubdb /app/mongodb_dump.sh';\
 				echo ''; \
 				echo ''; \
 				echo '# Copy non-sensitive MongoDB dumps to ./mongo_partial/'; \
@@ -346,9 +352,16 @@ config-oc:
 		then \
 		  ( \
 		    echo ''; \
+		    echo ''; \
 		    echo '# Backup to ownCloud every 30 minutes'; \
 		    echo '#'; \
 		    echo '0,30 * * * * $\${PATH_HOST}/oc_backup.sh'; \
+		    echo ''; \
+		    echo ''; \
+		    echo '# Dump MongoDB nightly for UVic backup'; \
+		    echo '#'; \
+		    echo '15 1 * * * sudo docker exec hubdb /app/mongodb_dump.sh'; \
+		    echo ''; \
 		  ) | sudo tee -a /var/spool/cron/crontabs/root; \
 		fi
 
@@ -437,7 +450,7 @@ define config_ep
 	# Add Hub to known_hosts and receive Endpoint's public key
 	#
 	sudo docker exec ep$1 ssh -p $(PORT_AUTOSSH) -o StrictHostKeyChecking=no autossh@$(URL_HUB) 2> /dev/null || true
-	sudo docker exec ep$1 /app/key_exchange.sh | sudo tee -a $(PATH_HUB_SSH_AUTOSSH)/authorized_keys > /dev/null
+	sudo docker exec ep$1 /app/key_exchange.sh | sudo tee -a $(PATH_HUB_AUTOSSH)/authorized_keys > /dev/null
 
 	# Add Endpoint to the HubDB
 	#
@@ -480,40 +493,31 @@ endef
 include config.env
 
 
-# Set branch defaults
+# Override branch defaults for non-production modes
 #
-ifeq ($(BUILD_MODE), dev)
-	BRANCH_DEFAULT = dev
-else ifeq ($(BUILD_MODE), master)
-	BRANCH_DEFAULT = master
-else
-	BRANCH_DEFAULT = $(RELEASE_VERSION)
+ifneq ($(BUILD_MODE), prod)
+	BRANCH_AUTH ?= $(BUILD_MODE)
+	BRANCH_DCLAPI ?= $(BUILD_MODE)
+	BRANCH_ENDPOINT ?= $(BUILD_MODE)
+	BRANCH_EPXCLOUD ?= $(BUILD_MODE)
+	BRANCH_HAPI ?= $(BUILD_MODE)
+	BRANCH_HUB ?= $(BUILD_MODE)
+	BRANCH_HUBDB ?= $(BUILD_MODE)
+	BRANCH_QI ?= $(BUILD_MODE)
+	BRANCH_VIZ ?= $(BUILD_MODE)
 endif
 
 
 # Append Docker run commands for non-production modes
 #
 ifneq ($(BUILD_MODE), prod)
-	DOCKER_AUTH_PRODUCTION += $(DOCKER_AUTH_DEV_APPEND)
-	DOCKER_DCLAPI_PRODUCTION += $(DOCKER_DCLAPI_DEV_APPEND)
-	DOCKER_ENDPOINT_PRODUCTION += $(DOCKER_ENDPOINT_DEV_APPEND)
-	DOCKER_EPXCLOUD_PRODUCTION += $(DOCKER_ENDPOINT_DEV_APPEND)
-	DOCKER_HAPI_PRODUCTION += $(DOCKER_HAPI_DEV_APPEND)
-	DOCKER_HUB_PRODUCTION += $(DOCKER_HUB_DEV_APPEND)
-	DOCKER_HUBDB_PRODUCTION += $(DOCKER_HUBDB_DEV_APPEND)
-	DOCKER_QI_PRODUCTION += $(DOCKER_QI_DEV_APPEND)
-	DOCKER_VIZ_PRODUCTION += $(DOCKER_VIZ_DEV_APPEND)
+	DOCKER_AUTH_PROD += $(DOCKER_AUTH_JOIN)
+	DOCKER_DCLAPI_PROD += $(DOCKER_DCLAPI_JOIN)
+	DOCKER_ENDPOINT_PROD += $(DOCKER_ENDPOINT_JOIN)
+	DOCKER_EPXCLOUD_PROD += $(DOCKER_ENDPOINT_JOIN)
+	DOCKER_HAPI_PROD += $(DOCKER_HAPI_JOIN)
+	DOCKER_HUB_PROD += $(DOCKER_HUB_JOIN)
+	DOCKER_HUBDB_PROD += $(DOCKER_HUBDB_JOIN)
+	DOCKER_QI_PROD += $(DOCKER_QI_JOIN)
+	DOCKER_VIZ_PROD += $(DOCKER_VIZ_JOIN)
 endif
-
-
-# Use branch defaults where overrides are not provided
-#
-BRANCH_AUTH ?= $(BRANCH_DEFAULT)
-BRANCH_DCLAPI ?= $(BRANCH_DEFAULT)
-BRANCH_ENDPOINT ?= $(BRANCH_DEFAULT)
-BRANCH_EPXCLOUD ?= $(BRANCH_DEFAULT)
-BRANCH_HAPI ?= $(BRANCH_DEFAULT)
-BRANCH_HUB ?= $(BRANCH_DEFAULT)
-BRANCH_HUBDB ?= $(BRANCH_DEFAULT)
-BRANCH_QI ?= $(BRANCH_DEFAULT)
-BRANCH_VIZ ?= $(BRANCH_DEFAULT)
