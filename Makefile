@@ -449,7 +449,7 @@ define config_ep
 	#
 	# Add Hub to known_hosts and receive Endpoint's public key
 	#
-	sudo docker exec ep$1 ssh -p $(PORT_AUTOSSH) -o StrictHostKeyChecking=no autossh@$(URL_HUB) 2> /dev/null || true
+	sudo docker exec ep$1 ssh -p $(PORT_AUTOSSH) -o StrictHostKeyChecking=no autossh@$(IP_HUB) 2> /dev/null || true
 	sudo docker exec ep$1 /app/key_exchange.sh | sudo tee -a $(PATH_HUB_AUTOSSH)/authorized_keys > /dev/null
 
 	# Add Endpoint to the HubDB
