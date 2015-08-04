@@ -288,10 +288,20 @@ config-backups:
 	@	sudo apt-get update
 	@	sudo apt-get install -y owncloud-client
 
-	@	# Create backup script
+	@	# Create backup script, if necessary
 	@	#
 	@	if [ ! -e ${PATH_HOST}/oc_backup.sh ]; \
 		then \
+			echo; \
+			echo "Please configure ownCloud"; \
+			echo; \
+			echo "Server:"; \
+			read OWNCLOUD_URL; \
+			echo "User name:"; \
+			read OWNCLOUD_ID; \
+			echo "Password:"; \
+			read OWNCLOUD_PW; \
+			echo; \
 			( \
 				echo '#!/bin/bash'; \
 				echo '#'; \
@@ -324,9 +334,9 @@ config-backups:
 				echo ''; \
 				echo '# Backup cert, dacs, drugref, keys and mongo_partial folders to ownCloud'; \
 				echo '#'; \
-				echo 'USERNAME=$\${OWNCLOUD_ID}'; \
-				echo 'PASSWORD=$\${OWNCLOUD_PW}'; \
-				echo 'OWNCLOUD=$\${OWNCLOUD_URL}'; \
+				echo 'USERNAME='$${OWNCLOUD_ID}; \
+				echo 'PASSWORD='$${OWNCLOUD_PW}; \
+				echo 'OWNCLOUD='$${OWNCLOUD_URL}; \
 				echo '#'; \
 				echo 'OC_PATH=$${OWNCLOUD}/owncloud/remote.php/webdav/stack'; \
 				echo '#'; \
