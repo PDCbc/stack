@@ -476,6 +476,18 @@ define config_ep
 	# If doctorID is cpsid, then import sample 10 (cpsid) data
 	#
 	[ "$2" != "cpsid" ] || sudo docker exec ep$1 /app/sample10/import.sh
+
+	# Enable SSH and regenerate host keys
+	#
+	sudo docker exec -t ep$1 rm -f /etc/service/sshd/down
+	sudo docker exec -t ep$1 update-rc.d ssh defaults
+	sudo docker exec -t ep$1 /etc/my_init.d/00_regen_ssh_host_keys.sh
+	sudo docker exec -t ep$1 service ssh start
+
+	# Set pdcadmin's password and rights to .ssh/
+	#
+	sudo docker exec -t ep$1 chown -R pdcadmin:pdcadmin /home/pdcadmin/.ssh/
+	sudo docker exec -ti ep$1 passwd pdcadmin
 endef
 
 
