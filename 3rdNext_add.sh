@@ -29,6 +29,12 @@ fi
 export EP_NUM=$(printf "%04d" ${1})
 export EP_NAME=pdc-${EP_NUM} 
 export DOCTOR=${2}
+export ADMIN_PORT=`expr 44000 + ${EP_NUM}`
+
+
+# Pass command for appending to Endpoint's providers.txt
+#
+sudo docker exec -ti hub ssh -t -p ${ADMIN_PORT} pdcadmin@localhost /app/provider_add.sh ${DOCTOR}
 
 
 # Add Endpoint to the HubDB
@@ -41,3 +47,14 @@ sudo docker exec hubdb /app/endpoint_add.sh $1 | grep WriteResult
 sudo docker exec -ti auth /sbin/setuser app /app/dacs_add.sh \
         ${DOCTOR} $(sudo docker exec hubdb /app/endpoint_getClinicID.sh ${EP_NUM}) \
         ${EP_NAME} admin TEST sample
+
+
+# 3. HAPI
+# +cpsid to each group for participating, lib/groups, populate object around line 14
+#
+# ...
+
+
+# 4. Add cpsid to library function filterProviders on Hub
+#
+# ...
