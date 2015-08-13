@@ -69,6 +69,7 @@ dclapi:
 
 
 hapi:
+	@	sudo mkdir -p $(PATH_HAPI_GROUPS)
 	@	$(call dockerize,hapi,$(DOCKER_HAPI_PROD))
 
 
@@ -487,7 +488,7 @@ define config_ep
 	# Set pdcadmin's password and rights to .ssh/
 	#
 	sudo docker exec -t ep$1 chown -R pdcadmin:pdcadmin /home/pdcadmin/.ssh/
-	sudo docker exec -ti ep$1 passwd pdcadmin
+	sudo docker exec -ti ep0 /bin/bash -c 'echo "pdcadmin:sample" | chpasswd'
 endef
 
 
