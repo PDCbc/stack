@@ -69,6 +69,7 @@ dclapi:
 
 
 hapi:
+	@	sudo mkdir -p $(PATH_HAPI_GROUPS)
 	@	$(call dockerize,hapi,$(DOCKER_HAPI_PROD))
 
 
@@ -270,6 +271,7 @@ config-bash:
 				echo "alias s='sudo docker ps -a | less -S'"; \
 				echo "alias m='make'"; \
 				echo "alias gitsubdiffs='find . -maxdepth 1 -mindepth 1 -type d -exec git -C {} status \;'"; \
+				echo "alias ggraph='git log --oneline --graph --decorate --color'"; \
 			) | tee -a $${HOME}/.bashrc; \
 			echo ""; \
 			echo ""; \
@@ -288,10 +290,20 @@ config-backups:
 	@	sudo apt-get update
 	@	sudo apt-get install -y owncloud-client
 
-	@	# Create backup script
+	@	# Create backup script, if necessary
 	@	#
 	@	if [ ! -e ${PATH_HOST}/oc_backup.sh ]; \
 		then \
+			echo; \
+			echo "Please configure ownCloud"; \
+			echo; \
+			echo "Server:"; \
+			read OWNCLOUD_URL; \
+			echo "User name:"; \
+			read OWNCLOUD_ID; \
+			echo "Password:"; \
+			read OWNCLOUD_PW; \
+			echo; \
 			( \
 				echo '#!/bin/bash'; \
 				echo '#'; \
@@ -324,9 +336,9 @@ config-backups:
 				echo ''; \
 				echo '# Backup cert, dacs, drugref, keys and mongo_partial folders to ownCloud'; \
 				echo '#'; \
-				echo 'USERNAME=$\${OWNCLOUD_ID}'; \
-				echo 'PASSWORD=$\${OWNCLOUD_PW}'; \
-				echo 'OWNCLOUD=$\${OWNCLOUD_URL}'; \
+				echo 'USERNAME='$${OWNCLOUD_ID}; \
+				echo 'PASSWORD='$${OWNCLOUD_PW}; \
+				echo 'OWNCLOUD='$${OWNCLOUD_URL}; \
 				echo '#'; \
 				echo 'OC_PATH=$${OWNCLOUD}/owncloud/remote.php/webdav/stack'; \
 				echo '#'; \
@@ -449,7 +461,7 @@ define config_ep
 	#
 	# Add Hub to known_hosts and receive Endpoint's public key
 	#
-	sudo docker exec ep$1 ssh -p $(PORT_AUTOSSH) -o StrictHostKeyChecking=no autossh@$(URL_HUB) 2> /dev/null || true
+	sudo docker exec ep$1 ssh -p $(PORT_AUTOSSH) -o StrictHostKeyChecking=no autossh@$(IP_HUB) 2> /dev/null || true
 	sudo docker exec ep$1 /app/key_exchange.sh | sudo tee -a $(PATH_HUB_AUTOSSH)/authorized_keys > /dev/null
 
 	# Add Endpoint to the HubDB
@@ -465,6 +477,18 @@ define config_ep
 	# If doctorID is cpsid, then import sample 10 (cpsid) data
 	#
 	[ "$2" != "cpsid" ] || sudo docker exec ep$1 /app/sample10/import.sh
+
+	# Enable SSH and regenerate host keys
+	#
+	sudo docker exec -t ep$1 rm -f /etc/service/sshd/down
+	sudo docker exec -t ep$1 update-rc.d ssh defaults
+	sudo docker exec -t ep$1 /etc/my_init.d/00_regen_ssh_host_keys.sh
+	sudo docker exec -t ep$1 service ssh start
+
+	# Set pdcadmin's password and rights to .ssh/
+	#
+	sudo docker exec -t ep$1 chown -R pdcadmin:pdcadmin /home/pdcadmin/.ssh/
+	sudo docker exec -t ep$1 /bin/bash -c 'echo "pdcadmin:sample" | chpasswd'	
 endef
 
 
