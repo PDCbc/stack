@@ -91,7 +91,8 @@ queries:
 
 
 containers-remove:
-	@	( sudo docker stop `sudo docker ps -q` )&&( sudo docker rm `sudo docker ps -a -q` )|| \
+	@	(( sudo docker stop ep0 viz hapi dclapi auth hub hubdb )&& \\
+			( sudo docker rm ep0 viz hapi dclapi auth hub hubdb ))|| \
 			echo "No containers to delete"
 
 
