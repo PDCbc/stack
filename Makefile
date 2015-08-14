@@ -373,10 +373,23 @@ config-backups:
 		    echo '# Dump MongoDB nightly for UVic backup'; \
 		    echo '#'; \
 		    echo '15 1 * * * sudo docker exec hubdb /app/mongodb_dump.sh'; \
-		    echo ''; \
 		  ) | sudo tee -a /var/spool/cron/crontabs/root; \
 		fi
 
+
+config-3rdNext:
+	@	# Add script to cron
+	@       #
+	@       if((! sudo test -e /var/spool/cron/crontabs/root )||(! sudo grep --quiet '3rdNext_import.sh' /var/spool/cron/crontabs/root )); \
+	then \
+		( \
+			echo ''; \
+			echo ''; \
+			echo '# Import 3rdNext dumps'; \
+			echo '#'; \
+			echo '0 20 * * 2 * sudo docker exec hubdb /app/3rdNext_import.sh'; \
+		) | sudo tee -a /var/spool/cron/crontabs/root; \
+	fi
 
 ######################
 # Docker Image Pulls #
