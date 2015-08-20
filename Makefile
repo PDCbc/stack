@@ -91,7 +91,7 @@ queries:
 
 
 containers-remove:
-	@	(( sudo docker stop ep0 viz hapi dclapi auth hub hubdb )&& \\
+	@	(( sudo docker stop ep0 viz hapi dclapi auth hub hubdb )&& \
 			( sudo docker rm ep0 viz hapi dclapi auth hub hubdb ))|| \
 			echo "No containers to delete"
 
@@ -391,6 +391,7 @@ config-3rdNext:
 			echo '0 20 * * 2 * sudo docker exec hubdb /app/3rdNext_import.sh'; \
 		) | sudo tee -a /var/spool/cron/crontabs/root; \
 	fi
+
 
 ######################
 # Docker Image Pulls #
