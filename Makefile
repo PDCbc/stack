@@ -8,7 +8,8 @@ configure: config-packages config-mongodb config-bash config-img-pull
 
 clone: clone-auth clone-dclapi clone-hubdb clone-hub clone-hapi clone-viz clone-queries clone-endpoint
 
-containers: clone hubdb hub auth dclapi hapi viz queries ep-sample mode-inform
+containers: clone hubdb hub auth dclapi hapi viz queries mode-inform
+#containers: clone hubdb hub auth dclapi hapi viz queries ep-sample mode-inform
 
 clone-update: say-goodbye clone-remove clone
 
@@ -48,13 +49,13 @@ prod:
 #########################
 
 hubdb:
-	@	sudo mkdir -p $(PATH_MONGO_DB) $(PATH_MONGO_DUMP)
+	@	sudo mkdir -p $(PATH_MONGO_LIVE) $(PATH_MONGO_DUMP)
 	@	$(call dockerize,hubdb,$(DOCKER_HUBDB_PROD))
 	@	sudo docker exec hubdb /app/mongodb_init.sh > /dev/null
 
 
 hub:
-	@	sudo mkdir -p $(PATH_HUB_AUTHKEYS) $(PATH_HUB_AUTOSSH)
+	@	sudo mkdir -p $(PATH_SSH_KEYS_HUB) $(PATH_AUTHORIZED_KEYS)
 	@	$(call dockerize,hub,$(DOCKER_HUB_PROD))
 
 
@@ -69,7 +70,7 @@ dclapi:
 
 
 hapi:
-	@	sudo mkdir -p $(PATH_HAPI_GROUPS)
+	@	sudo mkdir -p $(PATH_GROUPS)
 	@	$(call dockerize,hapi,$(DOCKER_HAPI_PROD))
 
 
@@ -79,9 +80,9 @@ viz:
 
 
 ep-sample:
-	@	sudo mkdir -p $(PATH_EPX_AUTOSSH)
+	@	sudo mkdir -p $(PATH_GATEWAY_AUTOSSH)
 	@	$(call dockerize,endpoint,$(DOCKER_ENDPOINT_PROD),0)
-	@	$(call config_ep,0,cpsid,cpsid,admin,TEST,sample)
+		$(call config_ep,0,cpsid,cpsid,admin,TEST,sample)
 
 
 queries:
@@ -101,7 +102,7 @@ containers-remove:
 ################################
 
 ep:
-	@	sudo mkdir -p $(PATH_EPX_AUTOSSH)
+	@	sudo mkdir -p $(PATH_GATEWAY_AUTOSSH)
 	@	if [ -z "$(gID)" ] || [ -z "$(DOCTOR)" ]; \
 		then \
 			echo; \
@@ -134,7 +135,7 @@ ep-cloud:
 	@	read gID; \
 		NAME=pdc-$${gID}; \
 		PORT=`expr 40000 + $${gID}`; \
-		sudo docker run -dt --name $${NAME} -h $${NAME} -e gID=$${gID} --env-file=config.env --restart='always' -p $${PORT}:3001 -v $(PATH_EPX_AUTOSSH):/root/.ssh/:ro pdc.io/endpoint; \
+		sudo docker run -dt --name $${NAME} -h $${NAME} -e gID=$${gID} --env-file=config.env --restart='always' -p $${PORT}:3001 -v $(PATH_GATEWAY_AUTOSSH):/root/.ssh/:ro pdc.io/endpoint; \
 
 
 ep-cloud-rm:
@@ -293,7 +294,7 @@ config-backups:
 
 	@	# Create backup script, if necessary
 	@	#
-	@	if [ ! -e ${PATH_HOST}/oc_backup.sh ]; \
+		if [ ! -e ${PATH_HOST}/oc_backup.sh ]; \
 		then \
 			echo; \
 			echo "Please configure ownCloud"; \
@@ -320,40 +321,34 @@ config-backups:
 				echo 'cd $${SCRIPT_DIR}'; \
 				echo ''; \
 				echo ''; \
-				echo '# Create a MongoDB dump'; \
-				echo '#'; \
-				echo 'sudo docker exec hubdb /app/mongodb_dump.sh';\
-				echo ''; \
-				echo ''; \
 				echo '# Copy non-sensitive MongoDB dumps to ./mongo_partial/'; \
 				echo '#'; \
-				echo 'sudo mkdir -p mongo_partial/'; \
-				echo 'FROM=$\${PATH_HOST}'; \
-				echo 'sudo cp mongo/dump/query_composer_development/delayed*   mongo_partial/'; \
-				echo 'sudo cp mongo/dump/query_composer_development/endpoints* mongo_partial/'; \
-				echo 'sudo cp mongo/dump/query_composer_development/system*    mongo_partial/'; \
-				echo 'sudo cp mongo/dump/query_composer_development/users*     mongo_partial/'; \
-				echo ''; \
-				echo ''; \
-				echo '# Backup cert, dacs, drugref, keys and mongo_partial folders to ownCloud'; \
+				echo 'SOURCE_DUMP=$${SCRIPT_DIR}/private/mongo_dump/query_composer_development'; \
+				echo 'DESTINATION_DUMP=$${SCRIPT_DIR}/config/mongo_partial'; \
+				echo 'sudo mkdir -p $${DESTINATION_DUMP}'; \
 				echo '#'; \
-				echo 'USERNAME='$${OWNCLOUD_ID}; \
-				echo 'PASSWORD='$${OWNCLOUD_PW}; \
-				echo 'OWNCLOUD='$${OWNCLOUD_URL}; \
-				echo '#'; \
-				echo 'OC_PATH=$${OWNCLOUD}/owncloud/remote.php/webdav/stack'; \
-				echo '#'; \
-				echo 'for DIR in \\'; \
-				echo '	cert \\'; \
-				echo '	dacs \\'; \
-				echo '	drugref \\'; \
-				echo '	epx \\'; \
-				echo '	hub \\'; \
-				echo '	mongo_partial \\'; \
-				echo '	recovery;'; \
+				echo 'for FILES in \'; \
+				echo '	delayed* \'; \
+				echo '	endpoints* \'; \
+				echo '	system* \'; \
+				echo '	users*;'; \
 				echo 'do'; \
-				echo '	sudo owncloudcmd -u $${USERNAME} -p $${PASSWORD} $${DIR} $${OC_PATH}/$${DIR};'; \
+				echo '	sudo cp $${SOURCE_DUMP}/$${FILES} $${DESTINATION_DUMP}'; \
 				echo 'done'; \
+				echo ''; \
+				echo ''; \
+				echo '# Backup config folder to ownCloud'; \
+				echo '#'; \
+				echo 'USERNAME=hub.pdc.io'; \
+				echo 'PASSWORD=cOccBgjYqDNRGhZd73A10MTVEeUPFlzI'; \
+				echo 'OWNCLOUD=cloud.pdc.io'; \
+				echo '#'; \
+				echo 'WEBDAV=https://$${OWNCLOUD}/owncloud/remote.php/webdav'; \
+				echo '#'; \
+				echo 'SOURCE_BACKUP=config'; \
+				echo 'DESTINATION_BACKUP=$${WEBDAV}/stack/$${SOURCE_BACKUP}'; \
+				echo '#'; \
+				echo 'sudo owncloudcmd -u $${USERNAME} -p $${PASSWORD} $${SOURCE_BACKUP} $${DESTINATION_BACKUP}'; \
 			) | sudo tee -a \${PATH_HOST}/oc_backup.sh; \
 			sudo chmod 700 \${PATH_HOST}/oc_backup.sh; \
 		fi
@@ -376,6 +371,8 @@ config-backups:
 		    echo '15 1 * * * sudo docker exec hubdb /app/mongodb_dump.sh'; \
 		  ) | sudo tee -a /var/spool/cron/crontabs/root; \
 		fi
+
+hold-crap:
 
 
 config-3rdNext:
@@ -477,33 +474,25 @@ define config_ep
 	# Add Hub to known_hosts and receive Endpoint's public key
 	#
 	sudo docker exec ep$1 ssh -p $(PORT_AUTOSSH) -o StrictHostKeyChecking=no autossh@$(IP_HUB) 2> /dev/null || true
-	sudo docker exec ep$1 /app/key_exchange.sh | sudo tee -a $(PATH_HUB_AUTOSSH)/authorized_keys > /dev/null
 
 	# Add Endpoint to the HubDB
 	#
-	sudo docker exec hubdb /app/endpoint_add.sh $1 | grep WriteResult
+	#sudo docker exec hubdb /app/endpoint_add.sh $1 | grep WriteResult
 
 	# Get ClinicID (Endpoint's MongoDB ObjectID) and provide it to Auth
 	#
-	sudo docker exec -t auth /sbin/setuser app /app/dacs_add.sh \
-		$2 $$(sudo docker exec hubdb /app/endpoint_getClinicID.sh $1) \
-		$3 $4 $5 $6
+	#sudo docker exec -t auth /sbin/setuser app /app/dacs_add.sh \
+	#	$2 $$(sudo docker exec hubdb /app/endpoint_getClinicID.sh $1) \
+	#	$3 $4 $5 $6
 
 	# If doctorID is cpsid, then import sample 10 (cpsid) data
 	#
 	[ "$2" != "cpsid" ] || sudo docker exec ep$1 /app/sample10/import.sh
 
-	# Enable SSH and regenerate host keys
-	#
-	sudo docker exec -t ep$1 rm -f /etc/service/sshd/down
-	sudo docker exec -t ep$1 update-rc.d ssh defaults
-	sudo docker exec -t ep$1 /etc/my_init.d/00_regen_ssh_host_keys.sh
-	sudo docker exec -t ep$1 service ssh start
-
 	# Set pdcadmin's password and rights to .ssh/
 	#
-	sudo docker exec -t ep$1 chown -R pdcadmin:pdcadmin /home/pdcadmin/.ssh/
-	sudo docker exec -t ep$1 /bin/bash -c 'echo "pdcadmin:sample" | chpasswd'	
+	#sudo docker exec -t ep$1 chown -R autossh_initiator:autossh_initiator /home/autossh_initiator/.ssh/
+	#sudo docker exec -t ep$1 /bin/bash -c 'echo "autossh_initiator:sample" | chpasswd'	
 endef
 
 

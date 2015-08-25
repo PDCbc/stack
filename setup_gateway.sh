@@ -18,7 +18,7 @@ then
         echo ""
         echo "Unexpected number of parameters."
         echo ""
-        echo "Usage: cloud_add.sh [endpointNumber] [docID #1],[docID #2],...,[docID #n]"
+        echo "Usage: setup_gateway.sh [endpointNumber] [docID #1],[docID #2],...,[docID #n]"
         echo ""
         exit
 fi
@@ -36,18 +36,30 @@ export DOCTORS=${2}
 #
 if [ ${EP_NUM} -eq 0 ]
 then
-	# Local test EP
-	echo "Local Cloud Add - not created yet!"
-	echo "cd /pdc/stack/; make ep-sample"
-if [ ${EP_NUM} -lt 500 ]
+	# Non-Group Demo - non-persistent Docker testing
+	echo "Local/Demo Add"
+	cd /pdc/stack/
+	make ep-sample
+elif [ ${EP_NUM} -lt 490 ]
 then
-	# EPs should already be built
-	sudo docker exec -ti hub ssh -t -p ${ADMIN_PORT} pdcadmin@localhost /app/provider_add.sh ${DOCTORS}
-elif [ $${EP_NUM} -lt 1000 ]
+	# Group #1 Prod range - EPs should already be built
+	echo "Group #1 Prod - should have been built already!"
+	sudo docker exec -ti hub echo ssh -t -p ${ADMIN_PORT} pdcadmin@localhost /app/provider_add.sh ${EP_NUM} ${DOCTORS}
+elif [ ${EP_NUM} -lt 500 ]
 then
-	# EPs to be created
-	echo "Cloud Add - not created yet!"
-	echo "ssh -p PORT_TBD someone@somewhere /pdc/stack/cloud_add.sh ${EP_NUM}"
+	# Group #1 Demo range - EPs created locally, use test data
+	echo "Group #1 Demo - should have been built already!"
+	echo "sudo docker exec -ti hub ssh -t -p ${ADMIN_PORT} pdcadmin@localhost /app/provider_add.sh ${DOCTORS}"
+elif [ ${EP_NUM} -lt 990 ]
+then
+	# Group #2 Prod range - EPs created offsite, use real data
+	echo "Group #2 Prod - created remotely, but not scripted yet!"
+	echo "sudo docker exec -ti hub ssh -p PORT_TBD pdcadmin@somewhere /pdc/stack/cloud_add.sh ${EP_NUM} ${DOCTORS}"
+elif [ ${EP_NUM} - lt 1000 ]
+then
+	# Group #2 Demo range - EPs created locally, use test data
+	echo "Group #2 Demo - created locally, but not scripted  yet!"
+	echo "./cloud_add.sh ${EP_NUM} ${DOCTORS}"
 else
 	echo "Out of range!"
 	exit
@@ -61,9 +73,9 @@ sudo docker exec hubdb /app/endpoint_add.sh $1 | grep WriteResult
 
 # Get ClinicID (Endpoint's MongoDB ObjectID) and provide it to Auth
 #
-sudo docker exec -ti auth /sbin/setuser app /app/dacs_add.sh \
-        ${DOC_SET} $(sudo docker exec hubdb /app/endpoint_getClinicID.sh ${EP_NUM}) \
-        ${EP_NAME} admin TEST sample
+#sudo docker exec -ti auth /sbin/setuser app /app/dacs_add.sh \
+#        ${DOCTORS} $(sudo docker exec hubdb /app/endpoint_getClinicID.sh ${EP_NUM}) \
+#        ${EP_NAME} admin TEST sample
 
 
 # 3. HAPI
