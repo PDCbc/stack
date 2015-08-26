@@ -8,8 +8,7 @@ configure: config-packages config-mongodb config-bash config-img-pull
 
 clone: clone-auth clone-dclapi clone-hubdb clone-hub clone-hapi clone-viz clone-queries clone-endpoint
 
-containers: clone hubdb hub auth dclapi hapi viz queries mode-inform
-#containers: clone hubdb hub auth dclapi hapi viz queries ep-sample mode-inform
+containers: clone hubdb hub auth dclapi hapi viz queries ep-sample mode-inform
 
 clone-update: say-goodbye clone-remove clone
 
@@ -339,9 +338,9 @@ config-backups:
 				echo ''; \
 				echo '# Backup config folder to ownCloud'; \
 				echo '#'; \
-				echo 'USERNAME=hub.pdc.io'; \
-				echo 'PASSWORD=cOccBgjYqDNRGhZd73A10MTVEeUPFlzI'; \
-				echo 'OWNCLOUD=cloud.pdc.io'; \
+				echo 'USERNAME='$${OWNCLOUD_ID}; \
+				echo 'PASSWORD='$${OWNCLOUD_PW}; \
+				echo 'OWNCLOUD='$${OWNCLOUD_URL}; \
 				echo '#'; \
 				echo 'WEBDAV=https://$${OWNCLOUD}/owncloud/remote.php/webdav'; \
 				echo '#'; \
@@ -372,8 +371,6 @@ config-backups:
 		  ) | sudo tee -a /var/spool/cron/crontabs/root; \
 		fi
 
-hold-crap:
-
 
 config-3rdNext:
 	@	# Add script to cron
@@ -385,7 +382,7 @@ config-3rdNext:
 			echo ''; \
 			echo '# Import 3rdNext dumps'; \
 			echo '#'; \
-			echo '0 20 * * 2 * sudo docker exec hubdb /app/3rdNext_import.sh'; \
+			echo '0 20 * * 2 sudo docker exec hubdb /app/3rdNext_import.sh'; \
 		) | sudo tee -a /var/spool/cron/crontabs/root; \
 	fi
 
