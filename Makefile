@@ -6,9 +6,9 @@ default: configure clone containers
 
 configure: config-packages config-mongodb config-bash config-img-pull
 
-clone: clone-auth clone-dclapi clone-hubdb clone-hub clone-hapi clone-viz clone-queries clone-endpoint
+clone: clone-auth clone-dclapi clone-hubdb clone-hub clone-hapi clone-viz clone-queries
 
-containers: clone hubdb hub auth dclapi hapi viz queries ep-sample mode-inform
+containers: clone hubdb hub auth dclapi hapi viz queries mode-inform
 
 clone-update: say-goodbye clone-remove clone
 
@@ -48,13 +48,13 @@ prod:
 #########################
 
 hubdb:
-	@	sudo mkdir -p $(PATH_MONGO_DB) $(PATH_MONGO_DUMP)
+	@	sudo mkdir -p $(PATH_MONGO_LIVE) $(PATH_MONGO_DUMP)
 	@	$(call dockerize,hubdb,$(DOCKER_HUBDB_PROD))
 	@	sudo docker exec hubdb /app/mongodb_init.sh > /dev/null
 
 
 hub:
-	@	sudo mkdir -p $(PATH_HUB_AUTHKEYS) $(PATH_HUB_AUTOSSH)
+	@	sudo mkdir -p $(PATH_SSH_KEYS_HUB) $(PATH_AUTHORIZED_KEYS)
 	@	$(call dockerize,hub,$(DOCKER_HUB_PROD))
 
 
@@ -69,19 +69,13 @@ dclapi:
 
 
 hapi:
-	@	sudo mkdir -p $(PATH_HAPI_GROUPS)
+	@	sudo mkdir -p $(PATH_GROUPS)
 	@	$(call dockerize,hapi,$(DOCKER_HAPI_PROD))
 
 
 viz:
 	@	sudo mkdir -p $(PATH_CERT)
 	@	$(call dockerize,viz,$(DOCKER_VIZ_PROD))
-
-
-ep-sample:
-	@	sudo mkdir -p $(PATH_EPX_AUTOSSH)
-	@	$(call dockerize,endpoint,$(DOCKER_ENDPOINT_PROD),0)
-	@	$(call config_ep,0,cpsid,cpsid,admin,TEST,sample)
 
 
 queries:
@@ -91,59 +85,14 @@ queries:
 
 
 containers-remove:
-	@	(( sudo docker stop ep0 viz hapi dclapi auth hub hubdb )&& \
-			( sudo docker rm ep0 viz hapi dclapi auth hub hubdb ))|| \
+	@	(( sudo docker stop viz hapi dclapi auth hub hubdb )&& \
+			( sudo docker rm viz hapi dclapi auth hub hubdb ))|| \
 			echo "No containers to delete"
 
 
 ################################
 # Tools and Testing Containers #
 ################################
-
-ep:
-	@	sudo mkdir -p $(PATH_EPX_AUTOSSH)
-	@	if [ -z "$(gID)" ] || [ -z "$(DOCTOR)" ]; \
-		then \
-			echo; \
-			echo "Create an Endpoint and Auth ID"; \
-			echo "Usage: make ep [gID=#] [DOCTOR=#####] [op:JURISDUCTION] [op:ROLE] [op:PASSWORD]"; \
-			echo; \
-		else \
-			$(call dockerize_ep,endpoint,$(DOCKER_ENDPOINT_PROD),$(gID)); \
-			$(call config_ep,$(gID),$(DOCTOR),$(ROLE),$(JURISDICTION),$(PASSWORD)); \
-		fi
-
-
-ep-rm:
-	@	if [ -z "$(gID)" ] || [ -z "$(DOCTOR)" ]; \
-		then \
-			echo; \
-			echo "Remove an Endpoint and Auth ID"; \
-			echo "Usage: make ep [gID=#] [DOCTOR=#####] [op:JURISDUCTION]"; \
-			echo; \
-		else \
-			sudo docker exec hubdb /app/endpoint_remove.sh $(gID); \
-			sudo docker exec auth /sbin/setuser app /app/dacs_remove.sh $(DOCTOR) $(JURISDICTION); \
-			sudo docker rm -fv ep$(gID); \
-		fi
-
-
-ep-cloud:
-	@	echo
-	@	echo "Please enter a gatewayID (####) to run: "
-	@	read gID; \
-		NAME=pdc-$${gID}; \
-		PORT=`expr 40000 + $${gID}`; \
-		sudo docker run -dt --name $${NAME} -h $${NAME} -e gID=$${gID} --env-file=config.env --restart='always' -p $${PORT}:3001 -v $(PATH_EPX_AUTOSSH):/root/.ssh/:ro pdc.io/endpoint; \
-
-
-ep-cloud-rm:
-	@	echo
-	@	echo "Please enter a gatewayID (####) to remove: "; \
-		read gID; \
-		NAME=pdc-$${gID}; \
-		$(call docker_remove,$${NAME})
-
 
 cadvisor:
 	@	$(call docker_remove,cadvisor)
@@ -194,10 +143,6 @@ clone-dclapi:
 	@	$(call clone,dclapi,$(GITHUB_DCLAPI),$(BRANCH_DCLAPI))
 
 
-clone-endpoint:
-	@	$(call clone,endpoint,$(GITHUB_ENDPOINT),$(BRANCH_ENDPOINT))
-
-
 clone-hubdb:
 	@	$(call clone,hubdb,$(GITHUB_HUBDB),$(BRANCH_HUBDB))
 
@@ -220,7 +165,7 @@ clone-queries:
 
 clone-remove:
 	@	cd build; \
-		sudo rm -rf auth/ dclapi/ hapi/ hub/ hubdb/ viz/ queries/ endpoint/ || true
+		sudo rm -rf auth/ dclapi/ hapi/ hub/ hubdb/ viz/ queries/ || true
 
 
 #################
@@ -293,7 +238,7 @@ config-backups:
 
 	@	# Create backup script, if necessary
 	@	#
-	@	if [ ! -e ${PATH_HOST}/oc_backup.sh ]; \
+		if [ ! -e ${PATH_HOST}/oc_backup.sh ]; \
 		then \
 			echo; \
 			echo "Please configure ownCloud"; \
@@ -320,40 +265,34 @@ config-backups:
 				echo 'cd $${SCRIPT_DIR}'; \
 				echo ''; \
 				echo ''; \
-				echo '# Create a MongoDB dump'; \
-				echo '#'; \
-				echo 'sudo docker exec hubdb /app/mongodb_dump.sh';\
-				echo ''; \
-				echo ''; \
 				echo '# Copy non-sensitive MongoDB dumps to ./mongo_partial/'; \
 				echo '#'; \
-				echo 'sudo mkdir -p mongo_partial/'; \
-				echo 'FROM=$\${PATH_HOST}'; \
-				echo 'sudo cp mongo/dump/query_composer_development/delayed*   mongo_partial/'; \
-				echo 'sudo cp mongo/dump/query_composer_development/endpoints* mongo_partial/'; \
-				echo 'sudo cp mongo/dump/query_composer_development/system*    mongo_partial/'; \
-				echo 'sudo cp mongo/dump/query_composer_development/users*     mongo_partial/'; \
+				echo 'SOURCE_DUMP=$${SCRIPT_DIR}/private/mongo_dump/query_composer_development'; \
+				echo 'DESTINATION_DUMP=$${SCRIPT_DIR}/config/mongo_partial'; \
+				echo 'sudo mkdir -p $${DESTINATION_DUMP}'; \
+				echo '#'; \
+				echo 'for FILES in \'; \
+				echo '	delayed* \'; \
+				echo '	endpoints* \'; \
+				echo '	system* \'; \
+				echo '	users*;'; \
+				echo 'do'; \
+				echo '	sudo cp $${SOURCE_DUMP}/$${FILES} $${DESTINATION_DUMP}'; \
+				echo 'done'; \
 				echo ''; \
 				echo ''; \
-				echo '# Backup cert, dacs, drugref, keys and mongo_partial folders to ownCloud'; \
+				echo '# Backup config folder to ownCloud'; \
 				echo '#'; \
 				echo 'USERNAME='$${OWNCLOUD_ID}; \
 				echo 'PASSWORD='$${OWNCLOUD_PW}; \
 				echo 'OWNCLOUD='$${OWNCLOUD_URL}; \
 				echo '#'; \
-				echo 'OC_PATH=$${OWNCLOUD}/owncloud/remote.php/webdav/stack'; \
+				echo 'WEBDAV=https://$${OWNCLOUD}/owncloud/remote.php/webdav'; \
 				echo '#'; \
-				echo 'for DIR in \\'; \
-				echo '	cert \\'; \
-				echo '	dacs \\'; \
-				echo '	drugref \\'; \
-				echo '	epx \\'; \
-				echo '	hub \\'; \
-				echo '	mongo_partial \\'; \
-				echo '	recovery;'; \
-				echo 'do'; \
-				echo '	sudo owncloudcmd -u $${USERNAME} -p $${PASSWORD} $${DIR} $${OC_PATH}/$${DIR};'; \
-				echo 'done'; \
+				echo 'SOURCE_BACKUP=config'; \
+				echo 'DESTINATION_BACKUP=$${WEBDAV}/stack/$${SOURCE_BACKUP}'; \
+				echo '#'; \
+				echo 'sudo owncloudcmd -u $${USERNAME} -p $${PASSWORD} $${SOURCE_BACKUP} $${DESTINATION_BACKUP}'; \
 			) | sudo tee -a \${PATH_HOST}/oc_backup.sh; \
 			sudo chmod 700 \${PATH_HOST}/oc_backup.sh; \
 		fi
@@ -388,7 +327,7 @@ config-3rdNext:
 			echo ''; \
 			echo '# Import 3rdNext dumps'; \
 			echo '#'; \
-			echo '0 20 * * 2 * sudo docker exec hubdb /app/3rdNext_import.sh'; \
+			echo '0 20 * * 2 sudo docker exec hubdb /app/3rdNext_import.sh'; \
 		) | sudo tee -a /var/spool/cron/crontabs/root; \
 	fi
 
@@ -408,7 +347,7 @@ config-img-pull:
 #############
 
 define clone
-	sudo mkdir -p build/; \
+	sudo mkdir -p build
 	if test ! -d build/$1; \
 	then \
 		sudo git clone -b $3 $2 build/$1; \
@@ -419,14 +358,9 @@ endef
 
 
 define docker_remove
-	# 1=folder, 2=op:gID
+	# 1=folder
 	#
-	if [ -z $2 ]; \
-	then \
-		( sudo docker stop $1 && sudo docker rm -v $1 ) 2> /dev/null || true; \
-	else \
-		( sudo docker stop ep$2 && sudo docker rm -v ep$2 ) 2> /dev/null || true; \
-	fi
+	( sudo docker stop $1 && sudo docker rm -v $1 ) 2> /dev/null || true
 	echo
 endef
 
@@ -443,67 +377,24 @@ endef
 
 
 define docker_run
-	# 1=folder, 2=docker cmd, 3=op:gID
+	# 1=folder, 2=docker cmd
 	#
-	if [ -z $3 ]; \
-	then \
-		RUN="--name $1 -h $1"; \
-	else \
-		RUN="--name ep$3 -h ep$3 -e gID=$3"; \
-	fi; \
-	echo; \
-	echo "*** Running $1 *** sudo docker run -d $${RUN} --env-file=config.env --restart='always' $2 pdc.io/$1 ***"; \
-	echo; \
-	sudo docker run -d $${RUN} --env-file=config.env --restart='always' $2 pdc.io/$1
+	echo "*** Running $1 *** sudo docker run -d --name $1 -h $1 --env-file=config.env --restart='always' $2 pdc.io/$1 ***"
+	echo
+	sudo docker run -d --name $1 -h $1 --env-file=config.env --restart='always' $2 pdc.io/$1
 	echo
 endef
 
 
 define dockerize
-	# 1=folder, 2=docker cmd, 3=op:gID
+	# 1=folder, 2=docker cmd
 	#
-	$(call docker_remove,$1,$3)
+	$(call docker_remove,$1)
 	$(call docker_build,$1)
-	$(call docker_run,$1,$2,$3)
+	$(call docker_run,$1,$2)
 	echo
 	echo "*** End Dockerize $1 ***"
 	echo
-endef
-
-
-define config_ep
-	# 1=gID, 2=doctorID, 3=op:userID, 4=op:role, 5=op:jurisdiction, 6=op:password
-	#
-	# Add Hub to known_hosts and receive Endpoint's public key
-	#
-	sudo docker exec ep$1 ssh -p $(PORT_AUTOSSH) -o StrictHostKeyChecking=no autossh@$(IP_HUB) 2> /dev/null || true
-	sudo docker exec ep$1 /app/key_exchange.sh | sudo tee -a $(PATH_HUB_AUTOSSH)/authorized_keys > /dev/null
-
-	# Add Endpoint to the HubDB
-	#
-	sudo docker exec hubdb /app/endpoint_add.sh $1 | grep WriteResult
-
-	# Get ClinicID (Endpoint's MongoDB ObjectID) and provide it to Auth
-	#
-	sudo docker exec -t auth /sbin/setuser app /app/dacs_add.sh \
-		$2 $$(sudo docker exec hubdb /app/endpoint_getClinicID.sh $1) \
-		$3 $4 $5 $6
-
-	# If doctorID is cpsid, then import sample 10 (cpsid) data
-	#
-	[ "$2" != "cpsid" ] || sudo docker exec ep$1 /app/sample10/import.sh
-
-	# Enable SSH and regenerate host keys
-	#
-	sudo docker exec -t ep$1 rm -f /etc/service/sshd/down
-	sudo docker exec -t ep$1 update-rc.d ssh defaults
-	sudo docker exec -t ep$1 /etc/my_init.d/00_regen_ssh_host_keys.sh
-	sudo docker exec -t ep$1 service ssh start
-
-	# Set pdcadmin's password and rights to .ssh/
-	#
-	sudo docker exec -t ep$1 chown -R pdcadmin:pdcadmin /home/pdcadmin/.ssh/
-	sudo docker exec -t ep$1 /bin/bash -c 'echo "pdcadmin:sample" | chpasswd'	
 endef
 
 
@@ -537,8 +428,6 @@ include config.env
 ifneq ($(BUILD_MODE), prod)
 	BRANCH_AUTH ?= $(BUILD_MODE)
 	BRANCH_DCLAPI ?= $(BUILD_MODE)
-	BRANCH_ENDPOINT ?= $(BUILD_MODE)
-	BRANCH_EPXCLOUD ?= $(BUILD_MODE)
 	BRANCH_HAPI ?= $(BUILD_MODE)
 	BRANCH_HUB ?= $(BUILD_MODE)
 	BRANCH_HUBDB ?= $(BUILD_MODE)
@@ -552,8 +441,6 @@ endif
 ifneq ($(BUILD_MODE), prod)
 	DOCKER_AUTH_PROD += $(DOCKER_AUTH_JOIN)
 	DOCKER_DCLAPI_PROD += $(DOCKER_DCLAPI_JOIN)
-	DOCKER_ENDPOINT_PROD += $(DOCKER_ENDPOINT_JOIN)
-	DOCKER_EPXCLOUD_PROD += $(DOCKER_ENDPOINT_JOIN)
 	DOCKER_HAPI_PROD += $(DOCKER_HAPI_JOIN)
 	DOCKER_HUB_PROD += $(DOCKER_HUB_JOIN)
 	DOCKER_HUBDB_PROD += $(DOCKER_HUBDB_JOIN)
