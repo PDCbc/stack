@@ -192,6 +192,7 @@ config-bash:
 		then \
 			( \
 				echo ''; \
+				echo ''; \
 				echo '# Function to quickly enter containers'; \
 				echo '#'; \
 				echo 'function dockin()'; \
@@ -204,6 +205,7 @@ config-bash:
 				echo '		sudo docker exec -it $$1 /bin/bash'; \
 				echo '	fi'; \
 				echo '}'; \
+				echo ''; \
 				echo ''; \
 				echo '# Aliases to frequently used functions and applications'; \
 				echo '#'; \
@@ -218,6 +220,14 @@ config-bash:
 				echo "alias m='make'"; \
 				echo "alias gitsubdiffs='find . -maxdepth 1 -mindepth 1 -type d -exec git -C {} status \;'"; \
 				echo "alias ggraph='git log --oneline --graph --decorate --color'"; \
+				echo ''; \
+				echo ''; \
+				echo 'Clean up untagged Docker images'; \
+				echo '#'; \
+				echo 'function dclean'; \
+				echo '{'; \
+				        echo 'sudo docker rmi $(sudo docker images | grep '^<none>' | awk '{print $3}')'; \
+				echo '}'; \
 			) | tee -a $${HOME}/.bashrc; \
 			echo ""; \
 			echo ""; \
