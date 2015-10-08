@@ -1,3 +1,2 @@
 username,cpsid,endpoint,attachement,polypharmacy,populationhealth,practicereflection
-oscar,cpsid,pdc-0000,1,1,1,1
-pdc-0000,12345,pdc-0000,1,1,1,1
+pdc-0000,cpsid,pdc-0000,0,1,1,1
