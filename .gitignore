@@ -56,3 +56,5 @@ cert/*
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+util/providers.csv
