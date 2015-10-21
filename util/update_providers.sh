@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 if [ "$#" -ne 1 ]; then
 	echo "Script requires a providers.csv file be provided as an argument!"
 	echo "No changes made, exiting..."
@@ -16,7 +15,7 @@ JURI="TEST"
 count=0
 provider_hash=0
 
-while read username cpsid group attachment pphrr populationhealth practicereflection passwd
+while read username cpsid group attachment pphrr populationhealth practicereflection passwd counter
 do
 	# do not count the first line.
 
@@ -33,7 +32,6 @@ do
 	provider_hash=`echo -n "$cpsid" | openssl dgst -binary -sha224 | openssl base64`
 
 	echo $count":"$username","$cpsid","$group","$provider_hash","$attachment","$pphrr","$populationhealth","$practicereflection
-
 
 	#update the groups.json for providers
 
