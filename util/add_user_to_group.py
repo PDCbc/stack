@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 #######
-# Takes 2 parameters: hashed_id, group_name, path_to_groups_json_file
+# Takes 4 parameters: hashed_id, group_name, initiative, path_to_groups_json_file
 ######
 
 import json
@@ -11,13 +11,14 @@ provider = None
 group = None
 path = None
 
-if len(sys.argv) != 4:
-	print "3 arguments expected, got "+str(len(sys.argv)-1)
+if len(sys.argv) != 5:
+	print "4 arguments expected, got "+str(len(sys.argv)-1)
 	sys.exit(1)
 else:
 	provider = str(sys.argv[1])	
 	group = str(sys.argv[2])	
-	path = str(sys.argv[3])	
+	init = str(sys.argv[3])	
+	path = str(sys.argv[4])	
 
 groups_file = open(path, "r+")
 
@@ -31,7 +32,7 @@ except Exception as e:
 flag = False
 
 for g in groups:
-	if g["name"] == group:
+	if g["name"] == group and g['initiative'] == init:
 		if provider not in g['members']:
 			g["members"].append(provider)
 		flag=True
@@ -41,6 +42,7 @@ if not flag: #i.e. they did not get added to group, likely b/c group name did no
 	tmp = dict()
 	tmp['name'] = group
 	tmp['members'] = [provider]
+	tmp['initiative'] = init
 	groups.append(tmp)
 
 groups_file.seek(0)

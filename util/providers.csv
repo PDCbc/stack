@@ -1,2 +1,2 @@
-username,cpsid,endpoint,attachement,polypharmacy,populationhealth,practicereflection
-pdc-0000,cpsid,pdc-0000,0,1,1,1
+username,cpsid,endpoint,attachement,polypharmacy,populationhealth,practicereflection,passwd,0
+pdc-0000,cpsid,pdc-0000,0,1,1,1,foobar,1

@@ -40,15 +40,19 @@ do
 	#update the user to filter providers function in queries via the HAPI container.
 	if [ $attachment != 0 ]; then 
 		sudo docker exec hapi node /app/util/update_filter_providers.js $provider_hash Attachment 
+		sudo ./add_user_to_group.py $provider_hash "\""$attachment"\"" "Attachment" $GROUPS_FILE
 	fi
 	if [ $pphrr != 0 ]; then 
 		sudo docker exec hapi node /app/util/update_filter_providers.js $provider_hash PPhRR 
+		sudo ./add_user_to_group.py $provider_hash "\""$pphrr"\"" "PPhRR" $GROUPS_FILE
 	fi
 	if [ $populationhealth != 0 ]; then 
 		sudo docker exec hapi node /app/util/update_filter_providers.js $provider_hash PopulationHealth 
+		sudo ./add_user_to_group.py $provider_hash "\""$populationhealth"\"" "PopulationHealth" $GROUPS_FILE
 	fi
 	if [ $practicereflection != 0 ]; then 
 		sudo docker exec hapi node /app/util/update_filter_providers.js $provider_hash PracticeReflection
+		sudo ./add_user_to_group.py $provider_hash "\""$practicereflection"\"" "PracticeReflection" $GROUPS_FILE
 	fi
 
 	count=$((count+1))
