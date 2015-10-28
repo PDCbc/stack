@@ -15,7 +15,7 @@ JURI="TEST"
 count=0
 provider_hash=0
 
-while read username cpsid group attachment pphrr populationhealth practicereflection
+while read username cpsid group attachment pphrr populationhealth practicereflection pass extra
 do
 	# do not count the first line.
 
@@ -28,14 +28,10 @@ do
 
 	provider_hash=`echo -n "$cpsid" | openssl dgst -binary -sha224 | openssl base64`
 
-	echo $count":"$username","$cpsid","$group","$provider_hash
-
-
-	#update the groups.json for providers
-	sudo ./add_user_to_group.py $provider_hash "\""$group"\"" $GROUPS_FILE
+	echo $count":"$username","$cpsid","$group","$provider_hash",$pass, $extra"
 
 	#update the user in dacs
-	sudo docker exec auth /app/manage_users.sh $username $provider_hash $group $JURI
+	sudo docker exec auth /app/manage_users.sh $username $provider_hash $group $JURI $pass
 
 	#update the user to filter providers function in queries via the HAPI container.
 	if [ $attachment != 0 ]; then 
