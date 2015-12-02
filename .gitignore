@@ -1,6 +1,7 @@
 # This repo only #
 ##################
 
+*.env
 *.json
 *.xml
 *.tar
