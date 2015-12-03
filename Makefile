@@ -206,6 +206,13 @@ config-bash:
 				echo '	fi'; \
 				echo '}'; \
 				echo ''; \
+				echo '# Function to remove stopped containers and untagged images'; \
+				echo '#'; \
+				echo 'function dclean()'; \
+				echo '{'; \
+				echo '  sudo docker rm $$(sudo docker ps -a -q)'; \
+				echo "  sudo docker rmi \$$(sudo docker images | grep '^<none>' | awk '{print \$$3}')"; \
+				echo '}'; \
 				echo ''; \
 				echo '# Aliases to frequently used functions and applications'; \
 				echo '#'; \
@@ -215,19 +222,8 @@ config-bash:
 				echo "alias i='sudo docker inspect'"; \
 				echo "alias l='sudo docker logs -f'"; \
 				echo "alias p='sudo docker ps -a'"; \
-				echo "alias r='sudo docker rm -fv'"; \
 				echo "alias s='sudo docker ps -a | less -S'"; \
-				echo "alias m='make'"; \
-				echo "alias gitsubdiffs='find . -maxdepth 1 -mindepth 1 -type d -exec git -C {} status \;'"; \
-				echo "alias ggraph='git log --oneline --graph --decorate --color'"; \
-				echo ''; \
-				echo ''; \
-				echo 'Clean up untagged Docker images'; \
-				echo '#'; \
-				echo 'function dclean'; \
-				echo '{'; \
-				        echo 'sudo docker rmi $(sudo docker images | grep '^<none>' | awk '{print $3}')'; \
-				echo '}'; \
+				echo "alias dstats='sudo docker stats \$$(sudo docker ps -a -q)'"; \
 			) | tee -a $${HOME}/.bashrc; \
 			echo ""; \
 			echo ""; \
