@@ -2,17 +2,11 @@
 # General Jobs #
 ################
 
-default: configure clone containers
+default: configure containers
 
 configure: config-packages config-mongodb config-bash config-img-pull
 
-clone: clone-auth clone-dclapi clone-hubdb clone-hub clone-hapi clone-viz clone-queries
-
-containers: clone hubdb hub auth dclapi hapi viz queries mode-inform
-
-clone-update: say-goodbye clone-remove clone
-
-destroy: say-goodbye clone-remove containers-remove
+containers: hubdb hub auth dclapi hapi viz queries mode-inform
 
 reset: destroy clone containers
 
@@ -48,74 +42,44 @@ prod:
 #########################
 
 hubdb:
-	@	sudo mkdir -p $(PATH_MONGO_LIVE) $(PATH_MONGO_DUMP)
-	@	$(call dockerize,hubdb,$(DOCKER_HUBDB_PROD))
+	sudo docker pull pdcbc/hubdb:latest
+	sudo docker run -d -v /pdc/data/private/mongo_live/:/data/db/:rw -v /pdc/data/private/mongo_dump/:/data/dump/:rw --name=hubdb -h hubdb pdcbc/hubdb
 	@	sudo docker exec hubdb /app/mongodb_init.sh > /dev/null
 
 
 hub:
-	@	sudo mkdir -p $(PATH_SSH_KEYS_HUB) $(PATH_AUTHORIZED_KEYS)
-	@	$(call dockerize,hub,$(DOCKER_HUB_PROD))
+	sudo docker pull pdcbc/composer:latest
+	sudo docker run -d -p 2774:22 -p 3002:3002 --link hubdb:hubdb -v /pdc/data/config/ssh/authorized_keys/:/home/autossh/.ssh/:rw -v /pdc/data/config/ssh/known_hosts/:/root/.ssh/:rw -v /pdc/data/config/ssh/ssh_keys_hub/:/etc/ssh/:rw -v /pdc/data/config/scheduled_jobs/:/app/util/scheduled_job_params:rw --name=hub -h hub --restart=always pdcbc/composer:latest
 
 
 auth:
-	@	sudo mkdir -p $(PATH_DACS)
-	@	$(call dockerize,auth,$(DOCKER_AUTH_PROD))
+	sudo docker pull pdcbc/auth:latest
+	sudo docker run -d -v /pdc/data/config/dacs/:/etc/dacs/:rw --name=auth -h auth --restart=always pdcbc/auth:latest
 
 
 dclapi:
-	@	sudo mkdir -p $(PATH_DRUGREF)
-	@	$(call dockerize,dclapi,$(DOCKER_DCLAPI_PROD))
+	sudo docker pull pdcbc/dclapi:latest
+	sudo docker run -d --name=dclapi -h dclapi --restart=always pdcbc/dclapi:latest
 
 
 hapi:
-	@	sudo mkdir -p $(PATH_GROUPS)
-	@	$(call dockerize,hapi,$(DOCKER_HAPI_PROD))
+	sudo docker pull pdcbc/hapi:latest
+	sudo docker run -d --link auth:auth --link hubdb:hubdb --link dclapi:dclapi --name=hapi -h hapi --restart=always pdcbc/hapi:latest
 
 
 viz:
-	@	sudo mkdir -p $(PATH_CERT)
-	@	$(call dockerize,viz,$(DOCKER_VIZ_PROD))
+	sudo docker pull pdcbc/viz:latest
+	sudo docker run -d --link auth:auth --link hapi:hapi -p 443:3004 -p 80:3008 --name=viz -h viz --restart=always pdcbc/viz:latest
 
 
 queries:
-	@	$(call dockerize,queries,$(DOCKER_QI_PROD))
-	@	sudo docker logs -f queries
-	@	$(call docker_remove,queries)
-
-
-containers-remove:
-	@	(( sudo docker stop viz hapi dclapi auth hub hubdb )&& \
-			( sudo docker rm viz hapi dclapi auth hub hubdb ))|| \
-			echo "No containers to delete"
+	sudo docker pull pdcbc/query_importer:latest
+	sudo docker run --rm --link hubdb:hubdb --name=query_importer -h query_importer pdcbc/query_importer:latest
 
 
 ################################
 # Tools and Testing Containers #
 ################################
-
-cadvisor:
-	@	$(call docker_remove,cadvisor)
-	@	sudo docker run -ti \
-		--volume=/:/rootfs:ro \
-		--volume=/var/run:/var/run:rw \
-		--volume=/sys:/sys:ro \
-		--volume=/var/lib/docker/:/var/lib/docker:ro \
-		--publish=8080:8080 \
-		--detach=true \
-		--name=cadvisor \
-		google/cadvisor:latest
-	@	$(call docker_remove,cadvisor)
-
-
-say-goodbye:
-	@	echo
-	@	echo "DESTROY WARNING: Backup any changes before continuing!"
-	@	sudo -k echo
-	@	echo "Please type 'goodbye' to confirm"
-	@	read CONFIRM; \
-		[ "$${CONFIRM}" = "goodbye" ] || ( echo "Not confirmed"; exit )
-
 
 mode-inform:
 	@	sudo docker ps
@@ -131,51 +95,14 @@ mode-inform:
 	@	echo
 
 
-################
-# Repo Cloning #
-################
-
-clone-auth:
-	@	$(call clone,auth,$(GITHUB_AUTH),$(BRANCH_AUTH))
-
-
-clone-dclapi:
-	@	$(call clone,dclapi,$(GITHUB_DCLAPI),$(BRANCH_DCLAPI))
-
-
-clone-hubdb:
-	@	$(call clone,hubdb,$(GITHUB_HUBDB),$(BRANCH_HUBDB))
-
-
-clone-hub:
-	@	$(call clone,hub,$(GITHUB_HUB),$(BRANCH_HUB))
-
-
-clone-hapi:
-	@	$(call clone,hapi,$(GITHUB_HAPI),$(BRANCH_HAPI))
-
-
-clone-viz:
-	@	$(call clone,viz,$(GITHUB_VIZ),$(BRANCH_VIZ))
-
-
-clone-queries:
-	@	$(call clone,queries,$(GITHUB_QI),$(BRANCH_QI))
-
-
-clone-remove:
-	@	cd build; \
-		sudo rm -rf auth/ dclapi/ hapi/ hub/ hubdb/ viz/ queries/ || true
-
-
 #################
 # Configuration #
 #################
 
 config-packages:
-	@	sudo apt-get update
 	@	( which docker )|| \
 			( \
+				sudo apt-get update; \
 				sudo apt-get install -y linux-image-extra-$$(uname -r); \
 				sudo modprobe aufs; \
 				wget -qO- https://get.docker.com/ | sh; \
@@ -185,6 +112,20 @@ config-packages:
 config-mongodb:
 	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled )> /dev/null
 	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag )> /dev/null
+	@	if(! grep --quiet 'never > /sys/kernel/mm/transparent_hugepage/enabled' /etc/rc.local ); \
+		then \
+			sudo sed -i '/exit 0/d' /etc/rc.local; \
+			( \
+				echo ''; \
+				echo '# Disable Transparent Hugepage, for Mongo'; \
+				echo '#'; \
+				echo 'echo never > /sys/kernel/mm/transparent_hugepage/enabled'; \
+				echo 'echo never > /sys/kernel/mm/transparent_hugepage/defrag'; \
+				echo ''; \
+				echo 'exit 0'; \
+			) | sudo tee -a /etc/rc.local; \
+		fi; \
+		sudo chmod 755 /etc/rc.local
 
 
 config-bash:
@@ -206,6 +147,13 @@ config-bash:
 				echo '	fi'; \
 				echo '}'; \
 				echo ''; \
+				echo '# Function to remove stopped containers and untagged images'; \
+				echo '#'; \
+				echo 'function dclean()'; \
+				echo '{'; \
+				echo '  sudo docker rm $$(sudo docker ps -a -q)'; \
+				echo "  sudo docker rmi \$$(sudo docker images | grep '^<none>' | awk '{print \$$3}')"; \
+				echo '}'; \
 				echo ''; \
 				echo '# Aliases to frequently used functions and applications'; \
 				echo '#'; \
@@ -215,19 +163,8 @@ config-bash:
 				echo "alias i='sudo docker inspect'"; \
 				echo "alias l='sudo docker logs -f'"; \
 				echo "alias p='sudo docker ps -a'"; \
-				echo "alias r='sudo docker rm -fv'"; \
 				echo "alias s='sudo docker ps -a | less -S'"; \
-				echo "alias m='make'"; \
-				echo "alias gitsubdiffs='find . -maxdepth 1 -mindepth 1 -type d -exec git -C {} status \;'"; \
-				echo "alias ggraph='git log --oneline --graph --decorate --color'"; \
-				echo ''; \
-				echo ''; \
-				echo 'Clean up untagged Docker images'; \
-				echo '#'; \
-				echo 'function dclean'; \
-				echo '{'; \
-				        echo 'sudo docker rmi $(sudo docker images | grep '^<none>' | awk '{print $3}')'; \
-				echo '}'; \
+				echo "alias dstats='sudo docker stats \$$(sudo docker ps -a -q)'"; \
 			) | tee -a $${HOME}/.bashrc; \
 			echo ""; \
 			echo ""; \
@@ -327,45 +264,23 @@ config-backups:
 		fi
 
 
-config-3rdNext:
-	@	# Add script to cron
-	@       #
-	@       if((! sudo test -e /var/spool/cron/crontabs/root )||(! sudo grep --quiet '3rdNext_import.sh' /var/spool/cron/crontabs/root )); \
-	then \
-		( \
-			echo ''; \
-			echo ''; \
-			echo '# Import 3rdNext dumps'; \
-			echo '#'; \
-			echo '0 20 * * 2 sudo docker exec hubdb /app/3rdNext_import.sh'; \
-		) | sudo tee -a /var/spool/cron/crontabs/root; \
-	fi
-
-
 ######################
 # Docker Image Pulls #
 ######################
 
 config-img-pull:
-	@	sudo docker pull mongo
-	@	sudo docker pull phusion/passenger-nodejs
-	@	sudo docker pull phusion/passenger-ruby19
+	@	sudo docker pull pdcbc/hubdb:latest
+	@	sudo docker pull pdcbc/composer:latest
+	@	sudo docker pull pdcbc/auth:latest
+	@	sudo docker pull pdcbc/dclapi:latest
+	@	sudo docker pull pdcbc/hapi:latest
+	@	sudo docker pull pdcbc/viz:latest
+	@	sudo docker pull pdcbc/query_importer:latest
 
 
 #############
 # Functions #
 #############
-
-define clone
-	sudo mkdir -p build
-	if test ! -d build/$1; \
-	then \
-		sudo git clone -b $3 $2 build/$1; \
-	else \
-		echo "Repo already exists - $1"; \
-	fi
-endef
-
 
 define docker_remove
 	# 1=folder
