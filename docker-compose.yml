@@ -1,0 +1,66 @@
+auth:
+  container_name: auth
+  image: pdcbc/auth:0.1.2
+  restart: always
+  log_driver: "syslog"
+  volumes:
+    - /pdc/data/config/dacs/:/etc/dacs/:rw
+
+composer:
+  container_name: composer
+  image: pdcbc/composer:0.1.3
+  restart: always
+  log_driver: "syslog"
+  links:
+    - hubdb:hubdb
+  ports:
+    - "2774:22"
+    - "3002:3002"
+  volumes:
+    - /pdc/data/config/ssh/authorized_keys/:/home/autossh/.ssh/:rw
+    - /pdc/data/config/ssh/known_hosts/:/root/.ssh/:rw
+    - /pdc/data/config/ssh/ssh_keys_hub/:/etc/ssh/:rw
+    - /pdc/data/config/scheduled_jobs/:/app/util/scheduled_job_params:rw
+
+dclapi:
+  container_name: dclapi
+  image: pdcbc/dclapi:0.1.1
+  restart: always
+  log_driver: "syslog"
+
+hapi:
+  container_name: hapi
+  image: pdcbc/hapi:0.1.7
+  restart: always
+  log_driver: "syslog"
+  links:
+    - auth:auth
+    - hubdb:hubdb
+    - dclapi:dclapi
+
+hubdb:
+  container_name: hubdb
+  image: pdcbc/hubdb:0.1.4
+  restart: always
+  log_driver: "syslog"
+  volumes:
+    - /pdc/data/private/mongo_live/:/data/db/:rw
+    - /pdc/data/private/mongo_dump/:/data/dump/:rw
+
+query_importer:
+  container_name: query_importer
+  image: pdcbc/query_importer:0.2.0
+  links:
+    - hubdb:hubdb
+
+viz:
+  container_name: viz
+  image: pdcbc/viz:0.1.7
+  restart: always
+  log_driver: "syslog"
+  links:
+    - auth:auth
+    - hapi:hapi
+  ports:
+    - "443:3004"
+    - "80:3008"
