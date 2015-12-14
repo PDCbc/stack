@@ -50,6 +50,7 @@ hubdb:
 query_importer:
   container_name: query_importer
   image: pdcbc/query_importer:0.2.0
+  log_driver: "syslog"
   links:
     - hubdb:hubdb
 
