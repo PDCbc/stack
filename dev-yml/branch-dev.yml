@@ -1,0 +1,43 @@
+# Development Docker Compose file for the PDC's Hub Stack
+#
+#
+# Settings here supplement and override those in the primary, non-dev, .YML file.
+# Uncomment or add as desired.  E.g.:
+#
+# blah:
+#   build: /path/to/Dockerfile
+#   log_driver: "json-file"
+#   environment:
+#     - VARIABLE=value
+#   env_file:
+#     - ./file.env
+#
+# https://docs.docker.com/compose/compose-file/
+
+
+auth:
+  image: pdcbc/auth:dev
+
+
+composer:
+  image: pdcbc/composer:dev
+
+
+dclapi:
+  image: pdcbc/dclapi:dev
+
+
+hapi:
+  image: pdcbc/hapi:dev
+
+
+hubdb:
+  image: pdcbc/hubdb:dev
+
+
+query_importer:
+  image: pdcbc/query_importer:dev
+
+
+viz:
+  image: pdcbc/viz:dev
