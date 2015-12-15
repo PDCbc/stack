@@ -28,7 +28,7 @@ clean:
 	@ sudo docker rmi $$( sudo docker images | grep '^<none>' | awk '{print $$3}' )
 
 queries:
-	@ sudo docker-compose run query_importer
+	@ sudo docker-compose start query_importer
 
 
 #################

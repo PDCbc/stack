@@ -61,7 +61,7 @@ hubdb:
 query_importer:
   container_name: query_importer
   image: pdcbc/query_importer:prod
-  log_driver: "syslog"
+  log_driver: "json-file"
   links:
     - hubdb:hubdb
 
