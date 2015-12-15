@@ -4,23 +4,37 @@
 
 default: configure deploy
 
-configure: config-packages config-mongodb config-bash
+configure: config-docker config-compose config-mongodb config-bash
 
-reset: remove deploy
+reset: clean pull remove deploy
 
 
-#########################
-# Default Container Set #
-#########################
+###################
+# Individual jobs #
+###################
 
 deploy:
-	sudo docker-compose -f ./docker-compose.yml up -d
+	@ sudo docker-compose -f ./docker-compose.yml up -d
+
+pull:
+	@ sudo docker-compose -f ./docker-compose.yml pull
+
+clean:
+	@ sudo docker rm $$( sudo docker ps -a -q ) || true
+	@ sudo docker rmi $$( sudo docker images | grep '^<none>' | awk '{print $$3}' )
 
 remove:
-	sudo docker-compose rm
+	@ sudo docker-compose -f ./docker-compose.yml stop
+	@ sudo docker-compose -f ./docker-compose.yml rm
 
 queries:
-	sudo docker-compose run query_importer
+	@ sudo docker-compose run query_importer
+
+dev:
+	@ sudo docker-compose -f ./docker-compose.yml -f ./dev-composer.yml build
+	@ sudo docker-compose -f ./docker-compose.yml -f ./dev-composer.yml stop
+	@ sudo docker-compose -f ./docker-compose.yml -f ./dev-composer.yml rm
+	@ sudo docker-compose -f ./docker-compose.yml -f ./dev-composer.yml up -d
 
 
 #################
