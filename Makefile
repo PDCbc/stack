@@ -2,39 +2,54 @@
 # General Jobs #
 ################
 
-default: configure deploy
+default: configure prod
 
 configure: config-docker config-compose config-mongodb config-bash
-
-reset: clean pull remove deploy
 
 
 ###################
 # Individual jobs #
 ###################
 
-deploy:
-	@ sudo docker-compose -f ./docker-compose.yml up -d
+prod:
+	@ $(call deploy)
 
-pull:
-	@ sudo docker-compose -f ./docker-compose.yml pull
+master:
+	@ $(call deploy,branch-master.yml)
+
+dev:
+	@ $(call deploy,branch-dev.yml)
+
+local:
+	@ $(call deploy,./dev/build-local.yml)
 
 clean:
 	@ sudo docker rm $$( sudo docker ps -a -q ) || true
 	@ sudo docker rmi $$( sudo docker images | grep '^<none>' | awk '{print $$3}' )
 
-remove:
-	@ sudo docker-compose -f ./docker-compose.yml stop
-	@ sudo docker-compose -f ./docker-compose.yml rm
-
 queries:
 	@ sudo docker-compose run query_importer
 
-dev:
-	@ sudo docker-compose -f ./docker-compose.yml -f ./dev-composer.yml build
-	@ sudo docker-compose -f ./docker-compose.yml -f ./dev-composer.yml stop
-	@ sudo docker-compose -f ./docker-compose.yml -f ./dev-composer.yml rm
-	@ sudo docker-compose -f ./docker-compose.yml -f ./dev-composer.yml up -d
+
+#################
+# Configuration #
+#################
+
+# Deploy prod, master, dev or local
+#
+define deploy
+		#  1=secondary .YML file, optional
+		#
+		YML_RUN="-f ./docker-compose.yml"; \
+		[ -z $1 ]|| \
+			YML_RUN=$${YML_RUN}" -f ./dev-yml/"$1; \
+		\
+		sudo docker-compose $${YML_RUN} pull; \
+		sudo docker-compose $${YML_RUN} build; \
+		sudo docker-compose $${YML_RUN} stop; \
+		sudo docker-compose $${YML_RUN} rm -f; \
+		sudo docker-compose $${YML_RUN} up -d
+endef
 
 
 #################
@@ -97,13 +112,7 @@ config-bash:
 				echo "#"; \
 				echo "function ep-in()"; \
 				echo "{"; \
-				echo "	if [ \$$# -ne 1 ]"; \
-				echo "	then"; \
-				echo "		echo Please pass an the number of an endpoint to enter"; \
-				echo "		echo Usage: ep-in [endpointNoToEnter]"; \
-				echo "	else"; \
-				echo "		sudo docker exec -it composer ssh -p \$$( expr 44000 + \$$1 ) pdcadmin@localhost"; \
-				echo "	fi"; \
+				echo "	sudo docker exec -it composer ssh -p \$$( expr 44000 + \$$1 ) pdcadmin@localhost"; \
 				echo "}"; \
 				echo ""; \
 				echo "# Aliases to frequently used functions and applications"; \
