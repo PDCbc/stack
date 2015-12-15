@@ -64,15 +64,28 @@ config-bash:
 				echo "#"; \
 				echo "function c()"; \
 				echo "{"; \
-				echo "	sudo docker exec -it \$1 /bin/bash"; \
+				echo "	sudo docker exec -it \$$1 /bin/bash"; \
 				echo "}"; \
 				echo ""; \
 				echo "# Function to remove stopped containers and untagged images"; \
 				echo "#"; \
 				echo "function dclean()"; \
 				echo "{"; \
-				echo "  sudo docker rm \$( sudo docker ps -a -q )"; \
-				echo "  sudo docker rmi \$( sudo docker images | grep '^<none>' | awk '{print \$3}' )"; \
+				echo "  sudo docker rm \$$( sudo docker ps -a -q )"; \
+				echo "  sudo docker rmi \$$( sudo docker images | grep '^<none>' | awk '{print \$$3}' )"; \
+				echo "}"; \
+				echo ""; \
+				echo "# Function to enter a PDC managed Endpoint"; \
+				echo "#"; \
+				echo "function ep-in()"; \
+				echo "{"; \
+				echo "	if [ \$$# -ne 1 ]"; \
+				echo "	then"; \
+				echo "		echo Please pass an the number of an endpoint to enter"; \
+				echo "		echo Usage: ep-in [endpointNoToEnter]"; \
+				echo "	else"; \
+				echo "		sudo docker exec -it composer ssh -p \$$( expr 44000 + \$$1 ) pdcadmin@localhost"; \
+				echo "	fi"; \
 				echo "}"; \
 				echo ""; \
 				echo "# Aliases to frequently used functions and applications"; \
@@ -83,7 +96,7 @@ config-bash:
 				echo "alias l='sudo docker logs -f'"; \
 				echo "alias p='sudo docker ps -a'"; \
 				echo "alias s='sudo docker ps -a | less -S'"; \
-				echo "alias dstats='sudo docker stats \$( sudo docker ps -a -q )'"; \
+				echo "alias dstats='sudo docker stats \$$( sudo docker ps -a -q )'"; \
 			) | tee -a $${HOME}/.bashrc; \
 			echo ""; \
 			echo ""; \
