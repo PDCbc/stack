@@ -1,0 +1,92 @@
+# Docker Compose file for the PDC's Hub Stack
+#
+#
+# Used for collecting aggregate data queries.
+#
+# Use secondary .YML files for development and add -f YOUR.YML at execution.
+
+
+auth:
+  container_name: auth
+  image: pdcbc/auth:prod
+  restart: always
+  log_driver: "syslog"
+  volumes:
+    - /pdc/data/config/dacs/:/etc/dacs/:rw
+
+
+composer:
+  container_name: composer
+  image: pdcbc/composer:prod
+  restart: always
+  log_driver: "syslog"
+  links:
+    - hubdb:hubdb
+  ports:
+    - "2774:22"
+    - "3002:3002"
+  volumes:
+    - /pdc/data/config/ssh/:/home/autossh/.ssh/:rw
+    - /pdc/data/config/scheduled_jobs/:/app/util/job_params:rw
+
+
+dclapi:
+  container_name: dclapi
+  image: pdcbc/dclapi:prod
+  restart: always
+  log_driver: "syslog"
+
+
+hapi:
+  container_name: hapi
+  image: pdcbc/hapi:prod
+  restart: always
+  log_driver: "syslog"
+  links:
+    - auth:auth
+    - hubdb:hubdb
+    - dclapi:dclapi
+
+
+hubdb:
+  container_name: hubdb
+  image: pdcbc/hubdb:prod
+  restart: always
+  log_driver: "syslog"
+  volumes:
+    - /pdc/data/private/mongo_live/:/data/db/:rw
+    - /pdc/data/private/mongo_dump/:/data/dump/:rw
+
+
+query_importer:
+  container_name: query_importer
+  image: pdcbc/query_importer:prod
+  log_driver: "json-file"
+  links:
+    - hubdb:hubdb
+
+
+viz:
+  container_name: viz
+  image: pdcbc/viz:prod
+  restart: always
+  log_driver: "syslog"
+  links:
+    - auth:auth
+    - hapi:hapi
+  ports:
+    - "443:3004"
+    - "80:3008"
+
+
+cadvisor:
+  container_name: cadvisor
+  image: google/cadvisor:latest
+  restart: always
+  ports:
+    - "8080:8080"
+  volumes:
+    - /:/rootfs:ro
+    - /var/run:/var/run:rw
+    - /sys:/sys:ro
+    - /var/lib/docker/:/var/lib/docker:ro

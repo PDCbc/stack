@@ -1,0 +1,50 @@
+# Development Docker Compose file for the PDC's Hub Stack
+#
+#
+# Settings here supplement and override those in the primary, non-dev, .YML file.
+# Uncomment or add as desired.  E.g.:
+#
+# blah:
+#   build: /path/to/Dockerfile
+#   log_driver: "json-file"
+#   environment:
+#     - VARIABLE=value
+#   env_file:
+#     - ./file.env
+#
+# https://docs.docker.com/compose/compose-file/
+
+
+auth:
+  log_driver: "json-file"
+#  build: /vagrant/auth
+
+
+composer:
+  log_driver: "json-file"
+#  build: /vagrant/composer
+
+
+dclapi:
+  log_driver: "json-file"
+#  build: /vagrant/dclapi
+
+
+hapi:
+  log_driver: "json-file"
+#  build: /vagrant/hapi
+
+
+hubdb:
+  log_driver: "json-file"
+#  build: /vagrant/hubdb
+
+
+query_importer:
+  log_driver: "json-file"
+#  build: /vagrant/query_importer
+
+
+viz:
+  log_driver: "json-file"
+#  build: /vagrant/viz
