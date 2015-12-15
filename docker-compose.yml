@@ -1,3 +1,11 @@
+# Docker Compose file for the PDC's Hub Stack
+#
+#
+# Used for collecting aggregate data queries.
+#
+# Use secondary .YML files for development and add -f YOUR.YML at execution.
+
+
 auth:
   container_name: auth
   image: pdcbc/auth:0.1.2
@@ -5,6 +13,7 @@ auth:
   log_driver: "syslog"
   volumes:
     - /pdc/data/config/dacs/:/etc/dacs/:rw
+
 
 composer:
   container_name: composer
@@ -18,15 +27,15 @@ composer:
     - "3002:3002"
   volumes:
     - /pdc/data/config/ssh/authorized_keys/:/home/autossh/.ssh/:rw
-    - /pdc/data/config/ssh/known_hosts/:/root/.ssh/:rw
-    - /pdc/data/config/ssh/ssh_keys_hub/:/etc/ssh/:rw
     - /pdc/data/config/scheduled_jobs/:/app/util/scheduled_job_params:rw
+
 
 dclapi:
   container_name: dclapi
   image: pdcbc/dclapi:0.1.1
   restart: always
   log_driver: "syslog"
+
 
 hapi:
   container_name: hapi
@@ -38,6 +47,7 @@ hapi:
     - hubdb:hubdb
     - dclapi:dclapi
 
+
 hubdb:
   container_name: hubdb
   image: pdcbc/hubdb:0.1.4
@@ -47,12 +57,14 @@ hubdb:
     - /pdc/data/private/mongo_live/:/data/db/:rw
     - /pdc/data/private/mongo_dump/:/data/dump/:rw
 
+
 query_importer:
   container_name: query_importer
   image: pdcbc/query_importer:0.2.0
   log_driver: "syslog"
   links:
     - hubdb:hubdb
+
 
 viz:
   container_name: viz
@@ -65,3 +77,16 @@ viz:
   ports:
     - "443:3004"
     - "80:3008"
+
+
+cadvisor:
+  container_name: cadvisor
+  image: google/cadvisor:latest
+  restart: always
+  ports:
+    - "8080:8080"
+  volumes:
+    - /:/rootfs:ro
+    - /var/run:/var/run:rw
+    - /sys:/sys:ro
+    - /var/lib/docker/:/var/lib/docker:ro
