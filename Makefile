@@ -27,13 +27,17 @@ queries:
 # Configuration #
 #################
 
-config-packages:
+config-docker:
 	@	sudo apt-get update
 	@	sudo apt-get install -y linux-image-extra-$$(uname -r)
 	@	sudo modprobe aufs
 	@	wget -qO- https://get.docker.com/ | sh
-	@	sudo su -c "curl -L https://github.com/docker/compose/releases/download/1.5.2/docker-compose-`uname -s`-`uname -m` \
-			> /usr/local/bin/docker-compose"
+
+
+config-compose:
+	@ sudo curl -o /usr/local/bin/docker-compose -L \
+			https://github.com/docker/compose/releases/download/1.5.2/docker-compose-`uname -s`-`uname -m`
+	@ sudo chmod +x /usr/local/bin/docker-compose
 
 
 config-mongodb:
