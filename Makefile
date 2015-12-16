@@ -78,24 +78,8 @@ config-mongodb:
 				echo ''; \
 				echo '# Disable Transparent Hugepage, for Mongo'; \
 				echo '#'; \
-				echo 'function dockin()'; \
-				echo '{'; \
-				echo '  if [ $$# -eq 0 ]'; \
-				echo '  then'; \
-				echo '		echo "Please pass a docker container to enter"'; \
-				echo '		echo "Usage: dockin [containerToEnter]"'; \
-				echo '	else'; \
-				echo '		sudo docker exec -it $$1 /bin/bash'; \
-				echo '	fi'; \
-				echo '}'; \
-				echo ''; \
-				echo '# Function to remove stopped containers and untagged images'; \
-				echo '#'; \
-				echo 'function dclean()'; \
-				echo '{'; \
-				echo '  sudo docker rm $$(sudo docker ps -a -q)'; \
-				echo "  sudo docker rmi \$$(sudo docker images | grep '^<none>' | awk '{print \$$3}')"; \
-				echo '}'; \
+				echo 'echo never > /sys/kernel/mm/transparent_hugepage/enabled'; \
+				echo 'echo never > /sys/kernel/mm/transparent_hugepage/defrag'; \
 				echo ''; \
 				echo 'exit 0'; \
 			) | sudo tee -a /etc/rc.local; \
