@@ -16,28 +16,28 @@
 
 
 auth:
-  image: pdcbc/auth:master
+  image: pdcbc/auth:latest
 
 
 composer:
-  image: pdcbc/composer:master
+  image: pdcbc/composer:latest
 
 
 dclapi:
-  image: pdcbc/dclapi:master
+  image: pdcbc/dclapi:latest
 
 
 hapi:
-  image: pdcbc/hapi:master
+  image: pdcbc/hapi:latest
 
 
 hubdb:
-  image: pdcbc/hubdb:master
+  image: pdcbc/hubdb:latest
 
 
 query_importer:
-  image: pdcbc/query_importer:master
+  image: pdcbc/query_importer:latest
 
 
 viz:
-  image: pdcbc/viz:master
+  image: pdcbc/viz:latest
