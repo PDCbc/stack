@@ -8,6 +8,7 @@
 
 auth:
   container_name: auth
+  hostname: auth
   image: pdcbc/auth:prod
   restart: always
   log_driver: "syslog"
@@ -17,6 +18,7 @@ auth:
 
 composer:
   container_name: composer
+  hostname: composer
   image: pdcbc/composer:prod
   restart: always
   log_driver: "syslog"
@@ -32,6 +34,7 @@ composer:
 
 dclapi:
   container_name: dclapi
+  hostname: dclapi
   image: pdcbc/dclapi:prod
   restart: always
   log_driver: "syslog"
@@ -39,6 +42,7 @@ dclapi:
 
 hapi:
   container_name: hapi
+  hostname: hapi
   image: pdcbc/hapi:prod
   restart: always
   log_driver: "syslog"
@@ -50,6 +54,7 @@ hapi:
 
 hubdb:
   container_name: hubdb
+  hostname: hubdb
   image: pdcbc/hubdb:prod
   restart: always
   log_driver: "syslog"
@@ -60,6 +65,7 @@ hubdb:
 
 query_importer:
   container_name: query_importer
+  hostname: query_importer
   image: pdcbc/query_importer:prod
   log_driver: "json-file"
   links:
