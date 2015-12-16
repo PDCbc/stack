@@ -4,7 +4,7 @@
 
 default: configure prod
 
-configure: config-docker config-compose config-mongodb config-bash
+configure: config-packages config-mongodb config-bash
 
 
 ###################
@@ -56,14 +56,13 @@ endef
 # Configuration #
 #################
 
-config-docker:
+config-packages:
 	@	sudo apt-get update
-	@	sudo apt-get install -y linux-image-extra-$$(uname -r)
+	@	sudo apt-get install -y \
+			linux-image-extra-$$(uname -r) \
+			curl
 	@	sudo modprobe aufs
 	@	wget -qO- https://get.docker.com/ | sh
-
-
-config-compose:
 	@ sudo curl -o /usr/local/bin/docker-compose -L \
 			https://github.com/docker/compose/releases/download/1.5.2/docker-compose-`uname -s`-`uname -m`
 	@ sudo chmod +x /usr/local/bin/docker-compose
