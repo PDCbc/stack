@@ -16,35 +16,42 @@
 
 
 auth:
-  log_driver: "json-file"
 #  build: /vagrant/auth
+#  image: pdcbc/auth:prod
+  log_driver: "json-file"
 
 
 composer:
-  log_driver: "json-file"
 #  build: /vagrant/composer
+#  image: pdcbc/composer:prod
+  log_driver: "json-file"
 
 
 dclapi:
-  log_driver: "json-file"
 #  build: /vagrant/dclapi
+#  image: pdcbc/dclapi:prod
+  log_driver: "json-file"
 
 
 hapi:
-  log_driver: "json-file"
 #  build: /vagrant/hapi
+#  image: pdcbc/hapi:prod
+  log_driver: "json-file"
 
 
 hubdb:
-  log_driver: "json-file"
 #  build: /vagrant/hubdb
+#  image: pdcbc/hubdb:prod
+  log_driver: "json-file"
 
 
 query_importer:
-  log_driver: "json-file"
 #  build: /vagrant/query_importer
+#  image: pdcbc/query_importer:prod
+  log_driver: "json-file"
 
 
 viz:
-  log_driver: "json-file"
 #  build: /vagrant/viz
+#  image: pdcbc/viz:prod
+  log_driver: "json-file"
