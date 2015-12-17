@@ -51,6 +51,8 @@ hapi:
     - auth:auth
     - hubdb:hubdb
     - dclapi:dclapi
+  volumes:
+    - /pdc/data/config/groups/:/home/app/groups:rw
 
 
 hubdb:
