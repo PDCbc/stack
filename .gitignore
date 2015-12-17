@@ -11,12 +11,7 @@
 *.rar
 .vagrant/
 build/
-ssh/*
-!ssh/README.md
-cert/*
-!cert/README.md
-util/providers.csv
-
+dev-yml/build-local.yml
 
 ########################
 ### GitHub Suggested ###

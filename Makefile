@@ -21,7 +21,9 @@ dev:
 	@ $(call deploy,branch-dev.yml)
 
 local:
-	@ $(call deploy,./dev/build-local.yml)
+	[ -s ./dev-yml/build-local.yml ]|| \
+		sudo cp ./dev-yml/build-local.yml-sample ./dev-yml/build-local.yml
+	@ $(call deploy,build-local.yml)
 
 clean:
 	@ sudo docker rm $$( sudo docker ps -a -q ) || true
