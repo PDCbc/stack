@@ -23,7 +23,7 @@ dev:
 local:
 	@ [ -s ./dev/build.yml ]|| \
 		sudo cp ./dev/build.yml-sample ./dev/build.yml
-	@ $(call deploy,prod,"-f docker-compose.yml -f ./dev/build.yml")
+	@ $(call deploy,prod,-f docker-compose.yml -f ./dev/build.yml)
 
 clean:
 	@ sudo docker rm $$( sudo docker ps -a -q ) || true
