@@ -12,18 +12,18 @@ configure: config-packages config-mongodb config-bash
 ###################
 
 prod:
-	@ $(call deploy)
+	@ $(call deploy,prod)
 
 master:
-	@ $(call deploy,branch-master.yml)
+	@ $(call deploy,latest)
 
 dev:
-	@ $(call deploy,branch-dev.yml)
+	@ $(call deploy,dev)
 
 local:
-	[ -s ./dev-yml/build-local.yml ]|| \
-		sudo cp ./dev-yml/build-local.yml-sample ./dev-yml/build-local.yml
-	@ $(call deploy,build-local.yml)
+	@ [ -s ./dev/build.yml ]|| \
+		sudo cp ./dev/build.yml-sample ./dev/build.yml
+	$(call deploy,prod,"-f docker-compose.yml -f ./dev/build.yml")
 
 clean:
 	@ sudo docker rm $$( sudo docker ps -a -q ) || true
@@ -40,17 +40,15 @@ queries:
 # Deploy prod, master, dev or local
 #
 define deploy
-		#  1=secondary .YML file, optional
+		# 1=TAG (required)
+		# 2=2ndary .YML file (optional)
 		#
-		YML_RUN="-f ./docker-compose.yml"; \
-		[ -z $1 ]|| \
-			YML_RUN=$${YML_RUN}" -f ./dev-yml/"$1; \
-		\
-		sudo docker-compose $${YML_RUN} pull; \
-		sudo docker-compose $${YML_RUN} build; \
-		sudo docker-compose $${YML_RUN} stop; \
-		sudo docker-compose $${YML_RUN} rm -f; \
-		sudo docker-compose $${YML_RUN} up -d
+		echo sudo TAG=$1 docker-compose $2 pull
+		sudo TAG=$1 docker-compose $2 pull
+		sudo TAG=$1 docker-compose $2 build
+		sudo TAG=$1 docker-compose $2 stop
+		sudo TAG=$1 docker-compose $2 rm -f
+		sudo TAG=$1 docker-compose $2 up -d
 endef
 
 

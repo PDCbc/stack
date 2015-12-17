@@ -9,7 +9,7 @@
 auth:
   container_name: auth
   hostname: auth
-  image: pdcbc/auth:prod
+  image: pdcbc/auth:${TAG}
   restart: always
   log_driver: "syslog"
   volumes:

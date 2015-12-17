@@ -1,0 +1,89 @@
+# Development Docker Compose file for the PDC's Hub Stack
+#
+#
+# Settings here supplement and override those in the primary .YML file.
+# Only build or image can be used at once.  E.g.:
+#
+# container:
+#   build: /path/to/Dockerfile
+#   log_driver: "json-file"
+#   environment:
+#     - VARIABLE=value
+#
+# https://docs.docker.com/compose/compose-file/
+
+
+auth:
+#  build: /vagrant/build/auth
+#  image: pdcbc/auth:prod
+  log_driver: "json-file"
+  ports:
+    - "3005:3005"
+    - "3006:3006"
+  environment:
+    - PORT_AUTH_M=3005
+    - PORT_AUTH_C=3006
+    - DACS_FEDERATION=pdc.dev
+    - DACS_JURISDICTION=test
+    - NODE_TLS_REJECT_UNAUTHORIZED=0
+    - NODE_SECRET=notVerySecret
+
+
+composer:
+#  build: /vagrant/build/composer
+#  image: pdcbc/composer:prod
+  log_driver: "json-file"
+
+
+dclapi:
+#  build: /vagrant/build/dclapi
+#  image: pdcbc/dclapi:prod
+  log_driver: "json-file"
+  ports:
+    - "3007:3007"
+  environment:
+    - PORT_DCLAPI=3007
+
+
+hapi:
+#  build: /vagrant/build/hapi
+#  image: pdcbc/hapi:prod
+  log_driver: "json-file"
+  ports:
+    - "3003:3003"
+  environment:
+    - URL_HAPI=https://hapi:3003
+    - DACS_FEDERATION=pdc.dev
+    - DACS_JURISDICTION=test
+    - NODE_TLS_REJECT_UNAUTHORIZED=0
+    - NODE_SECRET=notVerySecret
+
+
+hubdb:
+#  build: /vagrant/build/hubdb
+#  image: pdcbc/hubdb:prod
+  log_driver: "json-file"
+  ports:
+    - "27017:27017"
+
+
+query_importer:
+#  build: /vagrant/build/queryImporter
+#  image: pdcbc/query_importer:prod
+  log_driver: "json-file"
+
+
+viz:
+#  build: /vagrant/build/viz
+#  image: pdcbc/viz:prod
+  log_driver: "json-file"
+  environment:
+    - PORT_AUTH_M=3005
+    - PORT_AUTH_C=3006
+    - PORT_HAPI=3003
+    - PORT_VIZ=3004
+    - PORT_VIZ_HTTP=3008
+    - DACS_FEDERATION=pdc.dev
+    - DACS_JURISDICTION=test
+    - NODE_TLS_REJECT_UNAUTHORIZED=0
+    - NODE_SECRET=notVerySecret
