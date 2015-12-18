@@ -32,6 +32,9 @@ clean:
 queries:
 	@ sudo docker-compose start query_importer
 
+local-queries:
+	@ sudo docker-compose start -f docker-compose.yml -f ./dev/build.yml query_importer
+
 
 #################
 # Configuration #
@@ -43,7 +46,6 @@ define deploy
 		# 1=TAG (required)
 		# 2=2ndary .YML file (optional)
 		#
-		echo sudo TAG=$1 docker-compose $2 pull
 		sudo TAG=$1 docker-compose $2 pull
 		sudo TAG=$1 docker-compose $2 build
 		sudo TAG=$1 docker-compose $2 stop
