@@ -2,7 +2,7 @@
 # General Jobs #
 ################
 
-default: configure prod
+default: configure base
 
 configure: config-packages config-mongodb config-bash
 
@@ -11,8 +11,11 @@ configure: config-packages config-mongodb config-bash
 # Individual jobs #
 ###################
 
-prod:
+base:
 	@ $(call deploy,prod)
+
+prod:
+	@ $(call deploy,prod,-f ./compose/prod.yml)
 
 master:
 	@ $(call deploy,latest)
@@ -21,9 +24,9 @@ dev:
 	@ $(call deploy,dev)
 
 local:
-	@ [ -s ./dev/build.yml ]|| \
-		sudo cp ./dev/build.yml-sample ./dev/build.yml
-	@ $(call deploy,prod,-f docker-compose.yml -f ./dev/build.yml)
+	@ [ -s ./compose/build.yml ]|| \
+		sudo cp ./compose/build.yml-sample ./compose/build.yml
+	@ $(call deploy,prod,-f ./compose/build.yml)
 
 clean:
 	@ sudo docker rm $$( sudo docker ps -a -q ) || true
@@ -33,7 +36,7 @@ queries:
 	@ sudo docker-compose start query_importer
 
 local-queries:
-	@ sudo docker-compose start -f docker-compose.yml -f ./dev/build.yml query_importer
+	@ sudo docker-compose start -f ./compose/base.yml -f ./compose/build.yml query_importer
 
 
 #################
@@ -46,11 +49,11 @@ define deploy
 		# 1=TAG (required)
 		# 2=2ndary .YML file (optional)
 		#
-		sudo TAG=$1 docker-compose $2 pull
-		sudo TAG=$1 docker-compose $2 build
-		sudo TAG=$1 docker-compose $2 stop
-		sudo TAG=$1 docker-compose $2 rm -f
-		sudo TAG=$1 docker-compose $2 up -d
+		sudo TAG=$1 docker-compose -f ./compose/base.yml $2 pull
+		sudo TAG=$1 docker-compose -f ./compose/base.yml $2 build
+		sudo TAG=$1 docker-compose -f ./compose/base.yml $2 stop
+		sudo TAG=$1 docker-compose -f ./compose/base.yml $2 rm -f
+		sudo TAG=$1 docker-compose -f ./compose/base.yml $2 up -d
 endef
 
 
@@ -71,8 +74,8 @@ config-packages:
 
 
 config-mongodb:
-	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled )> /dev/null
-	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag )> /dev/null
+	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled )> /compose/null
+	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag )> /compose/null
 	@	if(! grep --quiet 'never > /sys/kernel/mm/transparent_hugepage/enabled' /etc/rc.local ); \
 		then \
 			sudo sed -i '/exit 0/d' /etc/rc.local; \

@@ -14,7 +14,7 @@
 
 
 auth:
-#  build: /vagrant/build/auth
+#  build: ./build/auth
 #  image: pdcbc/auth:prod
   log_driver: "json-file"
   ports:
@@ -30,13 +30,13 @@ auth:
 
 
 composer:
-#  build: /vagrant/build/composer
+#  build: ./build/composer
 #  image: pdcbc/composer:prod
   log_driver: "json-file"
 
 
 dclapi:
-#  build: /vagrant/build/dclapi
+#  build: ./build/dclapi
 #  image: pdcbc/dclapi:prod
   log_driver: "json-file"
   ports:
@@ -46,7 +46,7 @@ dclapi:
 
 
 hapi:
-#  build: /vagrant/build/hapi
+#  build: ./build/hapi
 #  image: pdcbc/hapi:prod
   log_driver: "json-file"
   ports:
@@ -60,7 +60,7 @@ hapi:
 
 
 hubdb:
-#  build: /vagrant/build/hubdb
+#  build: ./build/hubdb
 #  image: pdcbc/hubdb:prod
   log_driver: "json-file"
   ports:
@@ -68,13 +68,13 @@ hubdb:
 
 
 query_importer:
-#  build: /vagrant/build/queryImporter
+#  build: ./build/queryImporter
 #  image: pdcbc/query_importer:prod
   log_driver: "json-file"
 
 
 viz:
-#  build: /vagrant/build/viz
+#  build: ./build/viz
 #  image: pdcbc/viz:prod
   log_driver: "json-file"
   environment:
