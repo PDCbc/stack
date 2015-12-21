@@ -2,7 +2,7 @@
 # General Jobs #
 ################
 
-default: configure base
+default: configure deploy
 
 configure: config-packages config-mongodb config-bash
 
@@ -12,48 +12,39 @@ configure: config-packages config-mongodb config-bash
 ###################
 
 base:
-	@ $(call deploy,prod)
+	$(call deploy)
 
-prod:
-	@ $(call deploy,prod,-f ./compose/prod.yml)
-
-master:
-	@ $(call deploy,latest)
-
-dev:
-	@ $(call deploy,dev)
+deploy:
+	$(call deploy)
 
 local:
-	@ [ -s ./compose/build.yml ]|| \
-		sudo cp ./compose/build.yml-sample ./compose/build.yml
-	@ $(call deploy,prod,-f ./compose/build.yml)
+	$(call deploy)
 
 clean:
 	@ sudo docker rm $$( sudo docker ps -a -q ) || true
 	@ sudo docker rmi $$( sudo docker images | grep '^<none>' | awk '{print $$3}' )
 
 queries:
-	@ sudo docker-compose start query_importer
-
-local-queries:
-	@ sudo docker-compose start -f ./compose/base.yml -f ./compose/build.yml query_importer
+	@ $(call start,query_importer)
 
 
 #################
 # Configuration #
 #################
 
-# Deploy prod, master, dev or local
+# Deploy base.yml, optionally uses a 2nd .YML
 #
 define deploy
-		# 1=TAG (required)
-		# 2=2ndary .YML file (optional)
-		#
-		sudo TAG=$1 docker-compose -f ./compose/base.yml $2 pull
-		sudo TAG=$1 docker-compose -f ./compose/base.yml $2 build
-		sudo TAG=$1 docker-compose -f ./compose/base.yml $2 stop
-		sudo TAG=$1 docker-compose -f ./compose/base.yml $2 rm -f
-		sudo TAG=$1 docker-compose -f ./compose/base.yml $2 up -d
+	sudo TAG=$(TAG) docker-compose -f ./compose/base.yml $(YML2) pull
+	sudo TAG=$(TAG) docker-compose -f ./compose/base.yml $(YML2) build
+	sudo TAG=$(TAG) docker-compose -f ./compose/base.yml $(YML2) up -d
+endef
+
+
+# Start a stopped container ($1), optionally uses a 2nd .YML ($2)
+#
+define start
+	sudo TAG=$(TAG) docker-compose -f ./compose/base.yml $(YML2) start $1
 endef
 
 
@@ -134,3 +125,29 @@ config-bash:
 			echo "Please log in/out for changes to take effect!"; \
 			echo ""; \
 		fi
+
+
+################
+# Runtime prep #
+###############
+
+
+# Default tag is prod, rename master to latest (~same)
+#
+TAG ?= prod
+ifeq ($(TAG),master)
+	TAG=latest
+endif
+
+
+# Default build mode is
+#
+MODE ?= prod
+#YML2 ?= fail
+ifeq ($(MODE),prod)
+	YML2=-f ./compose/prod.yml
+else ifeq ($(MODE),build)
+	YML2=-f ./compose/build.yml
+else
+	YML2=
+endif
