@@ -19,7 +19,7 @@ auth:
 composer:
   container_name: composer
   hostname: composer
-  image: pdcbc/composer:prod
+  image: pdcbc/composer:${TAG}
   restart: always
   log_driver: "syslog"
   links:
@@ -30,13 +30,14 @@ composer:
   volumes:
     - /pdc/data/config/authorized_keys/:/home/autossh/.ssh/:rw
     - /pdc/data/config/composer_keys/:/etc/ssh/
-    - /pdc/data/config/scheduled_jobs/:/app/util/job_params:rw
+    - /pdc/data/config/ep_known_hosts/:/root/.ssh/known_hosts/:rw
+    - /pdc/data/config/scheduled_jobs/:/app/util/job_params/:rw
 
 
 dclapi:
   container_name: dclapi
   hostname: dclapi
-  image: pdcbc/dclapi:prod
+  image: pdcbc/dclapi:${TAG}
   restart: always
   log_driver: "syslog"
 
@@ -44,7 +45,7 @@ dclapi:
 hapi:
   container_name: hapi
   hostname: hapi
-  image: pdcbc/hapi:prod
+  image: pdcbc/hapi:${TAG}
   restart: always
   log_driver: "syslog"
   links:
@@ -58,7 +59,7 @@ hapi:
 hubdb:
   container_name: hubdb
   hostname: hubdb
-  image: pdcbc/hubdb:prod
+  image: pdcbc/hubdb:${TAG}
   restart: always
   log_driver: "syslog"
   volumes:
@@ -69,15 +70,15 @@ hubdb:
 query_importer:
   container_name: query_importer
   hostname: query_importer
-  image: pdcbc/query_importer:prod
-  log_driver: "json-file"
+  image: pdcbc/query_importer:${TAG}
+  log_driver: "syslog"
   links:
     - hubdb:hubdb
 
 
 viz:
   container_name: viz
-  image: pdcbc/viz:prod
+  image: pdcbc/viz:${TAG}
   restart: always
   log_driver: "syslog"
   links:
