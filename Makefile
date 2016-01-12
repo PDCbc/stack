@@ -16,9 +16,6 @@ deploy:
 	@	sudo TAG=$(TAG) docker-compose $(YML) build
 	@	sudo TAG=$(TAG) docker-compose $(YML) up -d
 
-queries:
-	@	sudo TAG=$(TAG) docker-compose $(YML) start query_importer
-
 config-docker:
 	@ wget -qO- https://raw.githubusercontent.com/PDCbc/devops/master/docker_setup.sh | sh
 
