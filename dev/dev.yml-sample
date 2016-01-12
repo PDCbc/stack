@@ -1,0 +1,85 @@
+# Development Docker Compose file for the PDC's Hub Stack
+#
+#
+# Settings here supplement and override those in the primary .YML file.
+# E.g.:
+#
+# container:
+#   build: /path/to/Dockerfile
+#   log_driver: "json-file"
+#   environment:
+#     - VARIABLE=value
+#
+# https://docs.docker.com/compose/compose-file/
+
+
+auth:
+  log_driver: "json-file"
+  ports:
+    - "3005:3005"
+    - "3006:3006"
+#  build: ./build/auth
+#  environment:
+#    - PORT_AUTH_M=3005
+#    - PORT_AUTH_C=3006
+#    - DACS_FEDERATION=pdc.dev
+#    - DACS_JURISDICTION=test
+#    - NODE_TLS_REJECT_UNAUTHORIZED=0
+#    - NODE_SECRET=notVerySecret
+
+
+composer:
+  log_driver: "json-file"
+#  build: ./build/composer
+
+
+dclapi:
+  log_driver: "json-file"
+  ports:
+    - "3007:3007"
+#  build: ./build/dclapi
+#  environment:
+#    - PORT_DCLAPI=3007
+
+
+hapi:
+  log_driver: "json-file"
+  ports:
+    - "3003:3003"
+#  build: ./build/hapi
+#  environment:
+#    - PORT_AUTH_C=3006
+#    - PORT_DCLAPI=3007
+#    - PORT_HAPI=3003
+#    - DACS_FEDERATION=pdc.dev
+#    - NODE_TLS_REJECT_UNAUTHORIZED=0
+#    - NODE_SECRET=notVerySecret
+
+
+hubdb:
+  log_driver: "json-file"
+  ports:
+    - "27017:27017"
+#  build: ./build/hubdb
+
+
+query_importer:
+  log_driver: "json-file"
+#  build: ./build/queryImporter
+#  environment:
+#    - SKIP_INITS=false
+
+
+viz:
+  log_driver: "json-file"
+#  build: ./build/viz
+#  environment:
+#    - PORT_AUTH_M=3005
+#    - PORT_AUTH_C=3006
+#    - PORT_HAPI=3003
+#    - PORT_VIZ=3004
+#    - PORT_VIZ_HTTP=3008
+#    - DACS_FEDERATION=pdc.dev
+#    - DACS_JURISDICTION=test
+#    - NODE_TLS_REJECT_UNAUTHORIZED=0
+#    - NODE_SECRET=notVerySecret
