@@ -54,6 +54,6 @@ endif
 YML ?= -f ./docker-compose.yml
 ifeq ($(MODE),prod)
 	YML += -f ./compose/prod.yml
-else ifeq ($(MODE),build)
+else ifeq ($(MODE),dev)
 	YML += -f ./dev/dev.yml
 endif
