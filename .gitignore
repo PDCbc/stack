@@ -10,8 +10,8 @@
 *.zip
 *.rar
 .vagrant/
-build/
-dev-yml/build-local.yml
+dev/*/
+dev/dev.yml
 
 ########################
 ### GitHub Suggested ###
