@@ -18,7 +18,7 @@ auth:
   ports:
     - "3005:3005"
     - "3006:3006"
-#  build: ./build/auth
+#  build: ./dev/auth
 #  environment:
 #    - PORT_AUTH_M=3005
 #    - PORT_AUTH_C=3006
@@ -30,14 +30,14 @@ auth:
 
 composer:
   log_driver: "json-file"
-#  build: ./build/composer
+#  build: ./dev/composer
 
 
 dclapi:
   log_driver: "json-file"
   ports:
     - "3007:3007"
-#  build: ./build/dclapi
+#  build: ./dev/dclapi
 #  environment:
 #    - PORT_DCLAPI=3007
 
@@ -46,7 +46,7 @@ hapi:
   log_driver: "json-file"
   ports:
     - "3003:3003"
-#  build: ./build/hapi
+#  build: ./dev/hapi
 #  environment:
 #    - PORT_AUTH_C=3006
 #    - PORT_DCLAPI=3007
@@ -60,19 +60,12 @@ hubdb:
   log_driver: "json-file"
   ports:
     - "27017:27017"
-#  build: ./build/hubdb
-
-
-query_importer:
-  log_driver: "json-file"
-#  build: ./build/queryImporter
-#  environment:
-#    - SKIP_INITS=false
+#  build: ./dev/hubdb
 
 
 viz:
   log_driver: "json-file"
-#  build: ./build/viz
+#  build: ./dev/viz
 #  environment:
 #    - PORT_AUTH_M=3005
 #    - PORT_AUTH_C=3006
