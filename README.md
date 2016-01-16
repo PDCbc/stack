@@ -65,6 +65,6 @@ MODE=dev TAG=dev make
 Default paths are broken into private and configuration (not private) folders.
 For consistency, use a similar path for this repo.
 
-* DevOps: /pdc/data/stack
+* DevOps: /pdc/stack
 * Private: /pdc/data/private
 * Configuration: /pdc/data/config
