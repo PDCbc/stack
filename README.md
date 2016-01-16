@@ -1,6 +1,6 @@
 # PDC Server Stack DevOps Scripts
 
-## Deploy via https://hub.docker.com/r/pdcbc
+## Deploy with Docker Hub
 
 This will also install Docker and disable transparent_hugepage for MongoDB.
 
@@ -9,6 +9,8 @@ git clone https://github.com/pdcbc/stack.git
 cd stack
 make
 ```
+
+PDC images are found at https://hub.docker.com/r/pdcbc
 
 ## Dependencies
 
@@ -29,7 +31,7 @@ make configure
 To build using select local repositories:
 
  * Copy ./dev/dev.yml-sample to ./dev/dev.yml
- * This file has been excluded in .gitignore
+  * This file has been excluded in .gitignore
  * Uncomment the appropriate line in ./dev/dev.yml
   * e.g. build: './dev/<repository>' in ./dev/dev.yml
  * Clone repositories to dev
@@ -63,6 +65,6 @@ MODE=dev TAG=dev make
 Default paths are broken into private and configuration (not private) folders.
 For consistency, use a similar path for this repo.
 
+* DevOps: /pdc/data/stack
 * Private: /pdc/data/private
 * Configuration: /pdc/data/config
-* DevOps: /pdc/data/stack
