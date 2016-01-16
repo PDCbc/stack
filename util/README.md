@@ -1,1 +1,1 @@
-The providers.csv file contains data for each provider.
+Use this folder only for scripts that access and pass parameters to containers.
