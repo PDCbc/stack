@@ -40,20 +40,16 @@ config-mongodb:
 
 ################
 # Runtime prep #
-###############
+################
 
-# Default tag is prod, rename master to latest (~same)
+# Default tag is latest
 #
-TAG ?= prod
-ifeq ($(TAG),master)
-	TAG=latest
-endif
+TAG ?= latest
+
 
 # Default YML is base.yml
 #
 YML ?= -f ./docker-compose.yml
-ifeq ($(MODE),prod)
-	YML += -f ./compose/prod.yml
-else ifeq ($(MODE),dev)
+ifeq ($(MODE),dev)
 	YML += -f ./dev/dev.yml
 endif
