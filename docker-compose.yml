@@ -29,7 +29,7 @@ composer:
     - "3002:3002"
   volumes:
     - /pdc/data/config/authorized_keys/:/home/autossh/.ssh/:rw
-    - /pdc/data/config/composer_keys/:/etc/ssh/
+    - /pdc/data/config/composer_keys/:/etc/ssh/:rw
     - /pdc/data/config/ep_known_hosts/:/root/.ssh/:rw
     - /pdc/data/config/scheduled_jobs/:/app/util/job_params/:rw
 
