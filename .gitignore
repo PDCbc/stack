@@ -10,6 +10,7 @@
 *.zip
 *.rar
 .vagrant/
+.directory
 dev/*/
 dev/dev.yml
 
