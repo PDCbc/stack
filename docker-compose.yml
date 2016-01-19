@@ -79,3 +79,5 @@ viz:
   ports:
     - "443:3004"
     - "80:3008"
+  volumes:
+    - /pdc/data/config/cert/:/app/cert/:ro
