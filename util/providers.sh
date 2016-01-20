@@ -153,7 +153,7 @@ do
 		sudo docker exec hapi node /app/util/update_filter_providers.js ${PROVIDER_HASH} PPhRR
 		sudo ./providers/add_user_to_group.py ${PROVIDER_HASH} "\""${PPHRR}"\"" "PPhRR" ${GROUPS_FILE}
 	fi
-	if [ ${${PRACTICEREFLECTION}} != 0 ]; then
+	if [ ${PRACTICEREFLECTION} != 0 ]; then
 		sudo docker exec hapi node /app/util/update_filter_providers.js ${PROVIDER_HASH} PopulationHealth
 		sudo ./providers/add_user_to_group.py ${PROVIDER_HASH} "\""${POPULATIONHEALTH}"\"" "PopulationHealth" ${GROUPS_FILE}
 	fi
