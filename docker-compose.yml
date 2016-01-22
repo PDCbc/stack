@@ -53,7 +53,7 @@ hapi:
     - hubdb:hubdb
     - dclapi:dclapi
   volumes:
-    - /pdc/data/config/groups/:/home/app/groups/:rw
+    - /pdc/data/config/groups/:/volumes/groups/:rw
 
 
 hubdb:
