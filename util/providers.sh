@@ -10,7 +10,7 @@ PROVIDERS_FILE=${2:-"/pdc/data/private/providers/providers.csv"}
 #
 GROUPS_FILE=${GROUPS_FILE:-"/pdc/data/config/groups/groups.json"}
 JURI=${JURI:-"TEST"}
-PROVIDERS_TEMP=temp_$(date +%F_%H:%M).csv
+PROVIDERS_TEMP=PROVIDERS_TEMP.csv
 
 
 # Check input
