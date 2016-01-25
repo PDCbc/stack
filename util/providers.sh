@@ -84,10 +84,10 @@ then
 
 		# Set group defaults
 		#
-		ATTACHMENT_GROUP=${ATTACHMENT_GROUP:-"attachment-default"}
-		PPHRR_GROUP=${PPHRR_GROUP:-"polypharmacy-default"}
-		PR_GROUP=${PR_GROUP:-"practicereflection-default"}
-		PH_GROUP=${PH_GROUP:-"populationhealth-default"}
+		ATTACHMENT_GROUP=${ATTACHMENT_GROUP:-"attch-default"}
+		PPHRR_GROUP=${PPHRR_GROUP:-"pphrr-default"}
+		PR_GROUP=${PR_GROUP:-"pr-default"}
+		PH_GROUP=${PH_GROUP:-"ph-default"}
 
 
 		# CheConfirm details with user
