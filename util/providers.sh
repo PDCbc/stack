@@ -69,8 +69,8 @@ then
 
 		# Verify CPSID is five digits and set endpoint name from gateway_id
 		#
-		CPSID=$(printf "%05d" ${CPSID})
-		EP=pdc-$(printf "%04d" ${GATEWAY_NO})
+		CPSID=$( echo 00000${CPSID} | tail -c6 )
+		EP=pdc-$( echo 0000${GATEWAY_NO} | tail -c5 )
 
 
 		# Getgroup details
