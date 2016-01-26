@@ -22,3 +22,8 @@ sudo docker exec -it composer /bin/bash -c 'cd /app/util/retroImporter/; QUERY_T
 sudo docker exec -t hapi /bin/bash -c 'cd /app/lib/util/; QUERY=PDC-001 GROUP=\"FNW-attachment\" EXECUTION_DATE=24 node generateReports.js'
 sudo docker exec -t hapi /bin/bash -c 'cd /app/lib/util/; QUERY=PDC-1740 GROUP=\"FNW-attachment\" EXECUTION_DATE=24 node generateReports.js'
 sudo docker exec -t hapi /bin/bash -c 'cd /app/lib/util/; QUERY=PDC-1738 GROUP=\"FNW-attachment\" EXECUTION_DATE=24 node generateReports.js'
+
+
+# Move reports to Docker volumes
+#
+sudo docker exec -t hapi /bin/bash -c 'mv /app/lib/util/*.csv /volumes/reports/'
