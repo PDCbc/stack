@@ -54,6 +54,8 @@ hapi:
     - dclapi:dclapi
   volumes:
     - /pdc/data/config/groups/:/volumes/groups/:rw
+    - /pdc/data/private/reports/:/volumes/reports/:rw
+
 
 
 hubdb:
