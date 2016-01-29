@@ -24,7 +24,7 @@ sudo docker exec -t hapi /bin/bash -c 'cd /app/lib/util/; QUERY=PDC-1740 GROUP=\
 
 # 8. Run generateReports.js, which calls masterReport.js and AttachedActivePatientReport.js
 #
-sudo docker exec -t hapi /bin/bash -c 'cd /app/lib/util/; QUERY=PDC-1738 GROUP=\"FNW-attachment\" EXECUTION_DATE=24 node generateReports.js'
+sudo docker exec -t hapi /bin/bash -c 'cd /app/lib/util/; QUERY=PDC-1738 GROUP=\"FNW-attachment\" EXECUTION_DATE=27 node generateReports.js'
 
 
 # 9. Move reports to Docker volumes
