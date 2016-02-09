@@ -4,7 +4,7 @@
 
 default: configure deploy
 
-configure: config-packages config-mongodb config-bash
+configure: config-docker config-mongodb
 
 
 ###################
@@ -20,8 +20,8 @@ config-docker:
 	@ wget -qO- https://raw.githubusercontent.com/PDCbc/devops/master/docker_setup.sh | sh
 
 config-mongodb:
-	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled )> /compose/null
-	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag )> /compose/null
+	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled )> /dev/null
+	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag )> /dev/null
 	@	if(! grep --quiet 'never > /sys/kernel/mm/transparent_hugepage/enabled' /etc/rc.local ); \
 		then \
 			sudo sed -i '/exit 0/d' /etc/rc.local; \
